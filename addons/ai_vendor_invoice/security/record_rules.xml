@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- © 2024 Wukong Digital. License LGPL-3. -->
+<!--
+  Record rules for wd_ai_vendor_invoice:
+  - AI Invoice User: can only see their own tasks (created_uid).
+  - Reviewer / Config Manager: can see all tasks (no domain restriction).
+-->
+<odoo>
+    <data noupdate="1">
+
+        <!-- User-role: restrict task visibility to records created by the current user -->
+        <record id="rule_import_task_own_user" model="ir.rule">
+            <field name="name">Import Task: User sees own tasks only</field>
+            <field name="model_id" ref="model_vendor_invoice_import_task"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('wd_ai_vendor_invoice.group_ai_invoice_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Reviewer: sees all tasks (open domain) -->
+        <record id="rule_import_task_all_reviewer" model="ir.rule">
+            <field name="name">Import Task: Reviewer sees all tasks</field>
+            <field name="model_id" ref="model_vendor_invoice_import_task"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('wd_ai_vendor_invoice.group_reviewer'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Config Manager: sees all tasks (open domain) -->
+        <record id="rule_import_task_all_config_manager" model="ir.rule">
+            <field name="name">Import Task: Config Manager sees all tasks</field>
+            <field name="model_id" ref="model_vendor_invoice_import_task"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('wd_ai_vendor_invoice.group_config_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+    </data>
+</odoo>
