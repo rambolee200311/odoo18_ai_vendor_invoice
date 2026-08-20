@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- © 2024 Wukong Digital. License LGPL-3. -->
+<!--
+  Cron: periodically scan parsing tasks and mark timed-out ones.
+  T-026: timeout baseline is task.enter_parsing_datetime; covers queued + running.
+  Business logic lives in timeout_service (Intent-2); stub method called here.
+-->
+<odoo>
+    <data noupdate="1">
+
+        <record id="ir_cron_check_parsing_timeout" model="ir.cron">
+            <field name="name">WD AI: Check Parsing Timeout</field>
+            <field name="model_id" ref="model_vendor_invoice_import_task"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_check_parsing_timeout()</field>
+            <field name="interval_number">5</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+            <field name="doall">False</field>
+        </record>
+
+    </data>
+</odoo>
