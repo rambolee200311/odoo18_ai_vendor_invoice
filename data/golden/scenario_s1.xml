@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-    <!-- S1: Terminal → Warehouse (plan_driven) -->
-    <record id="golden_s1_request" model="tlmp.transport.request">
-        <field name="request_type">plan_driven</field>
-        <field name="destination_type">warehouse</field>
-        <field name="cargo_type">container</field>
-    </record>
-</odoo>

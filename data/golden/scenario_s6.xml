@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-    <!-- S6: Customer Return (commercial) -->
-    <record id="golden_s6_request" model="tlmp.transport.request">
-        <field name="request_type">commercial</field>
-        <field name="destination_type">warehouse</field>
-        <field name="cargo_type">pallet</field>
-    </record>
-</odoo>
