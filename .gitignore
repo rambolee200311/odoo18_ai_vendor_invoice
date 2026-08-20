@@ -1,0 +1,41 @@
+# 虚拟环境（绝对不要提交）
+venv/
+.env/
+.venv/
+env/
+ENV/
+odoo/
+odoo.egg-info/
+setup/
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 构建/包文件
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Odoo 运行时文件
+*.log
+debug_logs/
+execution/
+filestore/
+
+# 敏感配置（包含数据库密码、admin密码，绝对不要提交）
+odoo.conf
+odoo.conf.*
+
+# 编辑器/IDE 配置（按需保留，团队共享可提交则删除对应行）
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# 临时文件
+*.bak
+*.tmp

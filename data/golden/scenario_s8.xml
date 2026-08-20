@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- S8: Empty Container Move (container.service request → order) -->
+    <record id="golden_s8_container" model="tlmp.container.master">
+        <field name="container_no">GOLDEN_MSCU1234567</field>
+        <field name="container_type">40HQ</field>
+    </record>
+</odoo>

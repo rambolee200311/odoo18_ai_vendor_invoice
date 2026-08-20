@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- S5: Warehouse Transfer (plan_driven) -->
+    <record id="golden_s5_request" model="tlmp.transport.request">
+        <field name="request_type">plan_driven</field>
+        <field name="destination_type">warehouse_transfer</field>
+        <field name="cargo_type">pallet</field>
+    </record>
+</odoo>
