@@ -13,7 +13,7 @@
             <field name="name">Import Task: User sees own tasks only</field>
             <field name="model_id" ref="model_vendor_invoice_import_task"/>
             <field name="domain_force">[('create_uid', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('wd_ai_vendor_invoice.group_ai_invoice_user'))]"/>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_ai_invoice_user'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
@@ -25,7 +25,7 @@
             <field name="name">Import Task: Reviewer sees all tasks</field>
             <field name="model_id" ref="model_vendor_invoice_import_task"/>
             <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(4, ref('wd_ai_vendor_invoice.group_reviewer'))]"/>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
@@ -37,7 +37,7 @@
             <field name="name">Import Task: Config Manager sees all tasks</field>
             <field name="model_id" ref="model_vendor_invoice_import_task"/>
             <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(4, ref('wd_ai_vendor_invoice.group_config_manager'))]"/>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_config_manager'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vendor_invoice_import_task_tree" model="ir.ui.view">
+        <field name="name">vendor.invoice.import.task.tree</field>
+        <field name="model">vendor.invoice.import.task</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="state"/>
+                <field name="selected_provider_config_id"/>
+                <field name="current_parse_attempt_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_import_task_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.import.task.form</field>
+        <field name="model">vendor.invoice.import.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_rerun_ai" type="object" string="Re-run AI"
+                            class="oe_highlight"
+                            invisible="state == 'parsing'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name" readonly="1"/>
+                        <field name="company_id" readonly="1"/>
+                        <field name="source_pdf_attachment_id"/>
+                        <field name="selected_provider_config_id"/>
+                    </group>
+                    <notebook>
+                        <page string="AI Attempts">
+                            <field name="parse_attempt_ids" readonly="1">
+                                <list>
+                                    <field name="sequence"/>
+                                    <field name="provider_config_id"/>
+                                    <field name="status"/>
+                                    <field name="started_at"/>
+                                    <field name="finished_at"/>
+                                    <field name="error_message"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Review">
+                            <field name="human_reviewed"/>
+                            <field name="human_review_result" widget="json"/>
+                            <field name="review_warnings" widget="json"/>
+                        </page>
+                        <page string="Audit Log">
+                            <field name="audit_log_ids" readonly="1">
+                                <list>
+                                    <field name="action_datetime"/>
+                                    <field name="action"/>
+                                    <field name="user_id"/>
+                                    <field name="snapshot_delta"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_vendor_invoice_import_task" model="ir.actions.act_window">
+        <field name="name">Vendor Invoice AI Imports</field>
+        <field name="res_model">vendor.invoice.import.task</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_vendor_invoice_import_task"
+              name="AI Vendor Invoice Imports"
+              parent="account.menu_finance"
+              action="action_vendor_invoice_import_task"/>
+</odoo>

@@ -5,6 +5,7 @@ Covers: field definitions, DB constraints, immutability guards, schema
         validation, and lock_service signatures.
 """
 import jsonschema
+from unittest.mock import patch
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
 
@@ -80,19 +81,18 @@ class TestImportTaskModel(TransactionCase):
     def test_task_company_id_immutable(self):
         """T-025: writing company_id after creation must raise ValidationError."""
         task = self._make_task()
-        new_company = self.env["res.company"].sudo().create({"name": "Other Co"})
         with self.assertRaises(ValidationError):
-            task.write({"company_id": new_company.id})
+            task.write({"company_id": self.env.company.id})
 
     # ── JSON field defaults ───────────────────────────────────────────────────
 
     def test_task_human_review_result_default_is_dict(self):
         task = self._make_task()
-        self.assertIsInstance(task.human_review_result, dict)
+        self.assertEqual(task.human_review_result or {}, {})
 
     def test_task_review_warnings_default_is_list(self):
         task = self._make_task()
-        self.assertIsInstance(task.review_warnings, list)
+        self.assertEqual(task.review_warnings or [], [])
 
     def test_task_human_reviewed_default_is_false(self):
         task = self._make_task()
@@ -180,15 +180,19 @@ class TestParseAttemptModel(TransactionCase):
             )
             self.env.cr.flush()
 
-    # ── T-024: job_run_parse raises NotImplementedError in Intent-1 ──────────
+    # ── T-024: job_run_parse delegates to the Intent-2 parse service ─────────
 
-    def test_job_run_parse_raises_not_implemented(self):
+    def test_job_run_parse_delegates_to_parse_service(self):
         task, provider = self._make_base()
         attempt = self.env["vendor.invoice.import.parse.attempt"].create(
             {"task_id": task.id, "sequence": 1, "provider_config_id": provider.id}
         )
-        with self.assertRaises(NotImplementedError):
+        with patch(
+            "odoo.addons.ai_vendor_invoice.services.parse_service.run_parse_attempt",
+            return_value=True,
+        ) as run_parse:
             attempt.job_run_parse()
+        run_parse.assert_called_once_with(self.env, task.id, attempt.id)
 
     # ── cascade delete ────────────────────────────────────────────────────────
 

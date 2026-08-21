@@ -16,7 +16,14 @@
         "security/record_rules.xml",
         "data/system_config_data.xml",
         "data/ir_cron.xml",
+        "views/import_task_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "ai_vendor_invoice/static/src/owl/review_dialog.js",
+            "ai_vendor_invoice/static/src/owl/review_dialog.xml",
+        ],
+    },
     "installable": True,
     "application": False,
     "auto_install": False,

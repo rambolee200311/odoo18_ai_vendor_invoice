@@ -1,2 +1,18 @@
 # © 2024 Wukong Digital. License LGPL-3.
-# Intent-2: AI provider adapters (base, deepseek, claude) — not yet implemented.
+from .base import (
+    AIProviderPermanentError,
+    AIProviderTemporaryError,
+    BaseAIProviderAdapter,
+    adapter_for,
+)
+from .claude import ClaudeAIProviderAdapter
+from .deepseek import DeepSeekAIProviderAdapter
+
+__all__ = [
+    "AIProviderPermanentError",
+    "AIProviderTemporaryError",
+    "BaseAIProviderAdapter",
+    "ClaudeAIProviderAdapter",
+    "DeepSeekAIProviderAdapter",
+    "adapter_for",
+]
