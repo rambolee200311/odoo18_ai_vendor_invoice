@@ -79,7 +79,7 @@ class VendorInvoiceImportTask(models.Model):
     # T-006 / T-007: bill_creator reads ONLY human_review_result.
     human_review_result = fields.Json(
         string="Human Review Result",
-        default=lambda self: dict(),
+        default=dict,
     )
 
     human_reviewed = fields.Boolean(
@@ -89,7 +89,7 @@ class VendorInvoiceImportTask(models.Model):
 
     review_warnings = fields.Json(
         string="Review Warnings",
-        default=lambda self: list(),
+        default=list,
     )
 
     # ── bill link ─────────────────────────────────────────────────────────────
@@ -117,6 +117,8 @@ class VendorInvoiceImportTask(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code(
                     "vendor.invoice.import.task"
                 ) or _("New")
+            vals.setdefault("human_review_result", {})
+            vals.setdefault("review_warnings", [])
         return super().create(vals_list)
 
     def write(self, vals):
@@ -134,6 +136,34 @@ class VendorInvoiceImportTask(models.Model):
         self.ensure_one()
         existing = self.parse_attempt_ids.mapped("sequence")
         return max(existing, default=0) + 1
+
+    def action_rerun_ai(self):
+        """Queue a new attempt without changing historical attempts."""
+        self.ensure_one()
+        from ..services.parse_service import start_parse
+
+        return start_parse(self.env, self.id, self.selected_provider_config_id.id)
+
+    def action_save_review(self, review_result):
+        """Persist the review result and its audit delta without creating a bill."""
+        self.ensure_one()
+        if self.state != "awaiting_review":
+            raise ValidationError(_("Only an invoice awaiting review can be reviewed."))
+        if not isinstance(review_result, dict) or not review_result:
+            raise ValidationError(_("A non-empty review result is required."))
+        old_result = self.human_review_result or {}
+        self.write({
+            "human_review_result": review_result,
+            "human_reviewed": True,
+        })
+        self.env["vendor.invoice.import.log"].create({
+            "task_id": self.id,
+            "parse_attempt_id": self.current_parse_attempt_id.id,
+            "action": "human_modify",
+            "snapshot_delta": "Human review result updated (%s top-level keys changed)."
+            % len(set(old_result) ^ set(review_result)),
+        })
+        return True
 
     # ── cron stub ─────────────────────────────────────────────────────────────
 

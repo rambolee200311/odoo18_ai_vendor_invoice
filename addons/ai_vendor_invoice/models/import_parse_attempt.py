@@ -98,10 +98,16 @@ class VendorInvoiceImportParseAttempt(models.Model):
         """
         queue_job delayed-task entry point.
         This ORM method is the ONLY allowed with_delay() target.
-        Business logic lives in parse_service (not yet implemented in Intent-1).
+        Business logic lives in parse_service; this method is only the queue entry.
         """
         self.ensure_one()
-        # Deferred to parse_service in Intent-2; stub raises to surface mis-calls.
-        raise NotImplementedError(
-            "parse_service.run_parse_attempt not implemented in Intent-1 Foundation."
-        )
+        from ..services.parse_service import run_parse_attempt
+
+        return run_parse_attempt(self.env, self.task_id.id, self.id)
+
+    def action_enqueue_parse(self):
+        """Queue the model method; services must not call with_delay directly."""
+        self.ensure_one()
+        return self.with_delay(
+            description="AI Vendor Invoice Parse #%s" % self.sequence,
+        ).job_run_parse()
