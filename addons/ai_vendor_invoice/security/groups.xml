@@ -21,7 +21,10 @@
         <record id="group_reviewer" model="res.groups">
             <field name="name">AI Invoice Reviewer</field>
             <field name="category_id" ref="module_category_ai_vendor_invoice"/>
-            <field name="implied_ids" eval="[(4, ref('group_ai_invoice_user'))]"/>
+            <field name="implied_ids" eval="[
+                (4, ref('group_ai_invoice_user')),
+                (4, ref('account.group_account_invoice'))
+            ]"/>
         </record>
 
         <!-- Config Manager: can configure providers and mappings.

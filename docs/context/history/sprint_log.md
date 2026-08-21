@@ -71,9 +71,48 @@ asserts that PostgreSQL rejects it.
 - Existing unrelated database warnings for `wd_tlms` and `worlddepot` remain;
   they do not affect this module's targeted test result.
 
-### Intent boundary
+## 2026-08-21 - Intent-3 Bill Closure
 
-- Intent-3 was not implemented.
-- No validation service, bill creator, account move creation, bill attachment
-  copying, concurrency bill-generation flow, or timeout implementation was
-  added as part of this sprint log entry.
+### Scope
+
+- Added `validation_service` for human-review integrity and amount-balance
+  checks.
+- Added `bill_creator` with the required preconditions, task/attempt row
+  locking, explicit task-company context, explicit `account.move.create()`,
+  independent source-PDF attachment copying, idempotency guard, and audit log.
+- Added the atomic model entry point
+  `action_confirm_review_and_create_bill`, which saves the review and creates
+  the draft bill in one transaction.
+- Added timeout inspection using `enter_parsing_datetime` for tasks in the
+  parsing business state, covering queued and running attempts.
+  `last_activity_at` is not used for timeout decisions.
+- Added Intent-3 validation, idempotency, timeout, permission, rollback, and
+  bill-creation test coverage.
+
+### Verification
+
+Command used:
+
+```text
+venv/bin/python3 odoo-bin -c odoo.conf \
+  --addons-path=odoo/addons,addons/queue,<worktree>/addons \
+  -d odoo18e_tms -u ai_vendor_invoice \
+  --test-enable --test-tags /ai_vendor_invoice --stop-after-init
+```
+
+Result:
+
+```text
+Intent-1 through Intent-3 tests: 0 failures, 0 errors
+```
+
+The duplicate-key message from the parse-attempt uniqueness test is expected
+and is caught by that test. Existing unrelated `wd_tlms` and `worlddepot`
+module warnings remain in the database.
+
+### Contract boundary
+
+- No `cr.commit()` was added to queue workers.
+- The stale-worker guard and provider-secret handling remain unchanged.
+- `task.company_id` remains immutable.
+- Intent-3 does not add or change the frozen state collections.

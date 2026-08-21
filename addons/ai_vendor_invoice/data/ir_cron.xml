@@ -3,7 +3,7 @@
 <!--
   Cron: periodically scan parsing tasks and mark timed-out ones.
   T-026: timeout baseline is task.enter_parsing_datetime; covers queued + running.
-  Business logic lives in timeout_service (Intent-2); stub method called here.
+  Business logic lives in timeout_service (Intent-3).
 -->
 <odoo>
     <data noupdate="1">
