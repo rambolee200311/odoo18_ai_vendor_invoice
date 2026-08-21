@@ -4,7 +4,9 @@
         <div class="o_vendor_invoice_review_dialog">
             <h3>Review AI invoice result</h3>
             <pre t-esc="formattedResult"/>
-            <button class="btn btn-primary" t-on-click="confirm">Save review</button>
+            <button class="btn btn-primary" t-on-click="confirm">
+                Confirm review and create draft bill
+            </button>
             <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
         </div>
     </t>

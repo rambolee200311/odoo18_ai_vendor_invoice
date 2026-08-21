@@ -1,7 +1,7 @@
 # © 2024 Wukong Digital. License LGPL-3.
 # Architecture red-line T-025: task.company_id is immutable after creation.
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 
 class VendorInvoiceImportTask(models.Model):
@@ -147,6 +147,8 @@ class VendorInvoiceImportTask(models.Model):
     def action_save_review(self, review_result):
         """Persist the review result and its audit delta without creating a bill."""
         self.ensure_one()
+        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            raise AccessError(_("Only an invoice reviewer can save review data."))
         if self.state != "awaiting_review":
             raise ValidationError(_("Only an invoice awaiting review can be reviewed."))
         if not isinstance(review_result, dict) or not review_result:
@@ -165,15 +167,16 @@ class VendorInvoiceImportTask(models.Model):
         })
         return True
 
-    # ── cron stub ─────────────────────────────────────────────────────────────
+    def action_confirm_review_and_create_bill(self, review_payload):
+        """Atomically save the review and create its draft vendor bill."""
+        self.ensure_one()
+        from ..services.bill_creator import confirm_review_and_create_bill
+
+        return confirm_review_and_create_bill(self.env, self.id, review_payload)
 
     @api.model
     def cron_check_parsing_timeout(self):
-        """
-        Cron entry point: scan tasks in 'parsing' state and mark those that
-        exceed the system timeout as error_timeout.
-        T-026: timeout baseline is self.enter_parsing_datetime (covers queued + running).
-        Full implementation lives in timeout_service (Intent-2).
-        """
-        # Intent-1: stub – no-op so cron does not crash on install.
-        pass
+        """Mark queued or running parsing tasks exceeding the task timeout."""
+        from ..services.timeout_service import check_parsing_timeout
+
+        check_parsing_timeout(self.env)
