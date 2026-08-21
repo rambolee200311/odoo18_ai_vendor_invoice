@@ -39,3 +39,7 @@ odoo.conf.*
 # 临时文件
 *.bak
 *.tmp
+
+# oca
+addons/edi/
+addons/queue/

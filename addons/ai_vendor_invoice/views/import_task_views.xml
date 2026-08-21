@@ -45,8 +45,8 @@
                             </field>
                         </page>
                         <page string="Review">
-                            <field name="human_reviewed"/>
-                            <field name="human_review_result" widget="json"/>
+                            <field name="human_reviewed" readonly="1"/>
+                            <field name="human_review_result" widget="vendor_invoice_review"/>
                             <field name="review_warnings" widget="json"/>
                         </page>
                         <page string="Audit Log">

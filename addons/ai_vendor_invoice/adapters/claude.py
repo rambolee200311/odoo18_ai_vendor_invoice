@@ -7,20 +7,23 @@ from .base import BaseAIProviderAdapter
 class ClaudeAIProviderAdapter(BaseAIProviderAdapter):
     provider_name = "claude"
 
-    def parse_pdf(self, pdf_attachment, provider_config, max_attempt_retry=0, attempt_obj=None):
+    def parse_pdf(self, provider_input, provider_config, max_attempt_retry=0, attempt_obj=None):
         payload = {
             "model": provider_config.model_name,
             "max_tokens": 8192,
             "messages": [{
                 "role": "user",
-                "content": [{
-                    "type": "document",
-                    "source": {
-                        "type": "base64",
-                        "media_type": "application/pdf",
-                        "data": base64.b64encode(pdf_attachment.raw or b"").decode(),
-                    },
-                }],
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/png",
+                            "data": base64.b64encode(image).decode(),
+                        },
+                    }
+                    for image in provider_input["images"]
+                ],
             }],
         }
         headers = {

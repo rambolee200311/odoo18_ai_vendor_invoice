@@ -99,6 +99,7 @@ Werkzeug~=2.2.2
 urllib3~=1.26.5
 decorator~=5.1.1
 PyPDF2~=2.12.1
+PyMuPDF~=1.28.2
 Pillow~=9.4.0
 reportlab~=3.6.12
 zeep~=4.2.1

@@ -7,6 +7,7 @@ from ..adapters import (
     adapter_for,
 )
 from .mapping_service import do_mapping
+from .pdf_preprocessor import PDFPreprocessorError, prepare_provider_input
 
 
 def _audit(env, task, attempt, action, snapshot_delta):
@@ -35,7 +36,6 @@ def start_parse(env, task_id, provider_config_id):
         "state": "parsing",
         "enter_parsing_datetime": fields.Datetime.now(),
         "human_reviewed": False,
-        "human_review_result": {},
     })
     _audit(env, task, attempt, "ai_re_run" if attempt.sequence > 1 else "ai_parse",
            "Queued parse attempt %s" % attempt.sequence)
@@ -61,10 +61,18 @@ def run_parse_attempt(env, task_id, attempt_id):
         "last_activity_at": fields.Datetime.now(),
     })
     try:
+        provider_input = prepare_provider_input(task.source_pdf_attachment_id)
         canonical, raw = adapter_for(env, attempt.provider_config_id).parse_pdf(
-            task.source_pdf_attachment_id, attempt.provider_config_id,
+            provider_input, attempt.provider_config_id,
             attempt.provider_config_id.max_internal_retry, attempt,
         )
+    except PDFPreprocessorError as error:
+        attempt.write({
+            "status": "failed",
+            "finished_at": fields.Datetime.now(),
+            "error_message": str(error),
+        })
+        return False
     except (AIProviderTemporaryError, AIProviderPermanentError) as error:
         attempt.write({
             "status": "failed",

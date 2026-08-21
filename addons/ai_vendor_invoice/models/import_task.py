@@ -154,9 +154,16 @@ class VendorInvoiceImportTask(models.Model):
         if not isinstance(review_result, dict) or not review_result:
             raise ValidationError(_("A non-empty review result is required."))
         old_result = self.human_review_result or {}
+        config = self.env["wd.system.config"].get_config()
+        from ..services import validation_service
+
+        warnings = validation_service.check_amount_balance(
+            review_result, self.company_id, config.amount_tolerance
+        )
         self.write({
             "human_review_result": review_result,
             "human_reviewed": True,
+            "review_warnings": warnings,
         })
         self.env["vendor.invoice.import.log"].create({
             "task_id": self.id,

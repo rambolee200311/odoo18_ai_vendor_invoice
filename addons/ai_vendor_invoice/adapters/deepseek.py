@@ -7,12 +7,21 @@ from .base import BaseAIProviderAdapter
 class DeepSeekAIProviderAdapter(BaseAIProviderAdapter):
     provider_name = "deepseek"
 
-    def parse_pdf(self, pdf_attachment, provider_config, max_attempt_retry=0, attempt_obj=None):
+    def parse_pdf(self, provider_input, provider_config, max_attempt_retry=0, attempt_obj=None):
         payload = {
             "model": provider_config.model_name,
             "messages": [{
                 "role": "user",
-                "content": base64.b64encode(pdf_attachment.raw or b"").decode(),
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": "data:image/png;base64,%s"
+                            % base64.b64encode(image).decode(),
+                        },
+                    }
+                    for image in provider_input["images"]
+                ],
             }],
             "response_format": {"type": "json_object"},
         }

@@ -3,6 +3,7 @@ from . import (
     bill_creator,
     mapping_service,
     parse_service,
+    pdf_preprocessor,
     timeout_service,
     validation_service,
 )
@@ -11,6 +12,7 @@ __all__ = [
     "bill_creator",
     "mapping_service",
     "parse_service",
+    "pdf_preprocessor",
     "timeout_service",
     "validation_service",
 ]

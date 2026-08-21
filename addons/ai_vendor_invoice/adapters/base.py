@@ -2,8 +2,15 @@
 """Provider adapters.  Adapters never expose provider secrets in exceptions."""
 
 from abc import ABC, abstractmethod
+from datetime import date, datetime
+from decimal import Decimal
+import copy
 
 import requests
+from jsonschema import ValidationError as JSONSchemaValidationError
+from jsonschema import validate
+
+from ..schemas.canonical import CANONICAL_INVOICE_RESULT_SCHEMA
 
 
 class AIProviderError(Exception):
@@ -72,10 +79,17 @@ class BaseAIProviderAdapter(ABC):
         result = body.get("canonical_result", body.get("result", body))
         if not isinstance(result, dict):
             raise AIProviderPermanentError("AI provider returned an invalid invoice result.")
-        return result
+        normalized = _normalize_canonical_result(result)
+        try:
+            validate(normalized, CANONICAL_INVOICE_RESULT_SCHEMA)
+        except JSONSchemaValidationError as error:
+            raise AIProviderPermanentError(
+                "AI provider returned an invalid invoice schema."
+            ) from error
+        return normalized
 
     @abstractmethod
-    def parse_pdf(self, pdf_attachment, provider_config, max_attempt_retry=0, attempt_obj=None):
+    def parse_pdf(self, provider_input, provider_config, max_attempt_retry=0, attempt_obj=None):
         """Return ``(canonical_result, raw_response_bytes)``."""
 
 
@@ -89,3 +103,44 @@ def adapter_for(env, provider_config):
     if "deepseek" in name:
         return DeepSeekAIProviderAdapter(env)
     raise AIProviderPermanentError("Unsupported AI provider.")
+
+
+_AMOUNT_FIELDS = {"total_amount", "total_tax", "amount"}
+_TEXT_FIELDS = {
+    "invoice_number",
+    "supplier_raw_text",
+    "currency_raw_text",
+    "description",
+    "tax_raw_text",
+}
+
+
+def _normalize_canonical_result(result):
+    """Normalize provider scalar values without applying business rules."""
+    normalized = copy.deepcopy(result)
+    for section_name, section in normalized.items():
+        if section_name == "header" and isinstance(section, dict):
+            _normalize_fields(section)
+        elif section_name == "lines" and isinstance(section, list):
+            for line in section:
+                if isinstance(line, dict):
+                    _normalize_fields(line)
+    return normalized
+
+
+def _normalize_fields(values):
+    for field_name, field in values.items():
+        if not isinstance(field, dict) or "value" not in field:
+            continue
+        value = field["value"]
+        if value is None:
+            continue
+        if field_name in _AMOUNT_FIELDS:
+            field["value"] = str(value)
+        elif field_name == "invoice_date":
+            if isinstance(value, (date, datetime)):
+                field["value"] = value.isoformat()
+            else:
+                field["value"] = str(value).strip()
+        elif field_name in _TEXT_FIELDS:
+            field["value"] = str(value).strip()
