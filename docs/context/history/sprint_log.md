@@ -198,6 +198,42 @@ decision.
   mismatch as GATE-08 FAIL.
 - No business source or formal test code was modified.
 
+## 2026-08-24 - INTENT-HUMAN-REVIEW-01 Readiness Check
+
+- Executed the non-sensitive automatic environment checks against
+  `odoo18e_tms`.
+- Confirmed Odoo 18, PostgreSQL connectivity, `account`, `contacts`,
+  `queue_job`, and `ai_vendor_invoice` installation, model registry, one
+  purchase journal, configured fallback product, four active Provider records,
+  and required security groups.
+- Confirmed `account_invoice_import` is absent from the module runtime
+  dependency set.
+- Recorded four readiness blockers: GATE-08 provider field metadata failure,
+  empty mapping master data, stopped Odoo Web endpoint, and a dirty Git
+  baseline while preparing the readiness documents.
+- Did not read or record any Provider API key.
+- Did not create a UAT instance because the overall result is
+  `UAT_BLOCKED`; browser, account, real-key, sample, and visual checks remain
+  manual prerequisites.
+
+## 2026-08-24 - INTENT-HUMAN-REVIEW-01 Follow-up
+
+- Applied the authorized GATE-08 provider field XML ID fix and confirmed
+  `verify.py --module ai_vendor_invoice` reports GATE-01 through GATE-15 all
+  PASS.
+- Started Odoo Web on port 8091 and confirmed `/web/login` returns HTTP 200.
+- Inspected the supplied five-page
+  `docs/carrier_invoice/bring_26022366.pdf` without reading or recording any
+  Provider API key.
+- Identified mapping source text: Bring Cargo B.V., Transportkosten ex Douane,
+  Dieselolietoeslag, ADR toeslag, ETS toeslag, IMO toeslag, 21%, and EUR.
+- Confirmed the database lacks the corresponding supplier, freight products,
+  21% tax, EUR currency, and mapping rows; no guessed business data was
+  created.
+- Readiness remains `UAT_BLOCKED` only for missing invoice mapping data and the
+  dirty Git baseline; account/API-key/PDF/browser checks are owner actions and
+  are not recorded as automatic environment blockers.
+
 ### FIX-INTENT continuation: ProviderInput boundary
 
 - Rechecked the final TDD §5.3 and T-026 directly; A-002 remains paused as
