@@ -3,7 +3,7 @@
 > 版本：1.1（修订4项契约收口，正式冻结版）
 > 状态：FROZEN（验收基线，本Intent只审计，禁止擅自修改业务代码）
 > 适用模块：`ai_vendor_invoice`（Odoo18）
-> 前置条件：Sprint1‑Foundation、Sprint2‑AI‑Review、Sprint3‑BillClosure 全部实施完毕；代码位于工作树，尚未合并main；SRS v1.3.3 / DDD v1.2 / TDD v1.4.2 / Coding‑Contract(GATE‑01~GATE‑15) **冻结，作为唯一验收基线**。
+> 前置条件：Sprint1‑Foundation、Sprint2‑AI‑Review、Sprint3‑BillClosure 全部实施完毕；代码位于工作树，尚未合并main；SRS v1.3.4 / DDD v1.2 / TDD v1.4.2 / Coding‑Contract(GATE‑01~GATE‑15) **冻结，作为唯一验收基线**。
 
 ## 1. Intent 目标
 **本Intent不做新功能开发，不做随手bug修复。**
@@ -15,7 +15,7 @@
 > 禁止仅依赖Sprint工作报告，必须直接读取磁盘上最终源码、测试代码、xml安全配置、cron数据、manifest；根据类型选择静态扫描或真实Odoo运行时测试获取证据。
 
 ## 2. 验收基线（不可变更参考源）
-1. SRS v1.3.3
+1. SRS v1.3.4
 2. DDD Domain‑Design‑Doc v1.2
 3. TDD v1.4.2（T‑001 ~ T‑029）
 4. Coding Contract GATE‑01 ~ GATE‑15

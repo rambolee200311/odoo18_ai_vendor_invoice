@@ -144,10 +144,59 @@ Owl JS syntax: PASS
 Odoo module tests: 53 tests, 0 failures, 0 errors
 ```
 
+## 2026-08-21 - TEST-INTENT-AI-VENDOR-002
+
+### Scope
+
+- Added formal tests for concurrent bill creation, stale-worker protection,
+  multi-company behavior, ACL/record-rule coverage, provider secret exposure,
+  adapter retry/error behavior, the PDF-to-ProviderInput pipeline, and PDF
+  preprocessing failures.
+- No business implementation, frozen baseline document, or `verify.py` was
+  modified.
+
+### Verification
+
+- The normal module suite executed 62 tests.
+- The Config Manager `api_key` RPC visibility assertion failed, exposing an
+  implementation/security defect; it was not fixed in this Test Intent.
+- The multi-company test was skipped because the selected task company has no
+  purchase journal in the configured database.
+- The dedicated real multi-transaction concurrency test executed separately
+  but could not start its first transaction within the test timeout; this is
+  recorded as a test-environment/concurrency-runner blocker.
+- Existing unrelated `wd_tlms` and `worlddepot` module warnings remain.
+
 The separate Closure findings for concurrency, multi-company, secret,
 verification-script, and documentation-drift work remain outside this Fix
 Intent. A-002 remains a `BASELINE_CONFLICT` pending a separate baseline
 decision.
+
+## 2026-08-24 - DOC-INTENT-AI-VENDOR-003
+
+- Chose documentation correction方案 A after comparing the frozen SRS with
+  TDD v1.4.2, DDD v1.2, and Coding Contract T-016/GATE-01.
+- Added frozen SRS v1.3.4:
+  `docs/context/requirements/spec_wd_ai_vendor_invoice_1.3.4.md`.
+- Clarified that the module uses Odoo `account`, `contacts`, `ir.attachment`,
+  `account.move`, and OCA/queue `queue_job`; it does not use
+  `account_invoice_import` at runtime.
+- Kept SRS v1.3.3 as an unchanged historical baseline.
+- Updated active Intent SRS references and the Closure report matrix for
+  SRS-4.5.1, SRS-9.19, T-016, and GATE-01.
+- No source code or formal test code was modified.
+
+## 2026-08-24 - SCRIPT-INTENT-AI-VENDOR-004
+
+- Generalized `execution/scripts/verify.py` with a `--module` argument.
+- Kept the historic default `wd_tlms` invocation and its legacy checks.
+- Added module-specific static checks for `ai_vendor_invoice` GATE-01 through
+  GATE-15, with one structured result per gate and a non-zero failure status.
+- Added `execution/scripts/README.md` with verifier usage examples.
+- The AI module verifier runs without the former `wd_tlms/views`
+  `FileNotFoundError`; it correctly reports the current provider secret XML ID
+  mismatch as GATE-08 FAIL.
+- No business source or formal test code was modified.
 
 ### FIX-INTENT continuation: ProviderInput boundary
 

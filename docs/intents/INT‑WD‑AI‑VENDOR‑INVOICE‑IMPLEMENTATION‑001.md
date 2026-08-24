@@ -7,7 +7,7 @@
 
 > Document Type: Coding Contract / Implementation Intent
 > Status: Frozen
-> Pre‑requisites: SRS‑WD‑AI‑VENDOR‑INVOICE v1.3.3, DDD‑WD‑AI‑VENDOR‑INVOICE v1.2, TDD‑WD‑AI‑VENDOR‑INVOICE v1.4.2
+> Pre‑requisites: SRS‑WD‑AI‑VENDOR‑INVOICE v1.3.4, DDD‑WD‑AI‑VENDOR‑INVOICE v1.2, TDD‑WD‑AI‑VENDOR‑INVOICE v1.4.2
 > Purpose: 供 Codex 执行开发；定义必须实现、禁止实现、完成门禁、交付物；不做新架构设计，不新增业务需求。
 
 ## 1 Scope 实施范围
