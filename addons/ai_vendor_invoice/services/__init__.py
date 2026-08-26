@@ -6,6 +6,7 @@ from . import (
     pdf_preprocessor,
     timeout_service,
     validation_service,
+    statement_projection,
 )
 
 __all__ = [

@@ -8,6 +8,34 @@
 <odoo>
     <data noupdate="1">
 
+        <record id="rule_statement_company_reviewer" model="ir.rule">
+            <field name="name">Statement: reviewer company access</field>
+            <field name="model_id" ref="model_vendor_invoice_statement"/>
+            <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+        </record>
+
+        <record id="rule_statement_own_user" model="ir.rule">
+            <field name="name">Statement: user sees own tasks</field>
+            <field name="model_id" ref="model_vendor_invoice_statement"/>
+            <field name="domain_force">[('task_id.create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_ai_invoice_user'))]"/>
+        </record>
+
+        <record id="rule_statement_line_company_reviewer" model="ir.rule">
+            <field name="name">Statement Line: reviewer company access</field>
+            <field name="model_id" ref="model_vendor_invoice_statement_line"/>
+            <field name="domain_force">[('statement_id.company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+        </record>
+
+        <record id="rule_statement_line_own_user" model="ir.rule">
+            <field name="name">Statement Line: user sees own tasks</field>
+            <field name="model_id" ref="model_vendor_invoice_statement_line"/>
+            <field name="domain_force">[('statement_id.task_id.create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_ai_invoice_user'))]"/>
+        </record>
+
         <!-- User-role: restrict task visibility to records created by the current user -->
         <record id="rule_import_task_own_user" model="ir.rule">
             <field name="name">Import Task: User sees own tasks only</field>

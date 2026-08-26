@@ -132,6 +132,7 @@ class TestBillCreatorGuards(TransactionCase):
             "state": "awaiting_review",
             "human_reviewed": True,
             "human_review_result": _review(),
+            "statement_required": False,
         })
         review = dict(task.human_review_result)
         review["header"] = dict(review["header"], supplier_id=partner.id,
@@ -177,6 +178,7 @@ class TestBillCreatorGuards(TransactionCase):
             "state": "awaiting_review",
             "human_reviewed": True,
             "human_review_result": _review(),
+            "statement_required": False,
         })
         review = dict(task.human_review_result)
         review["header"] = dict(

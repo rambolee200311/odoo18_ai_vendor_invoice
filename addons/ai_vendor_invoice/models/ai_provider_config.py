@@ -18,7 +18,7 @@ class WdAiProviderConfig(models.Model):
     # T-017: api_key restricted to Config Manager group; adapter reads via sudo().
     api_key = fields.Char(
         string="API Key",
-        groups="wd_ai_vendor_invoice.group_config_manager",
+        groups="ai_vendor_invoice.group_config_manager",
     )
 
     model_name = fields.Char(string="Model Name", required=True)

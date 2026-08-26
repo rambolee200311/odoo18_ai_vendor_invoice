@@ -48,6 +48,7 @@
                             <field name="human_reviewed" readonly="1"/>
                             <field name="human_review_result" widget="vendor_invoice_review"/>
                             <field name="review_warnings" widget="json"/>
+                            <field name="statement_id" readonly="1"/>
                         </page>
                         <page string="Audit Log">
                             <field name="audit_log_ids" readonly="1">

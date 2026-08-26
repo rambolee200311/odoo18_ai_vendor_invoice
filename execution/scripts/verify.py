@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Static release gates for repository addons.
-
-The default module keeps the historic wd_tlms invocation compatible.  The
-ai_vendor_invoice module additionally exposes the frozen GATE-01..GATE-15
-checks used by its closure process.
-"""
+"""Static release gates for the repository's invoice addon."""
 
 import argparse
 import ast
@@ -330,8 +325,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--module",
-        default="wd_tlms",
-        help="addon module to verify; default preserves the legacy wd_tlms flow",
+        default="ai_vendor_invoice",
+        help="addon module to verify (default: ai_vendor_invoice)",
     )
     args = parser.parse_args()
 
@@ -340,9 +335,7 @@ def main():
         return 1
 
     print(f"\n========== Verification: {args.module} ==========")
-    if args.module == "wd_tlms":
-        ok = legacy_wd_tlms()
-    elif args.module == "ai_vendor_invoice":
+    if args.module == "ai_vendor_invoice":
         ok = all(
             (
                 check("Python compile", lambda: python_compile(args.module)),

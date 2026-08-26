@@ -94,6 +94,12 @@ def _create_locked(env, task):
     if task.vendor_bill_id:
         raise ValidationError(_("A bill has already been generated for this task."))
 
+    if task.statement_required and not task.statement_id:
+        raise ValidationError(_("A Statement is required before creating a bill."))
+    if task.statement_id:
+        from .statement_projection import assert_projection_consistent
+
+        assert_projection_consistent(task.statement_id, review_result)
     validation_service.pre_check_integrity(review_result)
     config = env["wd.system.config"].get_config()
     warnings = validation_service.check_amount_balance(
@@ -146,9 +152,12 @@ def confirm_review_and_create_bill(env, task_id, review_payload):
             raise ValidationError(
                 _("Only an invoice awaiting review can be confirmed.")
             )
-        task.write({
-            "human_review_result": review_payload,
-            "human_reviewed": True,
-        })
+        if task.statement_id:
+            task.action_confirm_statement(review_payload)
+        else:
+            task.write({
+                "human_review_result": review_payload,
+                "human_reviewed": True,
+            })
         _audit(env, task, "human_modify", "Human review confirmed.")
         return _create_locked(env, task)

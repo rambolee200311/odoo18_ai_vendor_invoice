@@ -6,7 +6,7 @@ Covers: field definitions, DB constraints, immutability guards, schema
 """
 import jsonschema
 from unittest.mock import patch
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests.common import TransactionCase
 
 from ..schemas.canonical import CANONICAL_INVOICE_RESULT_SCHEMA
@@ -75,6 +75,120 @@ class TestImportTaskModel(TransactionCase):
     def test_task_default_company_is_env_company(self):
         task = self._make_task()
         self.assertEqual(task.company_id, self.env.company)
+
+    def test_new_task_requires_statement(self):
+        self.assertTrue(self._make_task().statement_required)
+
+    def test_statement_generic_crud_is_not_a_business_entry_point(self):
+        task = self._make_task()
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {
+                "task_id": task.id,
+                "sequence": 1,
+                "provider_config_id": task.selected_provider_config_id.id,
+                "status": "success",
+            }
+        )
+        values = {
+            "task_id": task.id,
+            "source_parse_attempt_id": attempt.id,
+            "invoice_number": "INV-001",
+        }
+        with self.assertRaises(AccessError):
+            self.env["vendor.invoice.statement"].create(values)
+
+    def test_statement_first_creation_keeps_attempt_provenance(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {
+                "task_id": task.id,
+                "sequence": 1,
+                "provider_config_id": task.selected_provider_config_id.id,
+                "status": "success",
+            }
+        )
+        task.current_parse_attempt_id = attempt.id
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {"invoice_number": "INV-001", "lines": [{"description": "Freight", "amount": 10.0}]},
+        )
+        self.assertEqual(statement.source_parse_attempt_id, attempt)
+        self.assertEqual(task.statement_id, statement)
+
+    def test_statement_confirmation_projects_human_review_result(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {
+                "task_id": task.id,
+                "sequence": 1,
+                "provider_config_id": task.selected_provider_config_id.id,
+                "status": "success",
+            }
+        )
+        task.current_parse_attempt_id = attempt.id
+        task.action_confirm_statement({
+            "header": {
+                "supplier_id": self.env.ref("base.res_partner_1").id,
+                "invoice_number": "INV-002",
+                "invoice_date": "2026-08-25",
+                "currency_id": self.env.company.currency_id.id,
+                "total_amount": "10.0",
+                "total_tax": "0.0",
+            },
+            "lines": [{
+                "description": "Freight",
+                "quantity": "1",
+                "unit_price": "10.0",
+                "subtotal": "10.0",
+                "tax_ids": [],
+                "line_total_amount": "10.0",
+            }],
+        })
+        self.assertEqual(task.state, "awaiting_review")
+        self.assertEqual(task.human_review_result["header"]["invoice_number"], "INV-002")
+        self.assertEqual(task.human_review_result["header"]["supplier_id"],
+                         self.env.ref("base.res_partner_1").id)
+
+    def test_statement_projection_rejects_inconsistent_result(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {
+                "task_id": task.id,
+                "sequence": 1,
+                "provider_config_id": task.selected_provider_config_id.id,
+                "status": "success",
+            }
+        )
+        task.current_parse_attempt_id = attempt.id
+        task.action_confirm_statement({
+            "header": {
+                "supplier_id": self.env.ref("base.res_partner_1").id,
+                "invoice_number": "INV-003",
+                "invoice_date": "2026-08-25",
+                "currency_id": self.env.company.currency_id.id,
+                "total_amount": "10.0",
+                "total_tax": "0.0",
+            },
+            "lines": [],
+        })
+        from ..services.statement_projection import assert_projection_consistent
+
+        inconsistent = dict(task.human_review_result)
+        inconsistent["header"] = dict(inconsistent["header"], invoice_number="OLD")
+        with self.assertRaises(ValidationError):
+            assert_projection_consistent(task.statement_id, inconsistent)
 
     # ── T-025: company_id immutability ────────────────────────────────────────
 
