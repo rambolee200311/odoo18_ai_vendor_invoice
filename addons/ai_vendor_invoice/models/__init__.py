@@ -11,4 +11,5 @@ from . import (
     conf_threshold,
     system_config,
     lock_service,
+    statement,
 )

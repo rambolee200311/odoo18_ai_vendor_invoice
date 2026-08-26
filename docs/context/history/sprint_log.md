@@ -189,13 +189,12 @@ decision.
 ## 2026-08-24 - SCRIPT-INTENT-AI-VENDOR-004
 
 - Generalized `execution/scripts/verify.py` with a `--module` argument.
-- Kept the historic default `wd_tlms` invocation and its legacy checks.
+- Set `ai_vendor_invoice` as the default verification target; `wd_tlms` is not
+  part of this repository's implementation scope.
 - Added module-specific static checks for `ai_vendor_invoice` GATE-01 through
   GATE-15, with one structured result per gate and a non-zero failure status.
 - Added `execution/scripts/README.md` with verifier usage examples.
-- The AI module verifier runs without the former `wd_tlms/views`
-  `FileNotFoundError`; it correctly reports the current provider secret XML ID
-  mismatch as GATE-08 FAIL.
+- The AI module verifier runs without requiring a `wd_tlms` checkout.
 - No business source or formal test code was modified.
 
 ## 2026-08-24 - INTENT-HUMAN-REVIEW-01 Readiness Check
@@ -254,3 +253,227 @@ Python/XML validation: PASS
 Owl JS syntax: PASS
 Odoo module tests: 53 tests, 0 failures, 0 errors
 ```
+
+## 2026-08-25 - INTENT-IMPLEMENT-INVOICE-STATEMENT-001 Sprint 1
+
+### Scope
+
+- Added the `vendor.invoice.statement` and
+  `vendor.invoice.statement.line` models.
+- Added Task aggregate commands for first creation, human edits, AI candidate
+  application, and Statement confirmation.
+- Enforced ParseAttempt provenance rules and blocked direct Statement/Line ORM
+  CRUD as an external business entry point.
+- Added Statement/Line ACLs, company and ownership record rules, audit action
+  coverage, and model-level tests.
+- Corrected the provider API-key field group XML ID to the actual module
+  namespace.
+
+### Sprint 1 acceptance status
+
+- `PASS`: Python compilation, XML parsing, ACL CSV structure, and
+  `git diff --check`.
+- `PASS`: Existing `GATE-01` through `GATE-15` static verifier.
+- `NOT_APPLICABLE_YET`: Statement review/projection gates owned by Sprint 2.
+- `NOT_APPLICABLE_YET`: Bill consistency, closure, concurrency, and final
+  Statement gates owned by Sprint 3.
+- `PASS`: Odoo TransactionCase suite completed in the configured test
+  environment; the new Statement tests were executed successfully.
+
+### Verification commands
+
+```text
+python3 -m compileall -q addons/ai_vendor_invoice
+python3 execution/scripts/verify.py
+git diff --check
+cd /Users/lijianqiang/Documents/odoo18_ai_vendor_invoice && source venv/bin/activate
+python3 odoo-bin -c odoo.conf --addons-path=<odoo>,<queue>,<statement-worktree>/addons \
+  -d odoo18e_tms -u ai_vendor_invoice --test-enable \
+  --test-tags /ai_vendor_invoice --stop-after-init
+```
+
+Result:
+
+```text
+verify.py: 19 pass, 0 fail
+Odoo module tests: 102 tests, 0 failed, 0 errors
+```
+
+Sprint 1 implementation and acceptance are complete. Sprint 2 may start after
+the Sprint 1 evidence is reviewed.
+
+## 2026-08-25 - INTENT-IMPLEMENT-INVOICE-STATEMENT-001 Sprint 2
+
+### Scope
+
+- Added `services/statement_projection.py` to build and semantically validate
+  the `task.human_review_result` compatibility projection from Statement.
+- Extended Statement fields for supplier, product, and tax relations required
+  by the review payload.
+- Changed `action_confirm_statement(...)` to persist the review payload through
+  Task aggregate commands, generate the projection, mark the task
+  `awaiting_review`, and reject inconsistent Statement/projection content.
+- Changed the Owl review confirmation to call `action_confirm_statement(...)`
+  rather than directly invoking the Bill Creator.
+- Added database coverage for Statement confirmation and projection output.
+
+### Sprint 2 verification
+
+```text
+python3 -m compileall -q addons/ai_vendor_invoice: PASS
+git diff --check: PASS
+Odoo module tests: 65 tests, 0 failed, 0 errors
+verify.py: 19 pass, 0 fail
+```
+
+The existing Sprint 1 gates remained passing. Sprint 3 bill-closure and final
+Statement gates remain `NOT_APPLICABLE_YET` and were not claimed as complete.
+
+## 2026-08-25 - INTENT-IMPLEMENT-INVOICE-STATEMENT-001 Sprint 3
+
+### Scope
+
+- Added the Statement-to-`human_review_result` consistency gate immediately
+  before Bill Creator.
+- Updated the unified review-and-bill entry point to confirm through the Task
+  Statement aggregate when a Statement exists.
+- Preserved the existing bill transaction, company context, idempotency,
+  attachment-copy, and `account.move.create()` behavior.
+- Added a database test proving an inconsistent projection is rejected.
+
+### Verification
+
+```text
+python3 -m compileall -q addons/ai_vendor_invoice: PASS
+git diff --check: PASS
+Odoo module tests: 66 tests, 0 failed, 0 errors
+verify.py: 19 pass, 0 fail
+```
+
+The test suite includes the existing concurrency, stale-worker, permission,
+rollback, attachment, and company-context coverage. The new consistency test
+was executed as `test_statement_projection_rejects_inconsistent_result`.
+
+### New versus historical task policy
+
+- New Tasks default to `statement_required=True`; Bill Creator rejects a new
+  Task without a Statement.
+- Existing Tasks upgraded from the historical schema retain the compatibility
+  value `False` and may continue using the legacy `human_review_result` path.
+- The flag is immutable after Task creation. Historical compatibility is
+  explicit in legacy test fixtures and is not available as a UI bypass for
+  newly created Tasks.
+
+### Closure status
+
+- `PASS`: Statement projection is checked before Bill Creator when a Statement
+  exists.
+- `PASS`: Existing `GATE-01` through `GATE-15` regression suite.
+- `PASS`: Sprint 1 and Sprint 2 database tests remain green.
+- Final `STATEMENT-GATE-01..25` evidence mapping and any production-scale
+  multi-transaction concurrency run remain pending; this Sprint 3 entry does
+  not claim those final closure gates without that evidence.
+
+### Policy verification
+
+```text
+Odoo module tests: 67 tests, 0 failed, 0 errors
+verify.py: 19 pass, 0 fail
+```
+
+## 2026-08-26 - FIX-INTENT-AI-VENDOR-PROVIDER-STABILITY-001
+
+### Scope
+
+- Added non-sensitive page/batch diagnostics persisted on each ParseAttempt.
+- Kept DeepSeek Vision requests at one PDF page per batch and retained the
+  configured timeout and retry ceiling.
+- Disabled OpenAI SDK automatic retries so only the configured adapter retry
+  ceiling controls transport attempts.
+- Classified timeout, connection, rate-limit, 5xx, authentication,
+  unsupported-input, bad-request, invalid JSON, schema, merge, and unknown
+  provider failures without exposing secrets or raw responses in logs.
+- Made multi-page merge deterministic: conflicting header values and
+  `is_multi_invoice` flags fail explicitly; line order is preserved and exact
+  duplicate line records are removed.
+
+### Verification
+
+```text
+python3 -m py_compile: PASS
+git diff --check: PASS
+verify.py: 19 pass, 0 fail
+Odoo module tests: 72 tests, 0 failed, 0 errors
+```
+
+The real Bring, Feelogic, and Mainfreight fixture matrix remains pending. No
+`PROVIDER_STABILITY_PASS` claim is made until every page succeeds, the merged
+canonical result validates, and the ParseAttempt reaches its expected state.
+
+### Real fixture matrix
+
+The current worktree was run against the configured `deepseek API` record in
+`odoo18e_tms`. All three requests returned HTTP 200 and produced persisted
+diagnostics, but each first page failed canonical validation:
+
+```text
+bring_26022366.pdf       task 904 / attempt 610  5 pages  RESPONSE_SCHEMA_INVALID
+feelogic_35318.pdf       task 905 / attempt 611  1 page   RESPONSE_SCHEMA_INVALID
+mainfreight_1727001370.pdf task 906 / attempt 612 3 pages  RESPONSE_SCHEMA_INVALID
+```
+
+The resulting status is `PROVIDER_STABILITY_BLOCKED`, not a provider pass.
+The failure is now isolated to the provider response/schema contract; no
+additional timeout, batch-size, or retry changes were made.
+
+## 2026-08-26 - FIX-INTENT-AI-VENDOR-PAGE-EXTRACTION-001
+
+### Scope
+
+- Introduced a deliberately incomplete `PageExtractionResult` schema for each
+  Vision page response.
+- Added document-level normalization that converts ordered page results into
+  the existing frozen `CanonicalResult`.
+- Kept ParseAttempt, Mapping, Statement, Human Review, Bill Creator, and Task
+  state semantics unchanged.
+- Reclassified document-level conversion failures as
+  `DOCUMENT_NORMALIZATION_INVALID`, distinct from HTTP and page response
+  failures.
+
+### Verification
+
+```text
+Python compile: PASS
+git diff --check: PASS
+verify.py: 19 pass, 0 fail
+```
+
+Final real-fixture matrix:
+
+```text
+bring_26022366.pdf          5 pages  extraction PASS  normalization FAIL
+feelogic_35318.pdf          1 page   extraction PASS  normalization PASS  canonical PASS
+mainfreight_1727001370.pdf 3 pages  extraction PASS  normalization PASS  canonical PASS
+```
+
+Bring is blocked only by a cross-page `factuurnummer` conflict during document
+normalization. Mainfreight recovered two temporary timeout retries and
+completed successfully. The final status is `PAGE_EXTRACTION_FIX_BLOCKED`, not
+a full pass.
+
+The verifier remains green (`19 pass, 0 fail`), Python compilation and
+`git diff --check` pass. A subsequent full Odoo test rerun was not accepted as
+a regression result because fixture execution had left a duplicate ParseAttempt
+sequence in the shared validation database; no source failure was inferred
+from that contaminated run.
+
+## 2026-08-26 - PAGE_EXTRACTION_FIX_PASS
+
+The document normalizer now ranks header candidates using source-container
+evidence and cross-page repetition. Exact duplicates merge; equal-strength
+conflicts raise a safe `HEADER_CONFLICT` diagnostic with field and page
+metadata, never candidate values. Bring rerun attempt 680 completed with
+5/5 page extraction, document normalization, Canonical validation, and
+`awaiting_review` task state (22 lines). Feelogic and Mainfreight remained
+green. The fixture records were cleaned before the full addon regression, which
+exited successfully. Final status is `PAGE_EXTRACTION_FIX_PASS`.

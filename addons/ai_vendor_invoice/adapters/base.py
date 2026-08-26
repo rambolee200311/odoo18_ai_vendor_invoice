@@ -36,7 +36,15 @@ class BaseAIProviderAdapter(ABC):
         # return it through an RPC recordset.
         return provider_config.sudo().api_key
 
-    def _request(self, provider_config, payload, headers=None, max_attempt_retry=0, attempt_obj=None):
+    def _request(
+        self,
+        provider_config,
+        payload,
+        headers=None,
+        max_attempt_retry=0,
+        attempt_obj=None,
+        endpoint=None,
+    ):
         request_headers = {"Content-Type": "application/json"}
         if headers:
             request_headers.update(headers)
@@ -44,7 +52,7 @@ class BaseAIProviderAdapter(ABC):
         while True:
             try:
                 response = requests.post(
-                    provider_config.api_base_url,
+                    endpoint or provider_config.api_base_url,
                     json=payload,
                     headers=request_headers,
                     timeout=provider_config.http_timeout,
@@ -76,6 +84,8 @@ class BaseAIProviderAdapter(ABC):
 
     @staticmethod
     def _canonical(body):
+        if not isinstance(body, dict):
+            raise AIProviderPermanentError("AI provider returned an invalid invoice result.")
         result = body.get("canonical_result", body.get("result", body))
         if not isinstance(result, dict):
             raise AIProviderPermanentError("AI provider returned an invalid invoice result.")

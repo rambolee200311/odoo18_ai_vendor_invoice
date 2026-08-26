@@ -64,6 +64,11 @@ class VendorInvoiceImportParseAttempt(models.Model):
         index=True,
     )
 
+    provider_diagnostics = fields.Json(
+        string="Provider Diagnostics",
+        help="Non-sensitive page and transport metadata for provider diagnosis.",
+    )
+
     canonical_result = fields.Json(
         string="Canonical Result",
     )

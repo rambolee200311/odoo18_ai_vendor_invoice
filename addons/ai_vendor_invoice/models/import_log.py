@@ -26,6 +26,7 @@ class VendorInvoiceImportLog(models.Model):
             ("ai_parse", "AI Parse"),
             ("ai_re_run", "AI Re-run"),
             ("human_modify", "Human Modify"),
+            ("statement_candidate_apply", "Statement Candidate Apply"),
             ("bill_create", "Bill Create"),
             ("cron_timeout", "Cron Timeout"),
         ],

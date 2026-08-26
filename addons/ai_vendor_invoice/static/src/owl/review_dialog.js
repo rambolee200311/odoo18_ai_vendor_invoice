@@ -129,7 +129,7 @@ export class VendorInvoiceReviewDialog extends Component {
     async confirm() {
         await this.props.record.model.orm.call(
             "vendor.invoice.import.task",
-            "action_confirm_review_and_create_bill",
+            "action_confirm_statement",
             [[this.props.record.resId], this.state.result],
         );
         await this.props.record.load();
