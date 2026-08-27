@@ -388,6 +388,8 @@ class TestClosurePipeline(TransactionCase):
         self.assertFalse(hasattr(task, "page_images"))
         self.assertFalse(hasattr(attempt, "page_images"))
         self.assertTrue(attempt.mapping_result is not None)
+        self.assertEqual(attempt.raw_response_attachment_id.res_model, attempt._name)
+        self.assertFalse(attempt.raw_response_attachment_id.public)
 
 
 class TestClosurePDFErrors(TransactionCase):

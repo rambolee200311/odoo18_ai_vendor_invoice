@@ -11,10 +11,17 @@ from unittest.mock import patch
 
 from PyPDF2 import PdfWriter
 from reportlab.pdfgen import canvas
+from jsonschema import ValidationError
 from odoo.tests.common import TransactionCase
 
 from ..adapters.base import AIProviderPermanentError, BaseAIProviderAdapter
 from ..adapters.deepseek import DeepSeekAIProviderAdapter
+from ..adapters.deepseek import (
+    EXTRACTION_CONTRACT_VERSION,
+    PROMPT_VERSION,
+    SYSTEM_PROMPT,
+    USER_PROMPT,
+)
 from ..adapters.document_normalizer import (
     DocumentNormalizationError,
     normalize_page_results,
@@ -84,6 +91,34 @@ class TestFixIntentParse(FixIntentBase):
 
 
 class TestFixIntentAdapter(TransactionCase):
+    def test_final_request_has_frozen_contract_shape_and_options(self):
+        adapter = DeepSeekAIProviderAdapter.__new__(DeepSeekAIProviderAdapter)
+        provider = SimpleNamespace(
+            api_base_url="https://example.invalid",
+            http_timeout=1,
+            model_name="deepseek-reasoner",
+        )
+        response = Mock()
+        response.model_dump.return_value = {
+            "choices": [{"message": {"content": '{"header": {}, "lines": []}'}}],
+        }
+        response.model_dump_json.return_value = "{}"
+        client = Mock()
+        client.chat.completions.create.return_value = response
+
+        adapter._parse_page_batch(client, provider, [b"png"], 0, None, 0, 1)
+        payload = client.chat.completions.create.call_args.kwargs
+        self.assertEqual(payload["model"], provider.model_name)
+        self.assertEqual(payload["response_format"], {"type": "json_object"})
+        self.assertEqual(payload["reasoning_effort"], "high")
+        self.assertEqual(payload["extra_body"], {"thinking": {"type": "enabled"}})
+        self.assertFalse(payload["stream"])
+        self.assertEqual([message["role"] for message in payload["messages"]],
+                         ["system", "user"])
+        self.assertEqual(len(payload["messages"][1]["content"]), 2)
+        self.assertEqual(payload["messages"][1]["content"][0]["type"], "text")
+        self.assertEqual(payload["messages"][1]["content"][1]["type"], "image_url")
+
     def test_adapter_rejects_invalid_canonical_schema(self):
         invalid = _canonical_result()
         invalid["header"].pop("invoice_number")
@@ -131,13 +166,26 @@ class TestFixIntentAdapter(TransactionCase):
         self.assertIsNone(result["header"]["invoice_number"]["value"])
         self.assertEqual(result["lines"], [])
 
-    def test_document_normalization_rejects_conflicting_headers(self):
+    def test_page_extraction_accepts_scalar_headers_and_lines(self):
+        result = DeepSeekAIProviderAdapter._page_extraction({
+            "header": {
+                "invoice_number": "INV-001",
+                "invoice_date": "2026-08-21",
+                "total_amount": 10.5,
+            },
+            "lines": [{"description": "Freight", "amount": 10, "tax": None}],
+        }, 1)
+        self.assertEqual(result["header"]["total_amount"], 10.5)
+        self.assertEqual(result["lines"][0]["amount"], 10)
+
+    def test_document_normalization_detects_cross_page_invoice_numbers(self):
         pages = [
             {"page_number": 1, "header": {"invoice_number": "INV-001"}},
             {"page_number": 2, "header": {"invoice_number": "INV-002"}},
         ]
-        with self.assertRaises(DocumentNormalizationError):
-            normalize_page_results(pages)
+        result = normalize_page_results(pages)
+        self.assertTrue(result["is_multi_invoice"])
+        self.assertIsNone(result["header"]["invoice_number"]["value"])
 
     def test_document_normalization_accepts_repeated_invoice_number(self):
         result = normalize_page_results([
@@ -149,20 +197,20 @@ class TestFixIntentAdapter(TransactionCase):
     def test_header_value_wins_over_detail_reference(self):
         result = normalize_page_results([
             {"page_number": 1, "header": {"invoice_number": "INV-001"}},
-            {"page_number": 2, "header_values": {"shipment_number": "SHIP-002"}},
+            {"page_number": 2, "raw_facts": [{
+                "source_label": "Shipment Number",
+                "source_value": "SHIP-002",
+                "source_page": 2,
+            }]},
         ])
         self.assertEqual(result["header"]["invoice_number"]["value"], "INV-001")
 
-    def test_conflict_contains_safe_structured_diagnostic(self):
-        with self.assertRaises(DocumentNormalizationError) as error:
-            normalize_page_results([
-                {"page_number": 1, "header": {"invoice_number": "INV-001"}},
-                {"page_number": 2, "header": {"invoice_number": "INV-002"}},
-            ])
-        self.assertEqual(error.exception.diagnostic["code"], "HEADER_CONFLICT")
-        self.assertEqual(error.exception.diagnostic["field"], "invoice_number")
-        self.assertEqual(error.exception.diagnostic["pages"], [1, 2])
-        self.assertNotIn("INV-", str(error.exception.diagnostic))
+    def test_cross_page_invoice_numbers_are_not_reported_as_header_conflict(self):
+        result = normalize_page_results([
+            {"page_number": 1, "header": {"invoice_number": "INV-001"}},
+            {"page_number": 2, "header": {"invoice_number": "INV-002"}},
+        ])
+        self.assertTrue(result["is_multi_invoice"])
 
     def test_single_header_page_is_sufficient(self):
         result = normalize_page_results([
@@ -174,8 +222,11 @@ class TestFixIntentAdapter(TransactionCase):
     def test_detail_factuurnummer_does_not_override_header(self):
         result = normalize_page_results([
             {"page_number": 1, "header": {"invoice_number": "INV-001"}},
-            {"page_number": 2, "factuurnummer": "SHIP-002",
-             "lines": [{"description": "Shipment"}]},
+            {"page_number": 2, "raw_facts": [{
+                "source_label": "Factuurnummer",
+                "source_value": "SHIP-002",
+                "source_page": 2,
+            }], "lines": [{"description": "Shipment"}]},
         ])
         self.assertEqual(result["header"]["invoice_number"]["value"], "INV-001")
 
@@ -270,18 +321,109 @@ class TestFixIntentAdapter(TransactionCase):
             ["Freight", "Handling"],
         )
 
-    def test_document_normalization_rejects_identity_and_multi_invoice_conflicts(self):
+    def test_document_normalization_rejects_identity_conflicts(self):
         first = {"page_number": 1, "header": {"invoice_number": "INV-001"}}
         conflicting_header = {
             "page_number": 2, "header": {"invoice_number": "INV-002"}
         }
-        with self.assertRaises(AIProviderPermanentError):
-            normalize_page_results([first, conflicting_header])
+        result = normalize_page_results([first, conflicting_header])
+        self.assertTrue(result["is_multi_invoice"])
 
-        conflicting_flag = {"page_number": 2, "is_multi_invoice": True}
-        conflicting_flag["is_multi_invoice"] = True
-        with self.assertRaises(DocumentNormalizationError):
-            normalize_page_results([first, conflicting_flag])
+    def test_page_extraction_contract_and_local_raw_fact_provenance(self):
+        body = {
+            "header": {"invoice_number": "INV-001"},
+            "raw_facts": [{
+                "source_label": "Shipment Number",
+                "source_value": "SHIP-002",
+            }],
+            "lines": [{
+                "description": "Freight",
+                "raw_fields": [{
+                    "source_label": "Uw ref.",
+                    "source_value": "REF-003",
+                }],
+            }],
+        }
+        result = DeepSeekAIProviderAdapter._page_extraction(body, 3)
+        self.assertEqual(result["page_number"], 3)
+        self.assertEqual(result["raw_facts"][0]["source_page"], 3)
+        self.assertEqual(result["lines"][0]["raw_fields"][0]["source_page"], 3)
+
+    def test_page_extraction_requires_raw_fact_labels_and_values(self):
+        with self.assertRaises(ValidationError):
+            DeepSeekAIProviderAdapter._page_extraction(
+                {"raw_facts": [{"source_label": "Shipment Number"}]}, 1
+            )
+        with self.assertRaises(ValidationError):
+            DeepSeekAIProviderAdapter._page_extraction(
+                {"lines": [{"raw_fields": [{"source_value": "REF"}]}]}, 1
+            )
+
+    def test_page_extraction_rejects_model_provenance_and_document_fields(self):
+        with self.assertRaises(ValidationError):
+            DeepSeekAIProviderAdapter._page_extraction(
+                {"raw_facts": [{
+                    "source_label": "x", "source_value": "y", "source_page": 9,
+                }]},
+                1,
+            )
+        for field in ("is_multi_invoice", "references", "addresses"):
+            with self.assertRaises(ValidationError):
+                DeepSeekAIProviderAdapter._page_extraction({field: []}, 1)
+
+    def test_page_extraction_rejects_removed_page_multi_invoice_flag(self):
+        with self.assertRaises(ValidationError):
+            DeepSeekAIProviderAdapter._page_extraction(
+                {"is_multi_invoice": True}, 1
+            )
+
+    def test_prompts_and_versions_match_extraction_contract(self):
+        self.assertEqual(EXTRACTION_CONTRACT_VERSION, "transport-invoice-page-v1")
+        self.assertEqual(PROMPT_VERSION, "vision-extraction-v1.1")
+        self.assertIn("not a business decision maker", SYSTEM_PROMPT)
+        self.assertIn("raw_facts", SYSTEM_PROMPT)
+        for clause in ("Do not guess", "autocomplete", "calculate",
+                       "another page", "Shipment Number", "Dossier",
+                       "O.No.", "Opdracht", "Uw ref.", "Your reference"):
+            self.assertIn(clause, SYSTEM_PROMPT)
+        for clause in ("fee or charge lines", "dates", "addresses", "raw_facts"):
+            self.assertIn(clause, USER_PROMPT)
+        self.assertNotIn("is_multi_invoice", USER_PROMPT)
+
+    def test_normalizer_preserves_page_and_line_order_and_duplicate_lines(self):
+        result = normalize_page_results([
+            {"page_number": 2, "lines": [
+                {"description": "same", "amount": "1", "raw_fields": [
+                    {"source_label": "Uw ref.", "source_value": "R2",
+                     "source_page": 2},
+                ]},
+            ], "raw_facts": [{"source_label": "note", "source_value": "p2",
+                              "source_page": 2}]},
+            {"page_number": 1, "lines": [
+                {"description": "same", "amount": "1"},
+            ]},
+        ])
+        self.assertEqual([line["description"]["value"] for line in result["lines"]],
+                         ["same", "same"])
+        self.assertEqual(result["is_multi_invoice"], False)
+
+    def test_uncertain_references_and_raw_facts_do_not_trigger_multi_invoice(self):
+        result = normalize_page_results([
+            {"page_number": 1, "header": {"invoice_number": "INV-001"},
+             "raw_facts": [{"source_label": "Dossier", "source_value": "INV-002"}]},
+            {"page_number": 2, "raw_facts": [
+                {"source_label": "Your reference", "source_value": "INV-003"},
+            ], "lines": [{"description": "Shipment INV-004"}]},
+        ])
+        self.assertFalse(result["is_multi_invoice"])
+        self.assertEqual(result["header"]["invoice_number"]["value"], "INV-001")
+
+    def test_invoice_number_lexical_aliases_are_deterministic(self):
+        result = normalize_page_results([
+            {"page_number": 1, "header": {"Factuurnummer": "INV-001"}},
+            {"page_number": 2, "header": {"Invoice Number": "INV-001"}},
+        ])
+        self.assertEqual(result["header"]["invoice_number"]["value"], "INV-001")
 
 
 class TestFixIntentPDFPreprocessor(TransactionCase):

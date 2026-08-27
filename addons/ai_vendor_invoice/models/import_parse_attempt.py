@@ -2,7 +2,12 @@
 # T-018: (task_id, sequence) must be unique at DB level.
 # T-022: status queued → running only when worker actually starts.
 # T-024: job_run_parse is the sole queue_job entry point (service must not with_delay directly).
-from odoo import fields, models
+from odoo import api, fields, models
+
+from ..adapters.deepseek import (
+    EXTRACTION_CONTRACT_VERSION,
+    PROMPT_VERSION,
+)
 
 
 class VendorInvoiceImportParseAttempt(models.Model):
@@ -27,6 +32,21 @@ class VendorInvoiceImportParseAttempt(models.Model):
         "wd.ai.provider.config",
         string="AI Provider Config",
         required=True,
+    )
+
+    prompt_version = fields.Char(
+        string="Prompt Version",
+        readonly=True,
+    )
+
+    extraction_contract_version = fields.Char(
+        string="Extraction Contract Version",
+        readonly=True,
+    )
+
+    model_name_snapshot = fields.Char(
+        string="Model Name Snapshot",
+        readonly=True,
     )
 
     started_at = fields.Datetime(
@@ -96,6 +116,25 @@ class VendorInvoiceImportParseAttempt(models.Model):
             "Parse attempt sequence must be unique per task.",
         )
     ]
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Capture provider provenance once, rather than reading it later."""
+        values_list = []
+        for values in vals_list:
+            values = dict(values)
+            if values.get("provider_config_id"):
+                provider = self.env["wd.ai.provider.config"].browse(
+                    values["provider_config_id"]
+                )
+                values.setdefault("model_name_snapshot", provider.model_name)
+            values.setdefault("prompt_version", PROMPT_VERSION)
+            values.setdefault(
+                "extraction_contract_version",
+                EXTRACTION_CONTRACT_VERSION,
+            )
+            values_list.append(values)
+        return super().create(values_list)
 
     # ── queue_job entry point (T-024) ─────────────────────────────────────────
 

@@ -31,6 +31,10 @@ def _key(value):
     return re.sub(r"[^a-z0-9]", "", value.lower())
 
 
+def _value_key(value):
+    return str(value).strip()
+
+
 def _semantic_values(values):
     result = {}
     for field, value in values.items():
@@ -44,27 +48,21 @@ def _semantic_values(values):
 
 def _header_candidates(page_result):
     candidates = []
-    containers = (
-        ("header", page_result.get("header", {}), 3),
-        ("header_values", page_result.get("header_values", {}), 2),
-    )
-    for source_label, values, source_weight in containers:
-        for field, value in _semantic_values(values).items():
-            candidates.append((field, value, source_weight, source_label))
-    for field, value in _semantic_values({
-        field: value for field, value in page_result.items()
-        if field not in {"page_number", "header", "header_values",
-                         "lines", "is_multi_invoice"}
-    }).items():
-        candidates.append((field, value, 1, "page_top_level"))
+    for field, value in _semantic_values(
+        page_result.get("header", {})
+    ).items():
+        candidates.append((field, value, 3, "header"))
     return candidates
 
 
-def _select_header_values(ordered):
+def _select_header_values(ordered, skip_fields=None):
+    skip_fields = skip_fields or set()
     candidates_by_field = {}
     for page_result in ordered:
         candidates = _header_candidates(page_result)
         for field, value, source_weight, source_label in candidates:
+            if field in skip_fields:
+                continue
             if value in (None, ""):
                 continue
             candidates_by_field.setdefault(field, []).append({
@@ -78,7 +76,7 @@ def _select_header_values(ordered):
     for field, candidates in candidates_by_field.items():
         unique_values = {}
         for candidate in candidates:
-            unique_values.setdefault(str(candidate["value"]), []).append(candidate)
+            unique_values.setdefault(_value_key(candidate["value"]), []).append(candidate)
         if len(unique_values) == 1:
             selected[field] = candidates[0]["value"]
             continue
@@ -89,7 +87,7 @@ def _select_header_values(ordered):
         best_score = max(candidate["score"] for candidate in candidates)
         best = [candidate for candidate in candidates
                 if candidate["score"] == best_score]
-        best_values = {str(candidate["value"]) for candidate in best}
+        best_values = {_value_key(candidate["value"]) for candidate in best}
         if len(best_values) != 1:
             raise DocumentNormalizationError(
                 "Document normalization produced an invalid canonical result.",
@@ -104,22 +102,66 @@ def _select_header_values(ordered):
     return selected
 
 
+def _validate_page_result(page_result):
+    """Validate model fields while retaining Python-added raw-fact provenance."""
+    if not isinstance(page_result, dict):
+        raise TypeError("Page extraction must be an object.")
+    model_result = copy.deepcopy(page_result)
+    for fact in model_result.get("raw_facts", []):
+        fact.pop("source_page", None)
+    for line in model_result.get("lines", []):
+        for fact in line.get("raw_fields", []):
+            fact.pop("source_page", None)
+    validate(model_result, PAGE_EXTRACTION_RESULT_SCHEMA)
+    page_number = model_result["page_number"]
+    for fact in page_result.get("raw_facts", []):
+        if "source_page" not in fact:
+            fact["source_page"] = page_number
+        elif fact["source_page"] != page_number:
+            raise ValueError("Raw fact source page does not match its page.")
+    for line in page_result.get("lines", []):
+        for fact in line.get("raw_fields", []):
+            if "source_page" not in fact:
+                fact["source_page"] = page_number
+            elif fact["source_page"] != page_number:
+                raise ValueError("Raw field source page does not match its page.")
+
+
 def normalize_page_results(page_results):
     try:
+        page_results = copy.deepcopy(page_results)
         for page_result in page_results:
-            validate(page_result, PAGE_EXTRACTION_RESULT_SCHEMA)
+            _validate_page_result(page_result)
         if not page_results:
             raise ValueError("No page extraction results were returned.")
 
         ordered = sorted(page_results, key=lambda result: result["page_number"])
         lines = []
-        multi_invoice = set()
         for page_result in ordered:
-            multi_invoice.add(page_result.get("is_multi_invoice", False))
             lines.extend(page_result.get("lines", []))
-        if len(multi_invoice) > 1:
-            raise ValueError("Conflicting document multi-invoice flags.")
-        header_values = _select_header_values(ordered)
+
+        invoice_values_by_page = {}
+        for page_result in ordered:
+            values = {
+                _value_key(value)
+                for field, value, _weight, _source in _header_candidates(page_result)
+                if field == "invoice_number" and value not in (None, "")
+            }
+            if values:
+                invoice_values_by_page[page_result["page_number"]] = values
+        explicit_invoice_values = {
+            value for values in invoice_values_by_page.values() for value in values
+        }
+        multi_invoice = (
+            len(invoice_values_by_page) > 1
+            and len(explicit_invoice_values) > 1
+        )
+        header_values = _select_header_values(
+            ordered,
+            {"invoice_number"} if multi_invoice else None,
+        )
+        if multi_invoice:
+            header_values["invoice_number"] = None
 
         fields = (
             "invoice_number", "invoice_date", "supplier_raw_text",
@@ -160,7 +202,7 @@ def normalize_page_results(page_results):
         result = {
             "header": header,
             "lines": canonical_lines,
-            "is_multi_invoice": next(iter(multi_invoice)),
+            "is_multi_invoice": multi_invoice,
         }
         result = BaseAIProviderAdapter._canonical(result)
         validate(result, CANONICAL_INVOICE_RESULT_SCHEMA)

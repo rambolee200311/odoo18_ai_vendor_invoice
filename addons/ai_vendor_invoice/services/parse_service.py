@@ -6,6 +6,10 @@ from ..adapters import (
     AIProviderTemporaryError,
     adapter_for,
 )
+from ..adapters.deepseek import (
+    EXTRACTION_CONTRACT_VERSION,
+    PROMPT_VERSION,
+)
 from .mapping_service import do_mapping
 from .pdf_preprocessor import PDFPreprocessorError, prepare_provider_input
 
@@ -25,11 +29,15 @@ def start_parse(env, task_id, provider_config_id):
     if task.state not in ("to_parse", "awaiting_review", "error_ai_unavailable",
                           "error_timeout", "error_split_required"):
         raise ValueError("Task cannot start an AI parse in its current state.")
+    provider_config = env["wd.ai.provider.config"].browse(provider_config_id)
     attempt = env["vendor.invoice.import.parse.attempt"].create({
         "task_id": task.id,
         "sequence": task._get_next_attempt_sequence(),
         "provider_config_id": provider_config_id,
         "status": "queued",
+        "prompt_version": PROMPT_VERSION,
+        "extraction_contract_version": EXTRACTION_CONTRACT_VERSION,
+        "model_name_snapshot": provider_config.model_name,
     })
     task.write({
         "current_parse_attempt_id": attempt.id,

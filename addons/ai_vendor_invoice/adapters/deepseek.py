@@ -28,6 +28,37 @@ from .document_normalizer import (
 
 _logger = logging.getLogger(__name__)
 
+EXTRACTION_CONTRACT_VERSION = "transport-invoice-page-v1"
+PROMPT_VERSION = "vision-extraction-v1.1"
+
+SYSTEM_PROMPT = """You are a transport-supplier-invoice page fact extractor, not a business decision maker.
+Extract only facts visibly printed on the current PDF page. Return JSON only.
+Extract explicit invoice header fields, fee and charge lines, dates, addresses,
+and explicitly labelled identifiers or references. Preserve every uncertain or
+unclassified printed field in raw_facts using its original source_label and
+source_value. Do not determine business meaning unless the printed label
+explicitly states it.
+
+Do not guess, autocomplete, calculate, reconcile, or fill missing values.
+Omit missing fields or use null. Do not use information from another page.
+Do not treat repeated headers, footers, or column headings as invoice lines.
+Do not interpret Shipment Number, Dossier, O.No., Opdracht, Uw ref., Your
+reference, customer reference, order reference, transport reference, booking
+reference, or consignment reference as invoice_number unless the page explicitly
+labels the value as an invoice number.
+Use plain scalar values and return no explanation outside the JSON object."""
+
+USER_PROMPT = """Extract visible facts from this PDF page and return one PageExtractionResult JSON object.
+Include explicit invoice header fields, fee or charge lines, dates, addresses,
+and explicitly labelled identifiers or references. Keep standard fields as plain
+scalar values. For every visible field whose business meaning is uncertain, add
+a raw_facts item containing the original source_label and source_value.
+Do not classify or rename an uncertain reference. Do not convert shipment,
+dossier, order, opdracht, customer, transport, or other reference numbers into
+invoice_number unless the printed label explicitly says invoice number.
+Do not guess, calculate, reconcile, autocomplete, or fill missing values.
+Return JSON only."""
+
 
 class DeepSeekAIProviderAdapter(BaseAIProviderAdapter):
     provider_name = "deepseek"
@@ -92,23 +123,14 @@ class DeepSeekAIProviderAdapter(BaseAIProviderAdapter):
             "messages": [
                 {
                     "role": "system",
-                    "content": (
-                        "Extract only what is visibly present on this page into "
-                        "PageExtractionResult JSON. Return JSON only. Missing "
-                        "fields are allowed. Do not treat repeated page headers "
-                        "or column headings as invoice lines."
-                    ),
+                    "content": SYSTEM_PROMPT,
                 },
                 {
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": (
-                                "Return an object with page_number, optional "
-                                "header values, optional lines, and optional "
-                                "is_multi_invoice. Use plain scalar values."
-                            ),
+                            "text": USER_PROMPT,
                         },
                         *[
                             {
@@ -237,6 +259,11 @@ class DeepSeekAIProviderAdapter(BaseAIProviderAdapter):
         result = copy.deepcopy(body)
         result["page_number"] = page_number
         validate(result, PAGE_EXTRACTION_RESULT_SCHEMA)
+        for fact in result.get("raw_facts", []):
+            fact["source_page"] = page_number
+        for line in result.get("lines", []):
+            for fact in line.get("raw_fields", []):
+                fact["source_page"] = page_number
         return result
 
     @staticmethod

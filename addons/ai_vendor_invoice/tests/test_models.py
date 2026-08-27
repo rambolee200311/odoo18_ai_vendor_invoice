@@ -278,6 +278,19 @@ class TestParseAttemptModel(TransactionCase):
         )
         self.assertEqual(attempt.attempt_internal_retry_count, 0)
 
+    def test_attempt_captures_extraction_contract_and_model_snapshot(self):
+        task, provider = self._make_base()
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {"task_id": task.id, "sequence": 1, "provider_config_id": provider.id}
+        )
+        provider.write({"model_name": "changed-after-attempt"})
+        self.assertEqual(attempt.prompt_version, "vision-extraction-v1.1")
+        self.assertEqual(
+            attempt.extraction_contract_version,
+            "transport-invoice-page-v1",
+        )
+        self.assertEqual(attempt.model_name_snapshot, "m")
+
     # ── T-018: unique(task_id, sequence) ─────────────────────────────────────
 
     def test_attempt_task_sequence_unique_constraint(self):

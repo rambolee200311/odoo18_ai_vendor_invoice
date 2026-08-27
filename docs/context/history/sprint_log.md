@@ -467,6 +467,162 @@ a regression result because fixture execution had left a duplicate ParseAttempt
 sequence in the shared validation database; no source failure was inferred
 from that contaminated run.
 
+## 2026-08-26 - DeepSeek Vision Runtime Audit
+
+### Actual call chain
+
+The current runtime path is:
+
+```text
+PDF upload
+-> ir.attachment
+-> vendor.invoice.import.task
+-> ParseAttempt
+-> pdf_preprocessor.prepare_provider_input()
+-> PDF pages rendered as in-memory PNG images
+-> DeepSeekAIProviderAdapter.parse_pdf()
+-> one OpenAI-compatible Vision request per page
+-> PageExtractionResult validation
+-> document_normalizer.normalize_page_results()
+-> frozen CanonicalResult validation
+-> mapping_service.do_mapping()
+-> ParseAttempt persistence
+-> human Statement Review
+```
+
+The PDF renderer is `fitz`; rendered pages are not persisted. The adapter uses
+`page_batch_size = 1`, so each request contains one page image.
+
+### Prompt and request contract
+
+The system prompt is hard-coded in
+`addons/ai_vendor_invoice/adapters/deepseek.py`, inside
+`DeepSeekAIProviderAdapter._parse_page_batch()`:
+
+```text
+Extract only what is visibly present on this page into PageExtractionResult JSON. Return JSON only. Missing fields are allowed. Do not treat repeated page headers or column headings as invoice lines.
+```
+
+The user text prompt is:
+
+```text
+Return an object with page_number, optional header values, optional lines, and optional is_multi_invoice. Use plain scalar values.
+```
+
+The final `messages` value contains one system message and one user message.
+The user message content is an array containing the text item followed by one
+`image_url` item with a base64 PNG data URL.
+
+The request uses:
+
+```text
+model = Provider Config.model_name
+stream = False
+reasoning_effort = high
+extra_body.thinking.type = enabled
+response_format.type = json_object
+OpenAI timeout = Provider Config.http_timeout
+OpenAI max_retries = 0
+```
+
+### PageExtractionResult
+
+The schema is defined in
+`addons/ai_vendor_invoice/schemas/page_extraction.py`. Only `page_number` is
+required. Optional fields are `header`, `header_values`, `lines`, and
+`is_multi_invoice`; additional properties are allowed. The adapter overwrites
+the model-provided page number with the actual local page number.
+
+The AI is asked to extract visible page facts only, allow missing fields, and
+avoid turning repeated page headers or column headings into lines. It is not
+currently asked to return `source_label`, `source_value`, confidence values, or
+evidence regions. Shipment references, Dossier, O.No., and Uw ref. are not
+explicitly prohibited in the Prompt from competing with invoice fields.
+
+### Responsibility boundaries
+
+AI performs visual reading and page-level JSON organization. Python performs
+PageExtraction schema validation, page ordering, semantic aliases, cross-page
+header candidate scoring, duplicate merging, conflict detection, line
+aggregation, `is_multi_invoice` consistency, and final Canonical Schema
+validation. Mapping performs supplier, currency, product, and tax candidate
+matching using configured mapping records. Human Statement Review decides
+whether to accept or correct supplier, invoice fields, totals, taxes, lines,
+and mapping candidates. Bill Creator reads the human review result.
+
+### Prompt and response traceability
+
+Prompt text is not exposed in the Odoo UI, is not editable, and is not stored
+in Provider Config. ParseAttempt stores no actual system prompt, user prompt,
+prompt version, model snapshot, or request payload hash. Successful attempts
+store the raw provider response in a private `ir.attachment` linked through
+`raw_response_attachment_id`; failures before persistence may have no raw
+response attachment. `canonical_result`, `mapping_result`, provider
+diagnostics, the source PDF attachment, and the Provider Config reference are
+stored, but a historical attempt cannot fully reconstruct:
+
+```text
+PDF + Provider + historical Model snapshot + Prompt Version + actual Prompt
++ Raw Response + CanonicalResult
+```
+
+The audit conclusion is therefore: the runtime has raw-response and
+CanonicalResult provenance, but not Prompt or Model-version provenance.
+
+## 2026-08-26 - FIX-INTENT-AI-VENDOR-EXTRACTION-CONTRACT-001
+
+### Status
+
+`Implemented` — revised contract implementation is recorded in the
+implementation section below.
+
+### Proposed scope
+
+The proposed FIX Intent changes only the DeepSeek Vision page extraction
+contract. It introduces a fact-extractor role, explicit extraction coverage
+for invoice headers, fee lines, transport references, dates, and addresses,
+and requires uncertain facts to retain `source_label`, `source_value`, and
+`source_page`.
+
+The proposed PageExtractionResult adds `source_field`, `raw_facts`,
+`references`, and `addresses` structures. It does not modify the frozen
+Canonical Schema or downstream Statement, Human Review, Mapping, Bill Creator,
+or Task state machine contracts.
+
+The proposed audit additions are:
+
+```text
+PROMPT_VERSION = vision-extraction-v1.0
+ParseAttempt.prompt_version
+ParseAttempt.model_name_snapshot
+```
+
+Prompt remains hard-coded, absent from Provider Config and Odoo UI, and not
+editable by business users. The existing private raw AI response attachment
+mechanism remains unchanged.
+
+The complete proposed system prompt, user prompt, schema, responsibility
+boundaries, and acceptance criteria are saved in:
+
+```text
+docs/intents/FIX-INTENT-AI-VENDOR-EXTRACTION-CONTRACT-001.md
+```
+
+The initial design was saved for review without code changes. Following the
+required review revision, implementation was explicitly authorized.
+
+### Review revision
+
+The review identified six required contract corrections: standard fields are
+plain scalars, `source_page` is injected locally, page-level
+`is_multi_invoice` is removed, references and addresses are unified into
+`raw_facts`/line `raw_fields`, reference extraction is mechanical rather than
+business classification, and lexical normalization is separated from semantic
+mapping. The Intent was revised accordingly, its status is now
+`IMPLEMENTATION AUTHORIZED`, and the implementation is complete in the current
+worktree. Targeted verification passes; full Odoo runtime regression remains
+subject to the existing database test environment.
+
 ## 2026-08-26 - PAGE_EXTRACTION_FIX_PASS
 
 The document normalizer now ranks header candidates using source-container
@@ -477,3 +633,91 @@ metadata, never candidate values. Bring rerun attempt 680 completed with
 `awaiting_review` task state (22 lines). Feelogic and Mainfreight remained
 green. The fixture records were cleaned before the full addon regression, which
 exited successfully. Final status is `PAGE_EXTRACTION_FIX_PASS`.
+
+## 2026-08-26 - FIX-INTENT-AI-VENDOR-EXTRACTION-CONTRACT-001 Implementation
+
+### Status
+
+`IMPLEMENTED` — revised extraction contract applied in the current worktree.
+
+### Scope completed
+
+- Replaced the DeepSeek Vision prompts with the hard-coded v1.1 fact-extraction
+  prompts and added the `PROMPT_VERSION` and
+  `EXTRACTION_CONTRACT_VERSION` constants.
+- Tightened `PageExtractionResult` to plain scalar header/line fields with
+  `raw_facts` and line `raw_fields`; source pages are injected locally.
+- Kept document-level multi-invoice detection deterministic from explicit
+  cross-page invoice numbers while retaining the frozen Canonical Schema and
+  existing Task transition.
+- Added immutable-at-source ParseAttempt prompt, extraction-contract, and model
+  snapshots; private raw-response attachments remain unchanged.
+- Added focused contract, provenance, normalization, and snapshot regression
+  tests.
+
+### Verification
+
+- `python3 -m compileall -q addons/ai_vendor_invoice`: PASS
+- `git diff --check`: PASS
+- `python3 execution/scripts/verify.py --module ai_vendor_invoice`: 19 pass,
+  0 fail
+
+## 2026-08-26 - EXTRACTION_CONTRACT_TDD_AND_TEST_INTENT
+
+Updated `docs/context/design/tdd_wd_ai_vendor_invoice_v1.4.md` with the
+page-extraction contract, versioned Prompt and contract provenance, raw fact
+handling, local `source_page` injection, document-level multi-invoice
+normalization, and the extraction test boundary. No downstream Statement,
+Review, Mapping, Bill Creator, Canonical Schema, or Task state-machine design
+was changed.
+
+Created the testing Intent:
+
+```text
+docs/intents/INTENT-TEST-AI-VENDOR-EXTRACTION-CONTRACT-001.md
+```
+
+The Intent is `Draft for Review`; it defines regression coverage and
+acceptance criteria without adding or executing new test implementation.
+
+## 2026-08-26 - TEST_INTENT_REVIEW_REVISION
+
+Applied the review corrections to
+`INTENT-TEST-AI-VENDOR-EXTRACTION-CONTRACT-001`:
+
+- provider reasoning/thinking options are tested against the active versioned
+  contract rather than treated as permanent global invariants;
+- model-supplied `source_page` is rejected and local page provenance is
+  injected by the adapter;
+- Prompt tests assert semantic markers instead of byte-for-byte text;
+- page ordering, complete line aggregation, empty-header detail pages, and
+  reference-only multi-invoice exclusions are explicit;
+- ParseAttempt tests cover immutable historical snapshots and rerun snapshots;
+- PageExtraction, Normalizer, and Canonical boundaries plus error taxonomy are
+  explicit;
+- runtime fixture validation remains separate from Test Intent PASS.
+
+The Intent status is now `TEST IMPLEMENTATION AUTHORIZED`. This revision still
+does not implement or execute the tests.
+
+## 2026-08-26 - EXTRACTION_CONTRACT_TEST_IMPLEMENTATION
+
+Implemented the authorized extraction-contract regression coverage in the
+existing test suite. Coverage includes request structure and Prompt semantics,
+PageExtraction schema boundaries and local provenance, deterministic
+cross-page normalization, reference and multi-invoice handling, and raw
+response attachment persistence.
+
+The normalizer was adjusted so independently labelled, differing invoice
+numbers produce the document-level multi-invoice result instead of being
+reported as an ordinary header conflict. It does not select a canonical
+invoice number in that case.
+
+### Verification
+
+- `python3 -m compileall -q addons/ai_vendor_invoice`: PASS
+- `git diff --check`: PASS
+- `python3 execution/scripts/verify.py --module ai_vendor_invoice`: 19 pass,
+  0 fail
+- Odoo runtime tests: NOT RUN; the environment does not have the `odoo`
+  Python module installed.
