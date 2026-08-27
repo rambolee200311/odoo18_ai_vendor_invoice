@@ -19,6 +19,14 @@
 > 修订记录：account_invoice_import 移除运行时依赖。源码探查确认：OCA‑edi 18.0分支存在该模块，但无可独立调用的底层账单创建helper；模块逻辑强耦合文件上传向导，仅可作为阅读参考。
 > 备注：SPIKE‑OCA‑001已完成源码探查，账单vals组装由本模块bill_creator自主实现。
 
+> 2026-08-26 extraction-contract amendment: DeepSeek Vision page extraction
+> is governed by `transport-invoice-page-v1` and
+> `vision-extraction-v1.1`. The page contract uses scalar standard fields plus
+> `raw_facts`/line `raw_fields`; Python injects `source_page`. Page-level
+> `is_multi_invoice`, top-level `references`, and top-level `addresses` are
+> not part of the extraction contract. Document-level multi-invoice detection
+> remains in the normalizer and downstream Task behavior is unchanged.
+
 ## 目录
 1. [总体技术栈与依赖说明](#1-总体技术栈与依赖说明)
 2. [模块目录结构（重构，区分domain/service/adapter/schema）](#2-模块目录结构重构区分domainserviceadapterschema)
@@ -112,7 +120,28 @@ wd_ai_vendor_invoice/
 └── readme.md
 ```
 
+### 2.1 Extraction contract additions
+
+The DeepSeek adapter is a page fact extractor, not a business decision maker.
+Its hard-coded Prompt version and extraction contract version are captured on
+each ParseAttempt together with the Provider Config model-name snapshot.
+Uncertain printed identifiers are retained as raw label/value facts. The
+normalizer performs only deterministic page ordering, duplicate merging,
+lexical normalization, conflict detection, and construction of the frozen
+CanonicalResult. Business semantic interpretation remains outside the AI
+extraction contract.
+
 约定：领域`service`/`adapter`/`schema`不在model内混杂；service不暴露RPC；所有外部入口通过model‑action/wizard调用。
+
+### 2.2 Extraction-contract test boundary
+
+Extraction-contract tests are isolated from Statement, Human Review, Mapping,
+Bill Creator, and Task state-machine tests. They cover Prompt constants,
+request messages, scalar page fields, raw-fact provenance injection,
+reference non-classification, document-level multi-invoice detection,
+ParseAttempt snapshots, and preservation of the private raw-response
+attachment mechanism. The complete test intent is
+`INTENT-TEST-AI-VENDOR-EXTRACTION-CONTRACT-001`.
 
 ## 3 ORM数据库模型设计（Odoo 18修正版）
 ### 3.1 vendor.invoice.import.task（聚合根）
@@ -301,6 +330,60 @@ def lock_attempt(attempt_id: int):
   }
 }
 ```
+
+### 4.2 PageExtractionResult（单页事实提取契约）
+
+单页结果只允许页面事实，不承载文档级业务结论。标准 `header` 和
+`lines[*]` 字段保持 plain scalar；无法确定业务语义的打印内容进入
+`raw_facts` 或 `lines[*].raw_fields`。`source_page` 不由模型声明，而由
+DeepSeek adapter 按本地渲染页码注入。
+
+```json
+{
+  "type": "object",
+  "required": ["page_number"],
+  "additionalProperties": false,
+  "properties": {
+    "page_number": {"type": "integer", "minimum": 1},
+    "header": {
+      "type": "object",
+      "additionalProperties": {"type": ["string", "number", "null"]}
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": {"type": ["string", "number", "null"]},
+        "properties": {
+          "raw_fields": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/raw_fact"}
+          }
+        }
+      }
+    },
+    "raw_facts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/raw_fact"}
+    }
+  },
+  "$defs": {
+    "raw_fact": {
+      "type": "object",
+      "required": ["source_label", "source_value"],
+      "additionalProperties": false,
+      "properties": {
+        "source_label": {"type": "string"},
+        "source_value": {"type": ["string", "number", "null"]}
+      }
+    }
+  }
+}
+```
+
+该契约明确不包含 page-level `is_multi_invoice`、顶层
+`references` 或顶层 `addresses`。不同显式发票号的文档级判断由
+Document Normalizer 完成；Canonical Schema 和既有 Task 状态流转不变。
 
 ### 4.2 MappingResult（映射引擎输出候选）
 > 说明：以下仅结构示意，正式可执行JSON Schema以 `schemas/*.py` 为准。
@@ -686,6 +769,13 @@ DDD定义三类角色，尽量复用Odoo account权限组组合；最小新增�
 ## 12 测试设计（扩充并发、事务回滚、竞态用例）
 单元测试（`tests/`）
 - 领域单元：mapping_engine、validation_service校验逻辑、schema校验
+- Extraction Contract：Prompt/version、messages与请求参数、PageExtraction
+  scalar字段、raw provenance、`source_page`本地注入、未知运输reference不
+  解释为`invoice_number`
+- Document Normalizer：跨页确定性合并、显式发票号冲突、多发票不静默选择、
+  lexical alias限制及raw fact页面保留
+- ParseAttempt审计：`prompt_version`、`extraction_contract_version`、
+  `model_name_snapshot`及私有raw response附件回归
 - 状态机全部状态流转；stale‑worker守卫逻辑；queued→running流转；superseded不计入AI失败统计
 - bill‑creator幂等；重复调用不会生成多张bill；校验awaiting_review+human_reviewed硬约束
 - cron超时逻辑；模拟hang住的parsing task；业务超时基于task.enter_parsing_datetime，覆盖queued、running
