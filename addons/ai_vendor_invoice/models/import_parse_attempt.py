@@ -4,7 +4,7 @@
 # T-024: job_run_parse is the sole queue_job entry point (service must not with_delay directly).
 from odoo import api, fields, models
 
-from ..adapters.deepseek import (
+from ..adapters.aibase import (
     EXTRACTION_CONTRACT_VERSION,
     PROMPT_VERSION,
 )

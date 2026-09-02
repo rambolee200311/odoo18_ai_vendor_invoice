@@ -13,6 +13,47 @@
             </list>
         </field>
     </record>
+    <record id="view_vendor_invoice_statement_tree" model="ir.ui.view">
+        <field name="name">vendor.invoice.statement.tree</field>
+        <field name="model">vendor.invoice.statement</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="invoice_number"/>
+                <field name="invoice_date"/>
+                <field name="supplier_id"/>
+                <field name="currency_id"/>
+                <field name="total_amount"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_statement_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.statement.form</field>
+        <field name="model">vendor.invoice.statement</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="supplier_id"/>
+                        <field name="supplier_name"/>
+                        <field name="invoice_number"/>
+                        <field name="invoice_date"/>
+                        <field name="currency_id"/>
+                        <field name="subtotal"/>
+                        <field name="total_tax"/>
+                        <field name="total_amount"/>
+                    </group>
+                    <field name="line_ids">
+                        <list editable="bottom">
+                            <field name="description"/>
+                            <field name="amount"/>
+                            <field name="tax_raw_text"/>
+                            <field name="reconciliation_clues" readonly="1"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
     <record id="view_vendor_invoice_import_task_form" model="ir.ui.view">
         <field name="name">vendor.invoice.import.task.form</field>
         <field name="model">vendor.invoice.import.task</field>
@@ -76,8 +117,17 @@
         <field name="res_model">vendor.invoice.import.task</field>
         <field name="view_mode">list,form</field>
     </record>
+    <record id="action_vendor_invoice_statement" model="ir.actions.act_window">
+        <field name="name">Vendor Invoice Statements</field>
+        <field name="res_model">vendor.invoice.statement</field>
+        <field name="view_mode">list,form</field>
+    </record>
     <menuitem id="menu_vendor_invoice_import_task"
               name="AI Vendor Invoice Imports"
               parent="account.menu_finance"
               action="action_vendor_invoice_import_task"/>
+    <menuitem id="menu_vendor_invoice_statement"
+              name="Vendor Invoice Statements"
+              parent="account.menu_finance"
+              action="action_vendor_invoice_statement"/>
 </odoo>

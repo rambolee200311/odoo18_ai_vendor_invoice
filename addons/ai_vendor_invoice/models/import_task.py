@@ -267,6 +267,53 @@ class VendorInvoiceImportTask(models.Model):
         self._log_statement_change("human_modify", attempt, "Statement created from ParseAttempt.")
         return statement
 
+    def _create_prefilled_statement_from_canonical(self, attempt, canonical):
+        """Create the editable candidate immediately after a successful parse."""
+        if self.statement_id or canonical.get("is_multi_invoice"):
+            return self.statement_id
+        header = canonical.get("header") or {}
+        value = lambda field: (header.get(field) or {}).get("value")
+        supplier_name = value("supplier_raw_text")
+        currency_name = value("currency_raw_text")
+        supplier = self.env["res.partner"].search(
+            [("name", "=", supplier_name)], limit=1
+        ) if supplier_name else self.env["res.partner"]
+        currency = self.env["res.currency"].search(
+            ["|", ("name", "=", currency_name), ("symbol", "=", currency_name)],
+            limit=1,
+        ) if currency_name else self.env["res.currency"]
+        payload = {
+            "invoice_number": value("invoice_number"),
+            "invoice_date": value("invoice_date"),
+            "supplier_id": supplier.id or None,
+            "supplier_name": supplier_name,
+            "currency_id": currency.id or None,
+            "total_amount": value("total_amount") or 0.0,
+            "total_tax": value("total_tax") or 0.0,
+            "subtotal": value("subtotal") or 0.0,
+            "lines": [
+                {
+                    "description": (line.get("description") or {}).get("value"),
+                    "amount": (line.get("amount") or {}).get("value"),
+                    "price_unit": (line.get("amount") or {}).get("value"),
+                    "tax_raw_text": (line.get("tax_raw_text") or {}).get("value"),
+                    "reconciliation_clues": line.get("reconciliation_clues", []),
+                }
+                for line in canonical.get("lines", [])
+            ],
+        }
+        statement = self.env["vendor.invoice.statement"]._aggregate_create(
+            self._statement_values(payload, attempt)
+        )
+        self.env["vendor.invoice.statement.line"]._aggregate_create(
+            self._statement_line_values(payload, statement)
+        )
+        self.write({"statement_id": statement.id})
+        self._log_statement_change(
+            "statement_candidate_apply", attempt, "AI-prefilled Statement created."
+        )
+        return statement
+
     def action_apply_statement_changes(self, statement_payload):
         """Apply human edits through the aggregate boundary."""
         self.ensure_one()
@@ -360,6 +407,7 @@ class VendorInvoiceImportTask(models.Model):
             "currency_id": payload.get("currency_id"),
             "total_amount": payload.get("total_amount", 0.0),
             "total_tax": payload.get("total_tax", 0.0),
+            "subtotal": payload.get("subtotal", 0.0),
             "note": payload.get("note"),
         }
 
@@ -375,6 +423,7 @@ class VendorInvoiceImportTask(models.Model):
                 "amount": line["amount"],
                 "tax_raw_text": line.get("tax_raw_text"),
                 "tax_ids": [(6, 0, line.get("tax_ids", []))],
+                "reconciliation_clues": line.get("reconciliation_clues", []),
             }
             for index, line in enumerate(payload.get("lines", []), 1)
         ]
@@ -390,6 +439,7 @@ class VendorInvoiceImportTask(models.Model):
             "currency_id": header.get("currency_id"),
             "total_amount": header.get("total_amount", 0.0),
             "total_tax": header.get("total_tax", 0.0),
+            "subtotal": header.get("subtotal", 0.0),
             "lines": [
                 {
                     "product_id": line.get("product_id"),
@@ -399,6 +449,7 @@ class VendorInvoiceImportTask(models.Model):
                     "amount": line.get("line_total_amount", line.get("subtotal", 0.0)),
                     "tax_ids": line.get("tax_ids", []),
                     "tax_raw_text": line.get("tax_raw_text"),
+                    "reconciliation_clues": line.get("reconciliation_clues", []),
                 }
                 for line in review_payload.get("lines", [])
             ],

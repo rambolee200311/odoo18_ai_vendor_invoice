@@ -5,6 +5,8 @@ Each extractable field is represented as {"value": ..., "confidence": 0..1}.
 T-010: structure validation only; business logic lives in validation_service.
 """
 
+from .reconciliation_clue import RECONCILIATION_CLUE_SCHEMA
+
 CANONICAL_INVOICE_RESULT_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -103,6 +105,15 @@ CANONICAL_INVOICE_RESULT_SCHEMA = {
                             "maximum": 1,
                         },
                     },
+                    "subtotal": {
+                        "type": "object",
+                        "required": ["value", "confidence"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "value": {"type": ["string", "null"]},
+                            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                        },
+                    },
                 },
             },
         },
@@ -150,6 +161,10 @@ CANONICAL_INVOICE_RESULT_SCHEMA = {
                                 "minimum": 0,
                                 "maximum": 1,
                             },
+                        },
+                        "reconciliation_clues": {
+                            "type": "array",
+                            "items": RECONCILIATION_CLUE_SCHEMA,
                         },
                     },
                 },

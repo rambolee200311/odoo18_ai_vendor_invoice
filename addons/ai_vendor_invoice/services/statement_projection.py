@@ -26,6 +26,7 @@ def statement_to_human_review_result(statement):
             "currency_id": statement.currency_id.id,
             "total_amount": str(Decimal(str(statement.total_amount))),
             "total_tax": str(Decimal(str(statement.total_tax))),
+            "subtotal": str(Decimal(str(statement.subtotal))),
         },
         "lines": [
             {
@@ -38,6 +39,7 @@ def statement_to_human_review_result(statement):
                 "tax_ids": line.tax_ids.ids,
                 "tax_amount": "0",
                 "line_total_amount": _text(line.amount),
+                "reconciliation_clues": line.reconciliation_clues or [],
             }
             for line in statement.line_ids
         ],

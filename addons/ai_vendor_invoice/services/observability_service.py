@@ -135,6 +135,9 @@ def begin_provider_call(
     provider_config,
     effective_prompt_snapshot,
     input_page_count=None,
+    input_mode="rendered_images",
+    input_document_type=None,
+    rendered_image_count=0,
 ):
     artifacts = page_artifact if isinstance(page_artifact, (list, tuple)) else [page_artifact]
     artifact_ids = [
@@ -165,6 +168,9 @@ def begin_provider_call(
             "input_page_count": (
                 input_page_count if input_page_count is not None else len(artifact_ids)
             ),
+            "input_mode": input_mode,
+            "input_document_type": input_document_type,
+            "rendered_image_count": rendered_image_count,
             "call_sequence": (last_call.call_sequence or 0) + 1,
             "retry_index": retry_index,
             "provider_snapshot": provider_snapshot,

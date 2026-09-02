@@ -8,6 +8,7 @@ from . import (
     timeout_service,
     validation_service,
     statement_projection,
+    native_document_projection,
 )
 
 __all__ = [

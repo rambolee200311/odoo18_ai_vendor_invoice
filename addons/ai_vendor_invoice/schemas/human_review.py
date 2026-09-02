@@ -4,6 +4,8 @@ HumanReviewResult JSON Schema.
 T-006 / T-007: Bill Creator reads ONLY this object.
 """
 
+from .reconciliation_clue import RECONCILIATION_CLUE_SCHEMA
+
 HUMAN_REVIEW_RESULT_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
@@ -20,6 +22,7 @@ HUMAN_REVIEW_RESULT_SCHEMA = {
                 "currency_id": {"type": ["integer", "null"]},
                 "total_amount": {"type": ["string", "null"]},
                 "total_tax": {"type": ["string", "null"]},
+                "subtotal": {"type": ["string", "null"]},
             },
         },
         "lines": {
@@ -38,6 +41,10 @@ HUMAN_REVIEW_RESULT_SCHEMA = {
                     },
                     "tax_amount": {"type": ["string", "null"]},
                     "line_total_amount": {"type": ["string", "null"]},
+                    "reconciliation_clues": {
+                        "type": "array",
+                        "items": RECONCILIATION_CLUE_SCHEMA,
+                    },
                 },
             },
         },

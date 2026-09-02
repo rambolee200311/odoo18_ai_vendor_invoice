@@ -26,3 +26,8 @@ class AccountMoveLine(models.Model):
         index=True,
         copy=False,
     )
+    reconciliation_clues = fields.Json(
+        string="Reconciliation Clues",
+        help="Generic invoice-line clues preserved for future reconciliation.",
+        copy=False,
+    )

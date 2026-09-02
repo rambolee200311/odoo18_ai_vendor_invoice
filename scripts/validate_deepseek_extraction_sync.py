@@ -71,7 +71,7 @@ def _run_multi_page(
     user_prompt,
     observability_service,
 ):
-    from odoo.addons.ai_vendor_invoice.adapters import deepseek
+    from odoo.addons.ai_vendor_invoice.adapters import aibase
     from odoo.addons.ai_vendor_invoice.adapters.document_normalizer import (
         _validate_page_result,
     )
@@ -105,13 +105,13 @@ def _run_multi_page(
     def multi_page_extraction(body, _page_number):
         return body
 
-    original_system = deepseek.SYSTEM_PROMPT
-    original_user = deepseek.USER_PROMPT
+    original_system = aibase.SYSTEM_PROMPT
+    original_user = aibase.USER_PROMPT
     original_extraction = adapter._page_extraction
     original_begin = observability_service.begin_provider_call
     original_finish = observability_service.finish_provider_call
-    deepseek.SYSTEM_PROMPT = diagnostic_system_prompt
-    deepseek.USER_PROMPT = diagnostic_user_prompt
+    aibase.SYSTEM_PROMPT = diagnostic_system_prompt
+    aibase.USER_PROMPT = diagnostic_user_prompt
     adapter._page_extraction = multi_page_extraction
     observability_service.begin_provider_call = lambda *args, **kwargs: None
     observability_service.finish_provider_call = capture_finish
@@ -138,8 +138,8 @@ def _run_multi_page(
         raw_response = captured.get("raw_response")
         extraction_error = error
     finally:
-        deepseek.SYSTEM_PROMPT = original_system
-        deepseek.USER_PROMPT = original_user
+        aibase.SYSTEM_PROMPT = original_system
+        aibase.USER_PROMPT = original_user
         adapter._page_extraction = original_extraction
         observability_service.begin_provider_call = original_begin
         observability_service.finish_provider_call = original_finish
@@ -519,10 +519,12 @@ def run(args):
         if not provider_config:
             raise RuntimeError("DeepSeek provider configuration was not found.")
 
-        from odoo.addons.ai_vendor_invoice.adapters.deepseek import (
+        from odoo.addons.ai_vendor_invoice.adapters.aibase import (
             PROMPT_VERSION,
             SYSTEM_PROMPT,
             USER_PROMPT,
+        )
+        from odoo.addons.ai_vendor_invoice.adapters.deepseek import (
             DeepSeekAIProviderAdapter,
         )
         from odoo.addons.ai_vendor_invoice.services.pdf_preprocessor import (

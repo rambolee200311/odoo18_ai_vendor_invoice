@@ -5,6 +5,7 @@ from odoo import api, fields, models
 
 
 FAILURE_STAGES = [
+    ("INPUT_STRATEGY", "Input Strategy"),
     ("PDF_PREPROCESS", "PDF Preprocess"),
     ("PAGE_PROVIDER_REQUEST", "Page Provider Request"),
     ("PAGE_PROVIDER_RESPONSE", "Page Provider Response"),
@@ -50,6 +51,15 @@ class VendorInvoiceImportProviderCall(models.Model):
         readonly=True,
     )
     input_page_count = fields.Integer(readonly=True)
+    input_mode = fields.Selection(
+        [
+            ("rendered_images", "Rendered Images"),
+            ("native_pdf", "Native PDF"),
+        ],
+        readonly=True,
+    )
+    input_document_type = fields.Char(readonly=True)
+    rendered_image_count = fields.Integer(readonly=True)
     returned_page_count = fields.Integer(readonly=True)
     failure_page_no = fields.Integer(readonly=True)
     call_sequence = fields.Integer(required=True, readonly=True)
