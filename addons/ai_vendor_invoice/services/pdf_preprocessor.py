@@ -1,7 +1,11 @@
 # © 2024 Wukong Digital. License LGPL-3.
 """Convert a PDF attachment into an in-memory ProviderInput."""
 
+import hashlib
+
 import fitz
+
+from .provider_input import ProviderInput
 
 
 class PDFPreprocessorError(Exception):
@@ -24,8 +28,8 @@ class PDFRenderError(PDFPreprocessorError):
     """A PDF page could not be rendered as PNG."""
 
 
-def prepare_provider_input(pdf_attachment):
-    """Return ordered PNG page bytes without persisting rendered pages."""
+def prepare_provider_input(pdf_attachment, mode="rendered_images"):
+    """Prepare one validated ProviderInput without persisting transport bytes."""
     pdf_bytes = pdf_attachment.raw or b""
     if not pdf_bytes:
         raise PDFInvalidError("PDF input is empty.")
@@ -38,6 +42,18 @@ def prepare_provider_input(pdf_attachment):
             raise PDFEncryptedError("Encrypted PDF input cannot be opened.")
         if document.page_count == 0:
             raise PDFEmptyError("PDF input contains no pages.")
+        source = {
+            "attachment_id": pdf_attachment.id,
+            "page_count": document.page_count,
+            "mime_type": "application/pdf",
+            "checksum": hashlib.sha256(pdf_bytes).hexdigest(),
+        }
+        if mode == "native_pdf":
+            return ProviderInput(
+                mode=mode,
+                source=source,
+                document_bytes=pdf_bytes,
+            )
         images = []
         for page_number in range(document.page_count):
             try:
@@ -46,6 +62,10 @@ def prepare_provider_input(pdf_attachment):
                 images.append(pixmap.tobytes("png"))
             except (RuntimeError, ValueError) as error:
                 raise PDFRenderError("PDF page rendering failed.") from error
-        return {"type": "pages", "images": images}
+        return ProviderInput(
+            mode=mode,
+            source=source,
+            images=tuple(images),
+        )
     finally:
         document.close()

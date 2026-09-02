@@ -23,6 +23,17 @@ class WdAiProviderConfig(models.Model):
 
     model_name = fields.Char(string="Model Name", required=True)
 
+    document_input_mode = fields.Selection(
+        [
+            ("rendered_images", "Rendered Images"),
+            ("native_pdf", "Native PDF"),
+        ],
+        string="Document Input Mode",
+        required=True,
+        default="rendered_images",
+        help="Transport representation sent to the configured AI provider.",
+    )
+
     max_internal_retry = fields.Integer(
         string="Max Internal Retry",
         default=3,

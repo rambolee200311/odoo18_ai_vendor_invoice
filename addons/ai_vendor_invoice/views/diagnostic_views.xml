@@ -70,7 +70,10 @@
                                     <field name="retry_index"/>
                                     <field name="page_artifact_id"/>
                                     <field name="page_artifact_ids"/>
+                                    <field name="input_mode"/>
+                                    <field name="input_document_type"/>
                                     <field name="input_page_count"/>
+                                    <field name="rendered_image_count"/>
                                     <field name="returned_page_count"/>
                                     <field name="provider_snapshot"/>
                                     <field name="model_snapshot"/>
@@ -88,7 +91,10 @@
                                         <field name="retry_index"/>
                                         <field name="page_artifact_id"/>
                                         <field name="page_artifact_ids"/>
+                                        <field name="input_mode"/>
+                                        <field name="input_document_type"/>
                                         <field name="input_page_count"/>
+                                        <field name="rendered_image_count"/>
                                         <field name="returned_page_count"/>
                                         <field name="provider_snapshot"/>
                                         <field name="model_snapshot"/>

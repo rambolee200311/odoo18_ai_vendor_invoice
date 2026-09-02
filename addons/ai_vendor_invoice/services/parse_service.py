@@ -8,7 +8,7 @@ from ..adapters import (
     AIProviderTemporaryError,
     adapter_for,
 )
-from ..adapters.deepseek import (
+from ..adapters.aibase import (
     EXTRACTION_CONTRACT_VERSION,
     PROMPT_VERSION,
 )
@@ -181,14 +181,23 @@ def run_parse_attempt(env, task_id, attempt_id):
         return False
     _publish_attempt_running(env, attempt)
     try:
-        provider_input = prepare_provider_input(task.source_pdf_attachment_id)
-        provider_input["page_artifacts"] = (
-            observability_service.persist_page_artifacts(
+        adapter = adapter_for(env, attempt.provider_config_id)
+        input_mode = attempt.provider_config_id.document_input_mode or "rendered_images"
+        adapter.validate_input_mode(input_mode)
+        provider_input = prepare_provider_input(
+            task.source_pdf_attachment_id,
+            mode=input_mode,
+        )
+        if input_mode == "rendered_images" and provider_input.get("images"):
+            page_artifacts = observability_service.persist_page_artifacts(
                 attempt,
                 provider_input["images"],
             )
-        )
-        canonical, raw = adapter_for(env, attempt.provider_config_id).parse_pdf(
+            if hasattr(provider_input, "page_artifacts"):
+                provider_input.page_artifacts = tuple(page_artifacts)
+            else:
+                provider_input["page_artifacts"] = page_artifacts
+        canonical, raw = adapter.parse_pdf(
             provider_input, attempt.provider_config_id,
             attempt.provider_config_id.max_internal_retry, attempt,
         )
@@ -251,6 +260,8 @@ def run_parse_attempt(env, task_id, attempt_id):
         "completed_at": completed_at,
         "last_activity_at": completed_at,
     })
+    if input_mode == "native_pdf":
+        task._create_prefilled_statement_from_canonical(attempt, canonical)
     task.write({"state": "error_split_required" if canonical.get("is_multi_invoice")
                 else "awaiting_review"})
     _audit(env, task, attempt, "ai_parse", "AI parse completed successfully.")

@@ -35,6 +35,7 @@ class VendorInvoiceStatement(models.Model):
     currency_id = fields.Many2one("res.currency", string="Currency")
     total_amount = fields.Monetary(string="Total Amount", currency_field="currency_id")
     total_tax = fields.Monetary(string="Total Tax", currency_field="currency_id")
+    subtotal = fields.Monetary(string="Subtotal", currency_field="currency_id")
     note = fields.Text(string="Notes")
     line_ids = fields.One2many(
         "vendor.invoice.statement.line",
@@ -58,6 +59,8 @@ class VendorInvoiceStatement(models.Model):
         )
 
     def write(self, vals):
+        if self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            return super().write(vals)
         raise AccessError(
             _("Statement records must be changed through a Task aggregate command.")
         )
@@ -99,6 +102,10 @@ class VendorInvoiceStatementLine(models.Model):
     amount = fields.Monetary(required=True, currency_field="currency_id")
     tax_raw_text = fields.Char(string="Tax")
     tax_ids = fields.Many2many("account.tax", string="Taxes")
+    reconciliation_clues = fields.Json(
+        string="Reconciliation Clues",
+        help="Generic label/value clues preserved for a future reconciliation flow.",
+    )
     currency_id = fields.Many2one(
         related="statement_id.currency_id",
         store=True,
@@ -112,6 +119,8 @@ class VendorInvoiceStatementLine(models.Model):
         )
 
     def write(self, vals):
+        if self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            return super().write(vals)
         raise AccessError(
             _("Statement lines must be changed through a Task aggregate command.")
         )

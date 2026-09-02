@@ -27,6 +27,7 @@ class AIProviderPermanentError(AIProviderError):
 
 class BaseAIProviderAdapter(ABC):
     provider_name = None
+    supported_input_modes = frozenset()
 
     def __init__(self, env):
         self.env = env
@@ -35,6 +36,14 @@ class BaseAIProviderAdapter(ABC):
         # Reading the key through sudo is intentional; callers still cannot
         # return it through an RPC recordset.
         return provider_config.sudo().api_key
+
+    def validate_input_mode(self, mode):
+        if mode not in self.supported_input_modes:
+            error = AIProviderPermanentError(
+                "Configured document input mode is not supported by this provider."
+            )
+            error.failure_stage = "INPUT_STRATEGY"
+            raise error
 
     def _request(
         self,
@@ -106,12 +115,15 @@ class BaseAIProviderAdapter(ABC):
 def adapter_for(env, provider_config):
     from .claude import ClaudeAIProviderAdapter
     from .deepseek import DeepSeekAIProviderAdapter
+    from .openai import OpenAIAIProviderAdapter
 
     name = (provider_config.name or "").lower()
     if "claude" in name or "anthropic" in name:
         return ClaudeAIProviderAdapter(env)
     if "deepseek" in name:
         return DeepSeekAIProviderAdapter(env)
+    if "openai" in name:
+        return OpenAIAIProviderAdapter(env)
     raise AIProviderPermanentError("Unsupported AI provider.")
 
 

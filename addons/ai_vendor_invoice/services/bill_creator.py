@@ -35,6 +35,7 @@ def _line_vals(line, fallback_product=None):
         "quantity": float(quantity),
         "price_unit": float(_number(unit_price)),
         "tax_ids": [Command.set(line.get("tax_ids") or [])],
+        "reconciliation_clues": line.get("reconciliation_clues") or [],
     }
     if line.get("statement_line_id"):
         vals["vendor_statement_line_id"] = line["statement_line_id"]

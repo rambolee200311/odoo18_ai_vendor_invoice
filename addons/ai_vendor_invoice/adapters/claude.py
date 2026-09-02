@@ -6,6 +6,7 @@ from .base import BaseAIProviderAdapter
 
 class ClaudeAIProviderAdapter(BaseAIProviderAdapter):
     provider_name = "claude"
+    supported_input_modes = frozenset({"rendered_images"})
 
     def parse_pdf(self, provider_input, provider_config, max_attempt_retry=0, attempt_obj=None):
         payload = {
