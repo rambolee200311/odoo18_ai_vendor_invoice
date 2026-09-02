@@ -72,5 +72,33 @@
             <field name="perm_unlink" eval="True"/>
         </record>
 
+        <record id="rule_page_artifact_company_reviewer" model="ir.rule">
+            <field name="name">Page Artifact: reviewer company access</field>
+            <field name="model_id" ref="model_vendor_invoice_import_page_artifact"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+        </record>
+
+        <record id="rule_page_artifact_company_config_manager" model="ir.rule">
+            <field name="name">Page Artifact: config manager company access</field>
+            <field name="model_id" ref="model_vendor_invoice_import_page_artifact"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_config_manager'))]"/>
+        </record>
+
+        <record id="rule_provider_call_company_reviewer" model="ir.rule">
+            <field name="name">Provider Call: reviewer company access</field>
+            <field name="model_id" ref="model_vendor_invoice_import_provider_call"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+        </record>
+
+        <record id="rule_provider_call_company_config_manager" model="ir.rule">
+            <field name="name">Provider Call: config manager company access</field>
+            <field name="model_id" ref="model_vendor_invoice_import_provider_call"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_config_manager'))]"/>
+        </record>
+
     </data>
 </odoo>

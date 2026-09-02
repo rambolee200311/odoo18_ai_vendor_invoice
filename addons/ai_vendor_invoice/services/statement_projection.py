@@ -16,6 +16,7 @@ def statement_to_human_review_result(statement):
     if not statement.supplier_id or not statement.currency_id:
         raise ValidationError(_("A Statement supplier and currency are required."))
     return {
+        "statement_id": statement.id,
         "header": {
             "supplier_id": statement.supplier_id.id,
             "invoice_number": statement.invoice_number,
@@ -28,6 +29,7 @@ def statement_to_human_review_result(statement):
         },
         "lines": [
             {
+                "statement_line_id": line.id,
                 "product_id": line.product_id.id if line.product_id else None,
                 "description": line.description,
                 "quantity": _text(line.quantity),

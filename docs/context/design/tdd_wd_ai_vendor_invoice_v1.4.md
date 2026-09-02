@@ -21,7 +21,7 @@
 
 > 2026-08-26 extraction-contract amendment: DeepSeek Vision page extraction
 > is governed by `transport-invoice-page-v1` and
-> `vision-extraction-v1.1`. The page contract uses scalar standard fields plus
+> `vision-extraction-v1.2`. The page contract uses scalar standard fields plus
 > `raw_facts`/line `raw_fields`; Python injects `source_page`. Page-level
 > `is_multi_invoice`, top-level `references`, and top-level `addresses` are
 > not part of the extraction contract. Document-level multi-invoice detection

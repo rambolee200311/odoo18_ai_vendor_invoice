@@ -11,6 +11,7 @@
             <field name="name">Default</field>
             <field name="task_timeout_seconds">3600</field>
             <field name="cron_interval_minutes">5</field>
+            <field name="queue_wait_warning_seconds">300</field>
             <field name="amount_tolerance">0.01</field>
         </record>
 
