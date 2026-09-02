@@ -30,6 +30,15 @@ class WdSystemConfig(models.Model):
         default=5,
     )
 
+    queue_wait_warning_seconds = fields.Integer(
+        string="Queue Wait Diagnostic Threshold (seconds)",
+        default=300,
+        help=(
+            "Operational-only threshold for QUEUE_WAIT_EXCESSIVE. "
+            "It never changes a task or attempt state."
+        ),
+    )
+
     amount_tolerance = fields.Float(
         string="Amount Tolerance",
         default=0.01,
@@ -48,4 +57,3 @@ class WdSystemConfig(models.Model):
         if not cfg:
             cfg = self.create({"name": "Default"})
         return cfg
-

@@ -4,6 +4,43 @@
 from odoo import _, fields
 
 
+def reconcile_failed_queue_attempts(env):
+    """Converge attempts whose queue job reached a terminal failed state."""
+    attempts = env["vendor.invoice.import.parse.attempt"].search([
+        ("status", "in", ("queued", "running")),
+        ("queue_job_id.state", "=", "failed"),
+    ])
+    count = 0
+    for candidate in attempts:
+        with env.cr.savepoint():
+            task = env["wd.lock.service"].lock_task(candidate.task_id.id)
+            attempt = env["wd.lock.service"].lock_attempt(candidate.id)
+            if (task.state != "parsing"
+                    or task.current_parse_attempt_id != attempt
+                    or attempt.status not in ("queued", "running")
+                    or not attempt.queue_job_id
+                    or attempt.queue_job_id.state != "failed"):
+                continue
+            summary = _("The AI parsing job failed before it completed.")
+            completed_at = fields.Datetime.now()
+            attempt.write({
+                "status": "failed",
+                "finished_at": completed_at,
+                "completed_at": completed_at,
+                "error_message": summary,
+                "error_summary": summary,
+            })
+            task.write({"state": "error_ai_unavailable"})
+            env["vendor.invoice.import.log"].create({
+                "task_id": task.id,
+                "parse_attempt_id": attempt.id,
+                "action": "queue_reconciliation",
+                "snapshot_delta": "Converged an attempt after its queue job failed.",
+            })
+            count += 1
+    return count
+
+
 def check_parsing_timeout(env):
     """Mark overdue queued/running tasks and their current attempt as failed."""
     config = env["wd.system.config"].get_config()
@@ -31,13 +68,22 @@ def check_parsing_timeout(env):
             attempt = task.current_parse_attempt_id
             if not attempt or attempt.status not in ("queued", "running"):
                 continue
+            if attempt.queue_job_id and attempt.queue_job_id.state == "started":
+                env.cr.execute(
+                    "SELECT 1 FROM queue_job_lock WHERE queue_job_id = %s",
+                    (attempt.queue_job_id.id,),
+                )
+                if env.cr.fetchone():
+                    continue
             attempt = env["wd.lock.service"].lock_attempt(attempt.id)
+            summary = _("Task parsing timeout exceeded; worker did not complete.")
+            completed_at = fields.Datetime.now()
             attempt.write({
                 "status": "failed",
-                "finished_at": fields.Datetime.now(),
-                "error_message": _(
-                    "Task parsing timeout exceeded; worker did not complete."
-                ),
+                "finished_at": completed_at,
+                "completed_at": completed_at,
+                "error_message": summary,
+                "error_summary": summary,
             })
             task.write({"state": "error_timeout"})
             env["vendor.invoice.import.log"].create({

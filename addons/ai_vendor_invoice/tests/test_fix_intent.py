@@ -7,7 +7,7 @@ from io import BytesIO
 import base64
 import inspect
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from PyPDF2 import PdfWriter
 from reportlab.pdfgen import canvas
@@ -22,6 +22,7 @@ from ..adapters.deepseek import (
     SYSTEM_PROMPT,
     USER_PROMPT,
 )
+from ..schemas.page_extraction import PAGE_EXTRACTION_RESULT_SCHEMA
 from ..adapters.document_normalizer import (
     DocumentNormalizationError,
     normalize_page_results,
@@ -100,7 +101,7 @@ class TestFixIntentAdapter(TransactionCase):
         )
         response = Mock()
         response.model_dump.return_value = {
-            "choices": [{"message": {"content": '{"header": {}, "lines": []}'}}],
+            "choices": [{"message": {"content": '{"pages": [{"page_number": 1, "header": {}, "lines": []}]}'}}],
         }
         response.model_dump_json.return_value = "{}"
         client = Mock()
@@ -379,7 +380,7 @@ class TestFixIntentAdapter(TransactionCase):
 
     def test_prompts_and_versions_match_extraction_contract(self):
         self.assertEqual(EXTRACTION_CONTRACT_VERSION, "transport-invoice-page-v1")
-        self.assertEqual(PROMPT_VERSION, "vision-extraction-v1.1")
+        self.assertEqual(PROMPT_VERSION, "vision-extraction-v1.3")
         self.assertIn("not a business decision maker", SYSTEM_PROMPT)
         self.assertIn("raw_facts", SYSTEM_PROMPT)
         for clause in ("Do not guess", "autocomplete", "calculate",
@@ -389,6 +390,20 @@ class TestFixIntentAdapter(TransactionCase):
         for clause in ("fee or charge lines", "dates", "addresses", "raw_facts"):
             self.assertIn(clause, USER_PROMPT)
         self.assertNotIn("is_multi_invoice", USER_PROMPT)
+
+    def test_prompt_explicitly_matches_page_extraction_schema(self):
+        allowed = set(PAGE_EXTRACTION_RESULT_SCHEMA["properties"])
+        self.assertIn("PageExtractionResult", SYSTEM_PROMPT)
+        self.assertIn("PageExtractionResult", USER_PROMPT)
+        self.assertIn("only these keys", SYSTEM_PROMPT)
+        self.assertIn("Do not add any other top-level keys", SYSTEM_PROMPT)
+        for key in allowed:
+            self.assertIn(key, SYSTEM_PROMPT)
+            self.assertIn(key, USER_PROMPT)
+        self.assertIn("source_label", SYSTEM_PROMPT)
+        self.assertIn("source_value", SYSTEM_PROMPT)
+        self.assertNotIn('"sender"', SYSTEM_PROMPT)
+        self.assertNotIn('"invoice_header"', SYSTEM_PROMPT)
 
     def test_normalizer_preserves_page_and_line_order_and_duplicate_lines(self):
         result = normalize_page_results([

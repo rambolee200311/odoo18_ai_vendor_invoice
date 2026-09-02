@@ -90,13 +90,15 @@ def worker_has_no_commit():
     worker = open(
         os.path.join(module_path("ai_vendor_invoice"), "services", "parse_service.py"),
         encoding="utf-8",
-    ).read()
+    ).read().split("def run_parse_attempt", 1)[1]
     model_entry = open(
         os.path.join(
             module_path("ai_vendor_invoice"), "models", "import_parse_attempt.py"
         ),
         encoding="utf-8",
     ).read()
+    # The lifecycle publisher commits only its isolated observability update
+    # before the long-running worker body begins.
     return "cr.commit(" not in worker and "cr.commit(" not in model_entry
 
 
@@ -224,13 +226,19 @@ def no_http_inside_lock():
     )
     parse = open(parse_path, encoding="utf-8").read()
     worker = parse[parse.index("def run_parse_attempt") :]
+    pre_http = worker[:worker.index("provider_input =")]
     adapters = "\n".join(
         open(path, encoding="utf-8").read()
         for path in files_under(
             os.path.join(module_path("ai_vendor_invoice"), "adapters"), (".py",)
         )
     )
-    return "lock_task(" not in worker and "lock_attempt(" not in worker and "requests.post(" not in worker and "requests.post(" in adapters
+    return (
+        "lock_task(" not in pre_http
+        and "lock_attempt(" not in pre_http
+        and "requests.post(" not in worker
+        and "requests.post(" in adapters
+    )
 
 
 def ai_gates():

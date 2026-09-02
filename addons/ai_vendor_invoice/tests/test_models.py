@@ -6,13 +6,15 @@ Covers: field definitions, DB constraints, immutability guards, schema
 """
 import jsonschema
 from unittest.mock import patch
-from odoo.exceptions import AccessError, ValidationError
+from odoo import fields
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 from ..schemas.canonical import CANONICAL_INVOICE_RESULT_SCHEMA
 from ..schemas.human_review import HUMAN_REVIEW_RESULT_SCHEMA
 from ..schemas.mapping import MAPPING_RESULT_SCHEMA
 from ..schemas.warning import REVIEW_WARNINGS_SCHEMA
+from ..models.import_parse_attempt import VendorInvoiceImportParseAttempt
 
 
 def _minimal_canonical(is_multi=False):
@@ -118,6 +120,8 @@ class TestImportTaskModel(TransactionCase):
         )
         self.assertEqual(statement.source_parse_attempt_id, attempt)
         self.assertEqual(task.statement_id, statement)
+        self.assertEqual(len(statement.line_ids), 1)
+        self.assertEqual(statement.line_ids.description, "Freight")
 
     def test_statement_confirmation_projects_human_review_result(self):
         admin = self.env.ref("base.user_admin")
@@ -156,6 +160,11 @@ class TestImportTaskModel(TransactionCase):
         self.assertEqual(task.human_review_result["header"]["invoice_number"], "INV-002")
         self.assertEqual(task.human_review_result["header"]["supplier_id"],
                          self.env.ref("base.res_partner_1").id)
+        self.assertEqual(task.human_review_result["statement_id"], task.statement_id.id)
+        self.assertEqual(
+            task.human_review_result["lines"][0]["statement_line_id"],
+            task.statement_id.line_ids.id,
+        )
 
     def test_statement_projection_rejects_inconsistent_result(self):
         admin = self.env.ref("base.user_admin")
@@ -278,13 +287,57 @@ class TestParseAttemptModel(TransactionCase):
         )
         self.assertEqual(attempt.attempt_internal_retry_count, 0)
 
+    def test_attempt_submission_and_task_status_observability(self):
+        task, provider = self._make_base()
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {"task_id": task.id, "sequence": 1, "provider_config_id": provider.id}
+        )
+        self.assertTrue(attempt.submitted_at)
+        task.current_parse_attempt_id = attempt.id
+        self.assertEqual(task.parse_status, "queued")
+        attempt.status = "running"
+        attempt.started_at = fields.Datetime.now()
+        self.assertEqual(task.parse_status, "running")
+        attempt.write({
+            "status": "failed",
+            "error_summary": "The AI provider is temporarily unavailable. Please try again.",
+        })
+        self.assertEqual(task.parse_status, "failed")
+        self.assertIn("temporarily unavailable", task.parse_error_summary)
+
+    def test_duplicate_parse_submission_is_rejected(self):
+        task, provider = self._make_base()
+        from ..services import parse_service
+
+        with patch.object(VendorInvoiceImportParseAttempt, "action_enqueue_parse"):
+            parse_service.start_parse(self.env, task.id, provider.id)
+        with self.assertRaises(ValueError):
+            parse_service.start_parse(self.env, task.id, provider.id)
+
+    def test_queue_entry_requires_real_delay(self):
+        task, provider = self._make_base()
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {"task_id": task.id, "sequence": 1, "provider_config_id": provider.id}
+        )
+        with patch.dict("os.environ", {"QUEUE_JOB__NO_DELAY": "1"}):
+            with self.assertRaises(UserError):
+                attempt.action_enqueue_parse()
+
+    def test_ai_parse_uses_dedicated_queue_channel(self):
+        task, provider = self._make_base()
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {"task_id": task.id, "sequence": 1, "provider_config_id": provider.id}
+        )
+        job = attempt.action_enqueue_parse()
+        self.assertEqual(job.db_record().channel, "root.ai_invoice")
+
     def test_attempt_captures_extraction_contract_and_model_snapshot(self):
         task, provider = self._make_base()
         attempt = self.env["vendor.invoice.import.parse.attempt"].create(
             {"task_id": task.id, "sequence": 1, "provider_config_id": provider.id}
         )
         provider.write({"model_name": "changed-after-attempt"})
-        self.assertEqual(attempt.prompt_version, "vision-extraction-v1.1")
+        self.assertEqual(attempt.prompt_version, "vision-extraction-v1.3")
         self.assertEqual(
             attempt.extraction_contract_version,
             "transport-invoice-page-v1",

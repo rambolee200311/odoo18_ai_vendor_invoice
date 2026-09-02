@@ -36,6 +36,8 @@ def _line_vals(line, fallback_product=None):
         "price_unit": float(_number(unit_price)),
         "tax_ids": [Command.set(line.get("tax_ids") or [])],
     }
+    if line.get("statement_line_id"):
+        vals["vendor_statement_line_id"] = line["statement_line_id"]
     if line.get("product_id"):
         vals["product_id"] = line["product_id"]
     elif fallback_product:
@@ -66,6 +68,7 @@ def _convert_review_to_move_vals(review_result, default_product):
         "invoice_date": header["invoice_date"],
         "currency_id": header["currency_id"],
         "ref": header["invoice_number"],
+        "vendor_invoice_statement_id": review_result.get("statement_id"),
         "invoice_line_ids": [Command.create(line) for line in invoice_lines],
     }
 

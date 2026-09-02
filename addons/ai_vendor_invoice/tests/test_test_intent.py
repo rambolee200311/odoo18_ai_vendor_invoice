@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 
 import requests
 from PyPDF2 import PdfWriter
+from psycopg2 import OperationalError
 from reportlab.pdfgen import canvas
 
 from odoo import api, fields, registry
@@ -195,6 +196,137 @@ class TestClosureStaleWorker(TransactionCase):
         self.assertEqual(task.current_parse_attempt_id, current_attempt)
 
 
+class TestParseLifecycleConvergence(TransactionCase):
+    def _parse_fixture(self):
+        source = self.env["ir.attachment"].create({
+            "name": "failure.pdf",
+            "datas": base64.b64encode(b"%PDF-1.4"),
+            "res_model": "vendor.invoice.import.task",
+        })
+        provider = self.env["wd.ai.provider.config"].create({
+            "name": "Failure provider",
+            "api_base_url": "https://example.invalid",
+            "model_name": "test",
+        })
+        task = self.env["vendor.invoice.import.task"].create({
+            "source_pdf_attachment_id": source.id,
+            "selected_provider_config_id": provider.id,
+            "state": "parsing",
+        })
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": 1,
+            "provider_config_id": provider.id,
+            "status": "queued",
+        })
+        task.write({"current_parse_attempt_id": attempt.id})
+        return task, attempt, provider
+
+    def test_provider_failure_converges_attempt_and_task(self):
+        task, attempt, _provider = self._parse_fixture()
+        adapter = Mock()
+        adapter.parse_pdf.side_effect = AIProviderPermanentError("schema failure")
+        with patch.object(parse_service, "_publish_attempt_running"), \
+                patch.object(parse_service, "prepare_provider_input",
+                              return_value={"type": "pages"}), \
+                patch.object(parse_service, "adapter_for", return_value=adapter):
+            self.assertFalse(parse_service.run_parse_attempt(
+                self.env, task.id, attempt.id
+            ))
+        self.assertEqual(attempt.status, "failed")
+        self.assertTrue(attempt.completed_at)
+        self.assertTrue(attempt.finished_at)
+        self.assertEqual(task.state, "error_ai_unavailable")
+
+    def test_repeated_execution_of_terminal_attempt_is_idempotent(self):
+        task, attempt, _provider = self._parse_fixture()
+        attempt.write({
+            "status": "failed",
+            "completed_at": fields.Datetime.now(),
+            "finished_at": fields.Datetime.now(),
+        })
+        task.write({"state": "error_ai_unavailable"})
+        self.assertFalse(parse_service.run_parse_attempt(
+            self.env, task.id, attempt.id
+        ))
+        self.assertEqual(attempt.status, "failed")
+        self.assertEqual(task.state, "error_ai_unavailable")
+
+    def test_serialization_failure_retries_terminal_write(self):
+        source = self.env["ir.attachment"].create({
+            "name": "failure-serialization.pdf",
+            "datas": base64.b64encode(b"%PDF-1.4"),
+            "res_model": "vendor.invoice.import.task",
+        })
+        provider = self.env["wd.ai.provider.config"].create({
+            "name": "Serialization provider",
+            "api_base_url": "https://example.invalid",
+            "model_name": "test",
+        })
+        with registry(self.env.cr.dbname).cursor() as setup_cr:
+            setup_env = api.Environment(setup_cr, self.env.uid, {})
+            source = setup_env["ir.attachment"].create({
+                "name": source.name,
+                "datas": source.datas,
+                "res_model": "vendor.invoice.import.task",
+            })
+            provider = setup_env["wd.ai.provider.config"].create({
+                "name": provider.name,
+                "api_base_url": provider.api_base_url,
+                "model_name": provider.model_name,
+            })
+            task = setup_env["vendor.invoice.import.task"].create({
+                "source_pdf_attachment_id": source.id,
+                "selected_provider_config_id": provider.id,
+                "state": "parsing",
+            })
+            attempt = setup_env["vendor.invoice.import.parse.attempt"].create({
+                "task_id": task.id,
+                "sequence": 1,
+                "provider_config_id": provider.id,
+                "status": "queued",
+            })
+            task.write({"current_parse_attempt_id": attempt.id})
+            setup_cr.commit()
+        task = self.env["vendor.invoice.import.task"].browse(task.id)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].browse(attempt.id)
+        original = parse_service._write_failed_attempt
+        calls = []
+
+        def fail_once(env, task_id, attempt_id, summary, failure_stage):
+            if not calls:
+                calls.append(True)
+                raise OperationalError("serialization failure")
+            return original(
+                env,
+                task_id,
+                attempt_id,
+                summary,
+                failure_stage,
+            )
+
+        with patch.object(parse_service, "_write_failed_attempt", side_effect=fail_once), \
+                patch.object(self.env.cr, "rollback"):
+            parse_service._failed_attempt(
+                self.env, task.id, attempt.id,
+                AIProviderPermanentError("schema failure"),
+            )
+        with registry(self.env.cr.dbname).cursor() as check_cr:
+            check_env = api.Environment(check_cr, self.env.uid, {})
+            checked_attempt = check_env[
+                "vendor.invoice.import.parse.attempt"
+            ].browse(attempt.id)
+            checked_task = check_env[
+                "vendor.invoice.import.task"
+            ].browse(task.id)
+            self.assertEqual(checked_attempt.status, "failed")
+            self.assertEqual(checked_task.state, "error_ai_unavailable")
+        with registry(self.env.cr.dbname).cursor() as cleanup_cr:
+            cleanup_env = api.Environment(cleanup_cr, self.env.uid, {})
+            cleanup_env["vendor.invoice.import.task"].browse(task.id).unlink()
+            cleanup_cr.commit()
+
+
 class TestClosureMultiCompany(TransactionCase):
     def test_bill_uses_task_company_not_request_company(self):
         companies = self.env["res.company"].search([], limit=2)
@@ -376,8 +508,15 @@ class TestClosurePipeline(TransactionCase):
             _canonical(),
             base64.b64encode(b'{"canonical": true}'),
         )
+        def publish_running(env, current_attempt):
+            current_attempt.write({
+                "status": "running",
+                "started_at": fields.Datetime.now(),
+            })
         with patch("odoo.addons.ai_vendor_invoice.services.parse_service.adapter_for",
-                   return_value=adapter):
+                   return_value=adapter), \
+                patch.object(parse_service, "_publish_attempt_running",
+                              side_effect=publish_running):
             self.assertTrue(parse_service.run_parse_attempt(
                 self.env, task.id, attempt.id
             ))

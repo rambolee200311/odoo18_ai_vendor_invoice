@@ -16,6 +16,7 @@
         "security/record_rules.xml",
         "data/system_config_data.xml",
         "data/ir_cron.xml",
+        "views/diagnostic_views.xml",
         "views/import_task_views.xml",
     ],
     "assets": {

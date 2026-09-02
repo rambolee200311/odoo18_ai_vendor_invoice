@@ -69,6 +69,38 @@ class VendorInvoiceImportTask(models.Model):
         index=True,
     )
 
+    parse_status = fields.Selection(
+        selection=[
+            ("not_submitted", "Not Submitted"),
+            ("queued", "Queued"),
+            ("running", "Running"),
+            ("completed", "Completed"),
+            ("failed", "Failed"),
+            ("superseded", "Superseded"),
+        ],
+        string="AI Parse Status",
+        compute="_compute_parse_observability",
+        readonly=True,
+        help="Read-only status derived from the current ParseAttempt.",
+    )
+
+    parse_error_summary = fields.Char(
+        string="AI Parse Error",
+        compute="_compute_parse_observability",
+        readonly=True,
+        help="Safe, non-sensitive user-facing summary of the current parse error.",
+    )
+
+    queue_diagnostic = fields.Selection(
+        selection=[
+            ("QUEUE_WAIT_EXCESSIVE", "QUEUE_WAIT_EXCESSIVE"),
+        ],
+        string="Queue Diagnostic",
+        compute="_compute_parse_observability",
+        readonly=True,
+        help="Operational diagnostic only; never changes business state.",
+    )
+
     parse_attempt_ids = fields.One2many(
         "vendor.invoice.import.parse.attempt",
         "task_id",
@@ -163,6 +195,26 @@ class VendorInvoiceImportTask(models.Model):
 
         return start_parse(self.env, self.id, self.selected_provider_config_id.id)
 
+    @api.depends(
+        "current_parse_attempt_id",
+        "current_parse_attempt_id.status",
+        "current_parse_attempt_id.error_summary",
+        "current_parse_attempt_id.queue_diagnostic",
+    )
+    def _compute_parse_observability(self):
+        status_map = {
+            "success": "completed",
+            "queued": "queued",
+            "running": "running",
+            "failed": "failed",
+            "superseded": "superseded",
+        }
+        for task in self:
+            attempt = task.current_parse_attempt_id
+            task.parse_status = status_map.get(attempt.status, "not_submitted")
+            task.parse_error_summary = attempt.error_summary if attempt else False
+            task.queue_diagnostic = attempt.queue_diagnostic if attempt else False
+
     def action_save_review(self, review_result):
         """Persist the review result and its audit delta without creating a bill."""
         self.ensure_one()
@@ -207,6 +259,9 @@ class VendorInvoiceImportTask(models.Model):
         payload = validate_statement_payload(statement_payload)
         statement = self.env["vendor.invoice.statement"]._aggregate_create(
             self._statement_values(payload, attempt)
+        )
+        self.env["vendor.invoice.statement.line"]._aggregate_create(
+            self._statement_line_values(payload, statement)
         )
         self.statement_id = statement.id
         self._log_statement_change("human_modify", attempt, "Statement created from ParseAttempt.")
@@ -376,7 +431,11 @@ class VendorInvoiceImportTask(models.Model):
 
     @api.model
     def cron_check_parsing_timeout(self):
-        """Mark queued or running parsing tasks exceeding the task timeout."""
-        from ..services.timeout_service import check_parsing_timeout
+        """Reconcile failed queue jobs and mark overdue parsing tasks."""
+        from ..services.timeout_service import (
+            check_parsing_timeout,
+            reconcile_failed_queue_attempts,
+        )
 
+        reconcile_failed_queue_attempts(self.env)
         check_parsing_timeout(self.env)
