@@ -297,6 +297,10 @@ class VendorInvoiceImportTask(models.Model):
                     "amount": (line.get("amount") or {}).get("value"),
                     "price_unit": (line.get("amount") or {}).get("value"),
                     "tax_raw_text": (line.get("tax_raw_text") or {}).get("value"),
+                    "tax_rate": (line.get("tax_rate") or {}).get("value"),
+                    "tax_amount": (line.get("tax_amount") or {}).get("value"),
+                    "reconciliation_clue": line.get("reconciliation_clue"),
+                    "charge_details": line.get("charge_details"),
                     "reconciliation_clues": line.get("reconciliation_clues", []),
                 }
                 for line in canonical.get("lines", [])
@@ -422,6 +426,10 @@ class VendorInvoiceImportTask(models.Model):
                 "price_unit": line.get("price_unit", 0.0),
                 "amount": line["amount"],
                 "tax_raw_text": line.get("tax_raw_text"),
+                "tax_rate": line.get("tax_rate"),
+                "tax_amount": line.get("tax_amount"),
+                "reconciliation_clue": line.get("reconciliation_clue"),
+                "charge_details": line.get("charge_details"),
                 "tax_ids": [(6, 0, line.get("tax_ids", []))],
                 "reconciliation_clues": line.get("reconciliation_clues", []),
             }

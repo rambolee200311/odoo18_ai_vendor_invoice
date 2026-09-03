@@ -37,7 +37,11 @@ def statement_to_human_review_result(statement):
                 "unit_price": _text(line.price_unit),
                 "subtotal": _text(line.amount),
                 "tax_ids": line.tax_ids.ids,
-                "tax_amount": "0",
+                "tax_amount": _text(line.tax_amount),
+                "tax_rate": _text(line.tax_rate),
+                "tax_raw_text": line.tax_raw_text,
+                "reconciliation_clue": line.reconciliation_clue,
+                "charge_details": line.charge_details,
                 "line_total_amount": _text(line.amount),
                 "reconciliation_clues": line.reconciliation_clues or [],
             }
