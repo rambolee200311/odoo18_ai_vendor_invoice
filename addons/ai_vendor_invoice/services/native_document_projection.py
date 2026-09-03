@@ -93,6 +93,16 @@ def _description(line, clues):
 
 
 def _charge_details(line):
+    charges = line.get("charge_components")
+    if charges is not None:
+        if not isinstance(charges, list):
+            raise ValueError("charge_components must be a list.")
+        return "\n".join(
+            "%s: %s" % (item["description"], item["amount"])
+            for item in charges
+            if item.get("description") not in (None, "")
+            and item.get("amount") not in (None, "")
+        ) or None
     charges = line.get("charges") or {}
     if not isinstance(charges, dict):
         raise ValueError("charges must be an object.")

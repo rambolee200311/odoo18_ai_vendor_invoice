@@ -27,6 +27,18 @@ DOCUMENT_EXTRACTION_RESULT_SCHEMA = {
                                 "type": "array",
                                 "items": RECONCILIATION_CLUE_SCHEMA,
                             },
+                            "charge_components": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": ["description", "amount"],
+                                    "additionalProperties": True,
+                                    "properties": {
+                                        "description": {"type": ["string", "null"]},
+                                        "amount": {"type": ["string", "number", "null"]},
+                                    },
+                                },
+                            },
                         },
                     },
                 },
