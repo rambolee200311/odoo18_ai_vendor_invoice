@@ -95,12 +95,16 @@ class VendorInvoiceStatementLine(models.Model):
         index=True,
     )
     sequence = fields.Integer(required=True, default=10)
-    description = fields.Char(required=True)
+    description = fields.Text(required=True)
     product_id = fields.Many2one("product.product", string="Product")
     quantity = fields.Float(default=1.0)
     price_unit = fields.Monetary(currency_field="currency_id")
     amount = fields.Monetary(required=True, currency_field="currency_id")
     tax_raw_text = fields.Char(string="Tax")
+    tax_rate = fields.Float(string="Tax Rate")
+    tax_amount = fields.Monetary(string="Tax Amount", currency_field="currency_id")
+    reconciliation_clue = fields.Char(string="Reconciliation Clue")
+    charge_details = fields.Text(string="Charge Details")
     tax_ids = fields.Many2many("account.tax", string="Taxes")
     reconciliation_clues = fields.Json(
         string="Reconciliation Clues",

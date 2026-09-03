@@ -105,14 +105,14 @@ CANONICAL_INVOICE_RESULT_SCHEMA = {
                             "maximum": 1,
                         },
                     },
-                    "subtotal": {
+                },
+                "subtotal": {
                         "type": "object",
                         "required": ["value", "confidence"],
                         "additionalProperties": False,
                         "properties": {
                             "value": {"type": ["string", "null"]},
                             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-                        },
                     },
                 },
             },
@@ -162,10 +162,30 @@ CANONICAL_INVOICE_RESULT_SCHEMA = {
                                 "maximum": 1,
                             },
                         },
-                        "reconciliation_clues": {
-                            "type": "array",
-                            "items": RECONCILIATION_CLUE_SCHEMA,
+                    },
+                    "tax_rate": {
+                        "type": "object",
+                        "required": ["value", "confidence"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "value": {"type": ["number", "string", "null"]},
+                            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
                         },
+                    },
+                    "tax_amount": {
+                        "type": "object",
+                        "required": ["value", "confidence"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "value": {"type": ["string", "null"]},
+                            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                        },
+                    },
+                    "reconciliation_clue": {"type": ["string", "null"]},
+                    "charge_details": {"type": ["string", "null"]},
+                    "reconciliation_clues": {
+                        "type": "array",
+                        "items": RECONCILIATION_CLUE_SCHEMA,
                     },
                 },
             },

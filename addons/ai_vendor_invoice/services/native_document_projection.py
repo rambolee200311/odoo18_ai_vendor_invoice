@@ -63,12 +63,44 @@ def _clues(line):
 
 
 def _description(line, clues):
-    description = line.get("description")
-    description = "" if description is None else str(description).strip()
-    clue_text = " | ".join("%s: %s" % (item["label"], item["value"]) for item in clues)
-    if clue_text and clue_text not in description:
-        description = "%s | %s" % (description, clue_text) if description else clue_text
-    return description or None
+    labels = (
+        ("Loading Date", "loading_date"),
+        ("Unloading Date", "unloading_date"),
+        ("Our Reference", "our_reference"),
+        ("Your Reference", "your_reference"),
+        ("Shipment Reference", "shipment_reference"),
+        ("Load Reference", "load_ref"),
+        ("Booking Reference", "booking_ref"),
+        ("Loading Address", "loading_address"),
+        ("Unloading Address", "unloading_address"),
+        ("Cargo", "description"),
+        ("Weight", "gross_weight"),
+        ("Volume Weight", "volume_weight"),
+        ("Volume", "volume"),
+    )
+    description = [
+        "%s: %s" % (label, line[key])
+        for label, key in labels
+        if line.get(key) not in (None, "")
+    ]
+    known_values = {line.get(key) for _, key in labels}
+    description.extend(
+        "%s: %s" % (item["label"], item["value"])
+        for item in clues
+        if item["value"] not in known_values
+    )
+    return "\n".join(description) or None
+
+
+def _charge_details(line):
+    charges = line.get("charges") or {}
+    if not isinstance(charges, dict):
+        raise ValueError("charges must be an object.")
+    return "\n".join(
+        "%s: %s" % (label, value)
+        for label, value in charges.items()
+        if value not in (None, "")
+    ) or None
 
 
 def document_to_canonical(document):
@@ -93,6 +125,16 @@ def document_to_canonical(document):
                 "value": source_line.get("tax_raw_text"),
                 "confidence": 0.0,
             },
+            "tax_rate": {
+                "value": source_line.get("tax_rate"),
+                "confidence": 0.0,
+            },
+            "tax_amount": {
+                "value": normalize_amount(source_line.get("tax_amount")),
+                "confidence": 0.0,
+            },
+            "reconciliation_clue": None,
+            "charge_details": _charge_details(source_line),
             "reconciliation_clues": clues,
         })
     return {

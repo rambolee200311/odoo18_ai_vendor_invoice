@@ -34,7 +34,6 @@
                 <sheet>
                     <group>
                         <field name="supplier_id"/>
-                        <field name="supplier_name"/>
                         <field name="invoice_number"/>
                         <field name="invoice_date"/>
                         <field name="currency_id"/>
@@ -43,13 +42,36 @@
                         <field name="total_amount"/>
                     </group>
                     <field name="line_ids">
-                        <list editable="bottom">
+                    <list>
                             <field name="description"/>
                             <field name="amount"/>
-                            <field name="tax_raw_text"/>
-                            <field name="reconciliation_clues" readonly="1"/>
-                        </list>
+                        <field name="tax_rate"/>
+                        <field name="tax_amount"/>
+                        <field name="reconciliation_clue"/>
+                    </list>
                     </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_statement_line_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.statement.line.form</field>
+        <field name="model">vendor.invoice.statement.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="amount"/>
+                        <field name="tax_rate"/>
+                        <field name="tax_amount"/>
+                        <field name="reconciliation_clue"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                    <group string="Charge Details">
+                        <field name="charge_details" nolabel="1"/>
+                    </group>
                 </sheet>
             </form>
         </field>
