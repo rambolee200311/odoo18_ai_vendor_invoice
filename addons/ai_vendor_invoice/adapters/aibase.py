@@ -355,7 +355,8 @@ class BaseVisionAIProviderAdapter(BaseAIProviderAdapter):
                             "AI provider request temporarily unavailable."
                         ),
                         "PAGE_PROVIDER_REQUEST",
-                    ) from error
+                    )
+                self._wait_before_retry(retries)
                 retries += 1
                 observability_service.record_internal_retry(attempt_obj, retries)
             except APIStatusError as error:
@@ -378,12 +379,9 @@ class BaseVisionAIProviderAdapter(BaseAIProviderAdapter):
                     safe_error_summary="Provider returned an HTTP error.",
                     response_received=True,
                 )
-                if (
-                    error.status_code == 408
-                    or error.status_code == 429
-                    or error.status_code >= 500
-                ):
+                if self._is_retryable_http_status(error.status_code):
                     if retries < max_attempt_retry:
+                        self._wait_before_retry(retries)
                         retries += 1
                         observability_service.record_internal_retry(
                             attempt_obj,

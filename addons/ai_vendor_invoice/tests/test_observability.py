@@ -1,10 +1,11 @@
 # © 2024 Wukong Digital. License LGPL-3.
 import base64
+import json
 from unittest.mock import Mock, patch
 
 import httpx
 from jsonschema import ValidationError
-from openai import APIConnectionError
+from openai import APIConnectionError, APIStatusError
 
 from odoo import api, fields
 from odoo.exceptions import AccessError
@@ -12,7 +13,25 @@ from odoo.modules.registry import Registry
 from odoo.tests.common import TransactionCase
 
 from ..adapters.deepseek import DeepSeekAIProviderAdapter
+from ..adapters.base import AIProviderTemporaryError
+from ..adapters.openai import OpenAIAIProviderAdapter
 from ..services import observability_service, parse_service
+from ..schemas.document_extraction import INVOICE_EXTRACTION_RESULT_SCHEMA
+
+
+def _strict_response_text():
+    return {
+        "invoice_number": None,
+        "invoice_date": None,
+        "due_date": None,
+        "currency": None,
+        "supplier": {"name": None, "address": None, "vat_number": None},
+        "buyer": {"name": None, "address": None},
+        "lines": [],
+        "subtotal": None,
+        "total_tax": None,
+        "total_amount": None,
+    }
 
 
 class ObservabilityCase(TransactionCase):
@@ -141,6 +160,212 @@ class TestPageArtifactEvidence(ObservabilityCase):
 
 
 class TestProviderCallEvidence(ObservabilityCase):
+    def test_native_pdf_invalid_structured_output_has_schema_stage(self):
+        adapter = OpenAIAIProviderAdapter.__new__(OpenAIAIProviderAdapter)
+        response = Mock()
+        response.model_dump_json.return_value = '{"output": []}'
+        response.output_text = '{"invoice_number": "incomplete"}'
+        client = Mock()
+        client.files.create.return_value.id = "file-native"
+        client.responses.create.return_value = response
+        adapter._build_client = Mock(return_value=client)
+
+        with self.assertRaises(AIProviderPermanentError):
+            adapter.parse_native_pdf(
+                {
+                    "mode": "native_pdf",
+                    "document_bytes": b"%PDF",
+                    "source": {"page_count": 1},
+                },
+                self.provider,
+                "Extract as JSON.",
+                self.attempt,
+            )
+
+        self.assertEqual(
+            self.attempt.provider_call_ids.failure_stage,
+            "PAGE_SCHEMA_VALIDATION",
+        )
+
+    def test_native_pdf_success_creates_one_provider_call(self):
+        adapter = OpenAIAIProviderAdapter.__new__(OpenAIAIProviderAdapter)
+        response = Mock()
+        response.model_dump_json.return_value = '{"output": []}'
+        response.output_text = json.dumps(_strict_response_text())
+        client = Mock()
+        client.files.create.return_value.id = "file-native"
+        client.responses.create.return_value = response
+        adapter._build_client = Mock(return_value=client)
+
+        result, _raw, _content = adapter.parse_native_pdf(
+            {
+                "mode": "native_pdf",
+                "document_bytes": b"%PDF",
+                "source": {"page_count": 3},
+            },
+            self.provider,
+            "Extract as JSON.",
+            self.attempt,
+        )
+
+        self.assertEqual(result["lines"], [])
+        calls = self.attempt.provider_call_ids
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls.input_mode, "native_pdf")
+        self.assertEqual(calls.input_document_type, "application/pdf")
+        self.assertEqual(calls.input_page_count, 3)
+        self.assertEqual(calls.rendered_image_count, 0)
+        self.assertEqual(calls.outcome, "success")
+        request = client.responses.create.call_args.kwargs
+        self.assertEqual(request["text"]["format"]["type"], "json_schema")
+        self.assertTrue(request["text"]["format"]["strict"])
+        self.assertEqual(
+            request["text"]["format"]["schema"],
+            INVOICE_EXTRACTION_RESULT_SCHEMA,
+        )
+        self.assertEqual(request["reasoning"], {"effort": "low"})
+
+    def test_native_pdf_failure_keeps_provider_call_evidence(self):
+        adapter = OpenAIAIProviderAdapter.__new__(OpenAIAIProviderAdapter)
+        client = Mock()
+        client.files.create.side_effect = RuntimeError("native transport failed")
+        adapter._build_client = Mock(return_value=client)
+
+        with self.assertRaisesRegex(RuntimeError, "native transport failed"):
+            adapter.parse_native_pdf(
+                {
+                    "mode": "native_pdf",
+                    "document_bytes": b"%PDF",
+                    "source": {"page_count": 1},
+                },
+                self.provider,
+                "Extract as JSON.",
+                self.attempt,
+            )
+
+        call = self.attempt.provider_call_ids
+        self.assertEqual(len(call), 1)
+        self.assertEqual(call.outcome, "failed")
+        self.assertEqual(call.failure_stage, "PAGE_PROVIDER_REQUEST")
+        self.assertEqual(
+            call.safe_error_summary,
+            "OpenAI native PDF request failed.",
+        )
+
+    def test_native_pdf_timeout_retries_with_auditable_calls(self):
+        adapter = OpenAIAIProviderAdapter.__new__(OpenAIAIProviderAdapter)
+        response = Mock()
+        response.model_dump_json.return_value = '{"output": []}'
+        response.output_text = json.dumps(_strict_response_text())
+        client = Mock()
+        client.files.create.return_value.id = "file-native"
+        client.responses.create.side_effect = [
+            APIConnectionError(
+                request=httpx.Request("POST", "https://example.invalid")
+            ),
+            response,
+        ]
+        adapter._build_client = Mock(return_value=client)
+        self.provider.max_internal_retry = 1
+
+        with patch.object(adapter, "_wait_before_retry") as wait:
+            adapter.parse_native_pdf(
+                {
+                    "mode": "native_pdf",
+                    "document_bytes": b"%PDF",
+                    "source": {"page_count": 1},
+                },
+                self.provider,
+                "Extract as JSON.",
+                self.attempt,
+            )
+
+        self.assertEqual(client.files.create.call_count, 2)
+        self.assertEqual(client.responses.create.call_count, 2)
+        self.assertEqual(
+            self.attempt.provider_call_ids.mapped("retry_index"),
+            [0, 1],
+        )
+        self.assertEqual(self.attempt.attempt_internal_retry_count, 1)
+        wait.assert_called_once_with(0)
+
+    def test_native_pdf_retry_exhaustion_makes_no_fourth_call(self):
+        adapter = OpenAIAIProviderAdapter.__new__(OpenAIAIProviderAdapter)
+        client = Mock()
+        client.files.create.side_effect = [
+            APIConnectionError(
+                request=httpx.Request("POST", "https://example.invalid")
+            ),
+            APIConnectionError(
+                request=httpx.Request("POST", "https://example.invalid")
+            ),
+            APIConnectionError(
+                request=httpx.Request("POST", "https://example.invalid")
+            ),
+        ]
+        adapter._build_client = Mock(return_value=client)
+        self.provider.max_internal_retry = 2
+
+        with patch.object(adapter, "_wait_before_retry"):
+            with self.assertRaisesRegex(
+                AIProviderTemporaryError,
+                "AI provider request temporarily unavailable.",
+            ):
+                adapter.parse_native_pdf(
+                    {
+                        "mode": "native_pdf",
+                        "document_bytes": b"%PDF",
+                        "source": {"page_count": 1},
+                    },
+                    self.provider,
+                    "Extract as JSON.",
+                    self.attempt,
+                )
+
+        self.assertEqual(client.files.create.call_count, 3)
+        self.assertEqual(
+            self.attempt.provider_call_ids.mapped("retry_index"),
+            [0, 1, 2],
+        )
+
+
+class TestFailureDiagnostics(ObservabilityCase):
+    def test_persistence_failure_is_logged(self):
+        with patch.object(
+            observability_service._logger,
+            "exception",
+        ) as log_exception:
+            observability_service._capture(
+                self.attempt,
+                "canonical",
+                lambda: (_ for _ in ()).throw(
+                    RuntimeError("diagnostic storage unavailable")
+                ),
+            )
+
+        log_exception.assert_called_once()
+        self.assertEqual(log_exception.call_args.args[3], "canonical")
+
+    def test_mapping_failure_preserves_safe_diagnostic(self):
+        parse_service._failed_attempt(
+            self.env,
+            self.task.id,
+            self.attempt.id,
+            ValueError("diagnostic mapping failure"),
+            failure_stage="MAPPING",
+        )
+
+        self.assertEqual(self.attempt.status, "failed")
+        self.assertEqual(self.attempt.failure_stage, "MAPPING")
+        diagnostic = self.attempt.provider_diagnostics[-1]
+        self.assertEqual(diagnostic["exception_class"], "ValueError")
+        self.assertEqual(
+            diagnostic["safe_exception_message"],
+            "diagnostic mapping failure",
+        )
+
+
+class TestProviderCallEvidenceRegression(ObservabilityCase):
     def test_each_real_retry_has_immutable_call_evidence(self):
         artifact_id = observability_service.persist_page_artifacts(
             self.attempt,

@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from datetime import date, datetime
 from decimal import Decimal
 import copy
+import time
 
 import requests
 from jsonschema import ValidationError as JSONSchemaValidationError
@@ -45,6 +46,14 @@ class BaseAIProviderAdapter(ABC):
             error.failure_stage = "INPUT_STRATEGY"
             raise error
 
+    @staticmethod
+    def _wait_before_retry(retry_index):
+        time.sleep(2 if retry_index == 0 else 5)
+
+    @staticmethod
+    def _is_retryable_http_status(status_code):
+        return status_code in (408, 429, 500, 502, 503, 504)
+
     def _request(
         self,
         provider_config,
@@ -68,6 +77,7 @@ class BaseAIProviderAdapter(ABC):
                 )
             except (requests.Timeout, requests.ConnectionError) as error:
                 if retries < max_attempt_retry:
+                    self._wait_before_retry(retries)
                     retries += 1
                     if attempt_obj:
                         attempt_obj.write({"attempt_internal_retry_count": retries})
@@ -75,8 +85,9 @@ class BaseAIProviderAdapter(ABC):
                 raise AIProviderTemporaryError("AI provider request temporarily unavailable.") from error
             except requests.RequestException as error:
                 raise AIProviderPermanentError("AI provider request failed.") from error
-            if response.status_code in (408, 409, 425, 429) or response.status_code >= 500:
+            if self._is_retryable_http_status(response.status_code):
                 if retries < max_attempt_retry:
+                    self._wait_before_retry(retries)
                     retries += 1
                     if attempt_obj:
                         attempt_obj.write({"attempt_internal_retry_count": retries})
