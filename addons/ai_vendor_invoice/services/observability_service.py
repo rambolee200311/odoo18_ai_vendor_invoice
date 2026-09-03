@@ -36,6 +36,15 @@ def _capture(attempt, operation, callback, default=None):
         with attempt.env.cr.savepoint():
             return callback()
     except Exception as error:
+        _logger.exception(
+            "AI parse observability persistence failed: task=%s attempt=%s "
+            "artifact=%s exception=%s message=%s",
+            attempt.task_id.id,
+            attempt.id,
+            operation,
+            type(error).__name__,
+            _safe_exception_message(error),
+        )
         _mark_partial(attempt, operation, error)
         return default
 
@@ -63,8 +72,22 @@ def _capture_durable(attempt, operation, callback, default=None):
             evidence_cr.commit()
             return result
     except Exception as error:
+        _logger.exception(
+            "AI parse durable observability persistence failed: task=%s "
+            "attempt=%s artifact=%s exception=%s message=%s",
+            attempt.task_id.id,
+            attempt.id,
+            operation,
+            type(error).__name__,
+            _safe_exception_message(error),
+        )
         _mark_partial(attempt, operation, error)
         return default
+
+
+def _safe_exception_message(error):
+    message = " ".join(str(error).split())
+    return message[:500] if message else "No exception message."
 
 
 def persist_page_artifacts(attempt, images):

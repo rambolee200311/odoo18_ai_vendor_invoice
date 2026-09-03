@@ -1,4 +1,7 @@
 # © 2024 Wukong Digital. License LGPL-3.
+import logging
+import traceback
+
 from odoo import api, fields
 from odoo.sql_db import db_connect
 from psycopg2 import OperationalError
@@ -18,6 +21,9 @@ from .mapping_service import do_mapping
 from .pdf_preprocessor import PDFPreprocessorError, prepare_provider_input
 
 
+_logger = logging.getLogger(__name__)
+
+
 def _safe_error_summary(error):
     """Return a stable user message without provider or transport details."""
     if isinstance(error, PDFPreprocessorError):
@@ -27,6 +33,23 @@ def _safe_error_summary(error):
     if isinstance(error, AIProviderPermanentError):
         return "The AI provider rejected the parse request."
     return "AI parsing failed. Please try again or contact an administrator."
+
+
+def _safe_exception_message(error):
+    message = " ".join(str(error).split())
+    return message[:500] if message else "No exception message."
+
+
+def _traceback_location(error):
+    frames = traceback.extract_tb(error.__traceback__)
+    if not frames:
+        return None
+    frame = frames[-1]
+    return "%s:%s:%s" % (
+        frame.filename,
+        frame.lineno,
+        frame.name,
+    )
 
 
 def _failure_stage(env, attempt_id, error, default="OTHER"):
@@ -50,6 +73,24 @@ def _failure_stage(env, attempt_id, error, default="OTHER"):
 def _failed_attempt(env, task_id, attempt_id, error, failure_stage=None):
     summary = _safe_error_summary(error)
     stage = failure_stage or _failure_stage(env, attempt_id, error)
+    attempt = env["vendor.invoice.import.parse.attempt"].browse(attempt_id)
+    observability_service.record_provider_diagnostic(attempt, {
+        "diagnostic_type": "failure",
+        "failure_stage": stage,
+        "exception_class": type(error).__name__,
+        "safe_exception_message": _safe_exception_message(error),
+        "traceback_location": _traceback_location(error),
+        "provider_call_id": (
+            attempt.provider_call_ids[-1].id
+            if attempt.provider_call_ids else None
+        ),
+        "raw_response_attachment_id": (
+            attempt.provider_call_ids[-1].raw_response_attachment_id.id
+            if attempt.provider_call_ids
+            and attempt.provider_call_ids[-1].raw_response_attachment_id
+            else None
+        ),
+    })
     try:
         _write_failed_attempt(env, task_id, attempt_id, summary, stage)
     except OperationalError:
@@ -215,6 +256,14 @@ def run_parse_attempt(env, task_id, attempt_id):
     try:
         mapping = do_mapping(env, canonical)
     except Exception as error:
+        _logger.exception(
+            "AI parse failed: task=%s attempt=%s failure_stage=MAPPING "
+            "exception=%s message=%s",
+            task.id,
+            attempt.id,
+            type(error).__name__,
+            _safe_exception_message(error),
+        )
         _failed_attempt(
             env,
             task.id,
