@@ -113,8 +113,40 @@ def _charge_details(line):
     ) or None
 
 
+def _normalize_native_document(document):
+    """Accept the flat Luna invoice shape as well as the native contract."""
+    if "invoice" in document:
+        return document
+    if not isinstance(document.get("line_items"), list):
+        return document
+    seller = document.get("seller") or {}
+    totals = document.get("totals") or {}
+    invoice = {
+        "issuer": {"name": seller.get("name")} if seller else {},
+        "invoice_number": document.get("invoice_number"),
+        "invoice_date": document.get("invoice_date"),
+        "currency": document.get("currency"),
+        "lines": [],
+        "totals": {
+            "total_excluding_vat": totals.get("total_excluding_vat"),
+            "vat_amount": totals.get("vat_amount"),
+            "total_including_vat": totals.get("total_including_vat"),
+        },
+    }
+    for source_line in document["line_items"]:
+        line = dict(source_line)
+        line["description"] = line.get("unit_description") or line.get("description")
+        line["amount"] = line.get("total_amount") or line.get("amount")
+        invoice["lines"].append(line)
+    return {
+        "document_type": document.get("document_type") or "FACTUUR",
+        "invoice": invoice,
+    }
+
+
 def document_to_canonical(document):
     """Create one Canonical line for each document business line."""
+    document = _normalize_native_document(document)
     validate(document, DOCUMENT_EXTRACTION_RESULT_SCHEMA)
     invoice = document["invoice"]
     totals = invoice.get("totals") or {}
