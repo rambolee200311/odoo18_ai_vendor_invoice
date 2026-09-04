@@ -81,6 +81,25 @@ class TestImportTaskModel(TransactionCase):
     def test_new_task_requires_statement(self):
         self.assertTrue(self._make_task().statement_required)
 
+    def test_prefilled_statement_matches_supplier_case_insensitively(self):
+        partner = self.env["res.partner"].create({
+            "name": "UAT Mainfreight Forwarding Netherlands B.V.",
+        })
+        task = self._make_task()
+        self.assertEqual(
+            task._find_supplier_partner("UAT MAINFREIGHT FORWARDING NETHERLANDS B.V."),
+            partner,
+        )
+
+    def test_supplier_partial_match_requires_unique_candidate(self):
+        partner = self.env["res.partner"].create({
+            "name": "UAT Unique Mainfreight Forwarding B.V.",
+        })
+        task = self._make_task()
+        self.assertEqual(task._find_supplier_partner("UAT Unique Mainfreight"), partner)
+        self.env["res.partner"].create({"name": "UAT Unique Mainfreight Logistics"})
+        self.assertFalse(task._find_supplier_partner("UAT Unique Mainfreight"))
+
     def test_statement_generic_crud_is_not_a_business_entry_point(self):
         task = self._make_task()
         attempt = self.env["vendor.invoice.import.parse.attempt"].create(

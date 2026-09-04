@@ -275,9 +275,7 @@ class VendorInvoiceImportTask(models.Model):
         value = lambda field: (header.get(field) or {}).get("value")
         supplier_name = value("supplier_raw_text")
         currency_name = value("currency_raw_text")
-        supplier = self.env["res.partner"].search(
-            [("name", "=", supplier_name)], limit=1
-        ) if supplier_name else self.env["res.partner"]
+        supplier = self._find_supplier_partner(supplier_name)
         currency = self.env["res.currency"].search(
             ["|", ("name", "=", currency_name), ("symbol", "=", currency_name)],
             limit=1,
@@ -317,6 +315,17 @@ class VendorInvoiceImportTask(models.Model):
             "statement_candidate_apply", attempt, "AI-prefilled Statement created."
         )
         return statement
+
+    def _find_supplier_partner(self, supplier_name):
+        """Resolve a supplier by case-insensitive exact name, then unique partial match."""
+        partners = self.env["res.partner"]
+        if not supplier_name:
+            return partners
+        exact = partners.search([("active", "=", True), ("name", "=ilike", supplier_name)], limit=1)
+        if exact:
+            return exact
+        candidates = partners.search([("active", "=", True), ("name", "ilike", supplier_name)])
+        return candidates if len(candidates) == 1 else partners
 
     def action_apply_statement_changes(self, statement_payload):
         """Apply human edits through the aggregate boundary."""
