@@ -1,5 +1,28 @@
 # Sprint Implementation Log
 
+## 2026-09-08 - CC-05 Verification Correction
+
+The earlier CC-05 entry incorrectly stated that the Odoo runtime tests were not
+run because `urllib3` was unavailable. The main worktree virtualenv was checked
+and is usable:
+
+```text
+Interpreter: /Users/lijianqiang/Documents/odoo18_ai_vendor_invoice/venv/bin/python3
+urllib3: 1.26.5
+```
+
+The runtime results are:
+
+```text
+Static/repository verification: PASS (19 pass, 0 fail)
+Task/Statement model test class: 18 tests, 0 failures, 1 error
+Full ai_vendor_invoice suite: 122 tests, 2 failures, 7 errors
+```
+
+The targeted model error and full-suite failures are existing test/runtime issues;
+the targeted error is in `timeout_service` using the invalid
+`queue_reconciliation` audit action. This is not a missing-dependency failure.
+
 ## 2026-09-08 - CC-05 Unified Statement Review Entry
 
 ### Scope
