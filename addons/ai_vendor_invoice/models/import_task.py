@@ -330,7 +330,12 @@ class VendorInvoiceImportTask(models.Model):
         self.ensure_one()
         from ..services.parse_service import start_parse
 
-        return start_parse(self.env, self.id, self.selected_provider_config_id.id)
+        return start_parse(
+            self.env,
+            self.id,
+            self.selected_provider_config_id.id,
+            synchronous=self.env.context.get("ai_invoice_sync", False),
+        )
 
     def action_open_statement(self):
         self.ensure_one()

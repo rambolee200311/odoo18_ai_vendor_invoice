@@ -156,6 +156,7 @@
                 <header>
                     <button name="action_rerun_ai" type="object" string="Re-run AI"
                             class="oe_highlight"
+                            context="{'ai_invoice_sync': True}"
                             invisible="state == 'parsing'"/>
                     <button name="action_open_statement" type="object"
                             string="Open Statement"

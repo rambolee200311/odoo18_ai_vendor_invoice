@@ -148,6 +148,14 @@ def _audit(env, task, attempt, action, snapshot_delta):
 
 def _publish_attempt_running(env, attempt):
     """Publish worker-start observability without holding the parse transaction."""
+    if env.context.get("ai_invoice_sync"):
+        now = fields.Datetime.now()
+        attempt.write({
+            "status": "running",
+            "started_at": now,
+            "last_activity_at": now,
+        })
+        return
     with db_connect(env.cr.dbname).cursor() as lifecycle_cr:
         lifecycle_env = api.Environment(lifecycle_cr, env.uid, dict(env.context))
         lifecycle_attempt = lifecycle_env[
@@ -163,7 +171,7 @@ def _publish_attempt_running(env, attempt):
     attempt.invalidate_recordset(["status", "started_at", "last_activity_at"])
 
 
-def start_parse(env, task_id, provider_config_id):
+def start_parse(env, task_id, provider_config_id, synchronous=False):
     task = env["wd.lock.service"].lock_task(task_id)
     task.ensure_one()
     if task.state not in ("to_parse", "awaiting_review", "error_ai_unavailable",
@@ -198,6 +206,12 @@ def start_parse(env, task_id, provider_config_id):
     })
     _audit(env, task, attempt, "ai_re_run" if attempt.sequence > 1 else "ai_parse",
            "Queued parse attempt %s" % attempt.sequence)
+    if synchronous:
+        return run_parse_attempt(
+            env.with_context(ai_invoice_sync=True),
+            task.id,
+            attempt.id,
+        ) or attempt
     attempt.action_enqueue_parse()
     return attempt
 
