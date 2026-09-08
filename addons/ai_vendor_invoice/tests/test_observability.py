@@ -330,6 +330,18 @@ class TestProviderCallEvidence(ObservabilityCase):
 
 
 class TestFailureDiagnostics(ObservabilityCase):
+    def test_publish_attempt_running_uses_surrounding_transaction(self):
+        with patch.object(
+            parse_service,
+            "db_connect",
+            side_effect=AssertionError("worker start must not open a second transaction"),
+        ):
+            parse_service._publish_attempt_running(self.env, self.attempt)
+
+        self.assertEqual(self.attempt.status, "running")
+        self.assertTrue(self.attempt.started_at)
+        self.assertTrue(self.attempt.last_activity_at)
+
     def test_persistence_failure_is_logged(self):
         with patch.object(
             observability_service._logger,
