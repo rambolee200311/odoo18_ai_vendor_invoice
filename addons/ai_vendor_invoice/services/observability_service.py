@@ -49,6 +49,22 @@ def _capture(attempt, operation, callback, default=None):
         return default
 
 
+def _capture_strict(attempt, operation, callback):
+    """Persist Attempt-level results without hiding transaction failures."""
+    try:
+        with attempt.env.cr.savepoint():
+            return callback()
+    except Exception:
+        _logger.exception(
+            "AI parse Attempt persistence failed: task=%s attempt=%s "
+            "artifact=%s",
+            attempt.task_id.id,
+            attempt.id,
+            operation,
+        )
+        raise
+
+
 def _capture_durable(attempt, operation, callback, default=None):
     """Commit diagnostic children independently from the queue transaction."""
     if config["test_enable"]:
@@ -318,11 +334,10 @@ def persist_attempt_raw_response(attempt, raw_response):
         attempt.sudo().write({"raw_response_attachment_id": attachment.id})
         return attachment
 
-    return _capture(
+    return _capture_strict(
         attempt,
         "persist_attempt_raw_response",
         attach_response,
-        default=attempt.env["ir.attachment"],
     )
 
 
@@ -359,7 +374,7 @@ def set_attempt_failure_stage(attempt, failure_stage):
 
 def persist_canonical_snapshot(attempt, canonical_result):
     if attempt:
-        _capture(
+        _capture_strict(
             attempt,
             "persist_canonical_snapshot",
             lambda: attempt.sudo().write({

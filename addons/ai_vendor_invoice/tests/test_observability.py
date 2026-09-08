@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 import httpx
 from jsonschema import ValidationError
 from openai import APIConnectionError, APIStatusError
+from psycopg2 import OperationalError
 
 from odoo import api, fields
 from odoo.exceptions import AccessError
@@ -330,6 +331,19 @@ class TestProviderCallEvidence(ObservabilityCase):
 
 
 class TestFailureDiagnostics(ObservabilityCase):
+    def test_attempt_result_persistence_does_not_swallow_database_errors(self):
+        attachment_model = type(self.env["ir.attachment"])
+        with patch.object(
+            attachment_model,
+            "create",
+            side_effect=OperationalError("serialization conflict"),
+        ):
+            with self.assertRaises(OperationalError):
+                observability_service.persist_attempt_raw_response(
+                    self.attempt,
+                    b"{}",
+                )
+
     def test_persistence_failure_is_logged(self):
         with patch.object(
             observability_service._logger,
@@ -513,6 +527,41 @@ class TestProviderCallEvidenceRegression(ObservabilityCase):
 
 
 class TestObservabilityFailureIsolation(ObservabilityCase):
+    def test_attempt_persistence_conflict_fails_without_queue_resubmission(self):
+        adapter = Mock()
+        adapter.parse_pdf.return_value = (
+            {"header": {}, "lines": [], "is_multi_invoice": False},
+            base64.b64encode(b"[]"),
+        )
+
+        with patch.object(
+            parse_service,
+            "_publish_attempt_running",
+        ), patch.object(
+            parse_service,
+            "prepare_provider_input",
+            return_value={"type": "pages", "images": [b"png"]},
+        ), patch.object(
+            parse_service,
+            "adapter_for",
+            return_value=adapter,
+        ), patch.object(
+            observability_service,
+            "persist_attempt_raw_response",
+            side_effect=OperationalError("could not serialize access to concurrent update"),
+        ):
+            result = parse_service.run_parse_attempt(
+                self.env,
+                self.task.id,
+                self.attempt.id,
+            )
+
+        self.assertFalse(result)
+        self.assertEqual(self.attempt.status, "failed")
+        self.assertEqual(self.attempt.failure_stage, "PERSISTENCE")
+        self.assertEqual(self.task.state, "error")
+        adapter.parse_pdf.assert_called_once()
+
     def test_partial_evidence_does_not_change_success_result(self):
         adapter = Mock()
         adapter.parse_pdf.return_value = (

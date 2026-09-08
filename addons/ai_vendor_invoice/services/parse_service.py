@@ -266,8 +266,20 @@ def run_parse_attempt(env, task_id, attempt_id):
     except Exception as error:
         _failed_attempt(env, task.id, attempt.id, error)
         return False
-    observability_service.persist_attempt_raw_response(attempt, raw)
-    observability_service.persist_canonical_snapshot(attempt, canonical)
+    try:
+        observability_service.persist_attempt_raw_response(attempt, raw)
+        observability_service.persist_canonical_snapshot(attempt, canonical)
+    except Exception as error:
+        # Do not let a post-provider persistence conflict resubmit the PDF.
+        env.invalidate_all()
+        _failed_attempt(
+            env,
+            task.id,
+            attempt.id,
+            error,
+            failure_stage="PERSISTENCE",
+        )
+        return False
     try:
         mapping = do_mapping(env, canonical)
     except Exception as error:
