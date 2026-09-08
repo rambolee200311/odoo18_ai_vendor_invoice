@@ -4,6 +4,7 @@ Intent-1 Foundation: model-only tests.
 Covers: field definitions, DB constraints, immutability guards, schema
         validation, and lock_service signatures.
 """
+import base64
 import jsonschema
 from unittest.mock import patch
 from odoo import fields
@@ -80,6 +81,74 @@ class TestImportTaskModel(TransactionCase):
 
     def test_new_task_requires_statement(self):
         self.assertTrue(self._make_task().statement_required)
+
+    def test_duplicate_source_pdf_is_rejected(self):
+        source = self.env["ir.attachment"].create({
+            "name": "duplicate.pdf",
+            "datas": base64.b64encode(b"%PDF-duplicate"),
+        })
+        provider = self._make_provider()
+        self.env["vendor.invoice.import.task"].create({
+            "source_pdf_attachment_id": source.id,
+            "selected_provider_config_id": provider.id,
+        })
+        with self.assertRaises(ValidationError):
+            self.env["vendor.invoice.import.task"].create({
+                "source_pdf_attachment_id": source.id,
+                "selected_provider_config_id": provider.id,
+            })
+
+    def test_cancelled_statement_releases_business_key(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        supplier = self.env.ref("base.res_partner_1")
+        provider = self._make_provider()
+        def make_task(suffix):
+            source = self.env["ir.attachment"].create({
+                "name": "%s.pdf" % suffix,
+                "datas": base64.b64encode(suffix.encode()),
+            })
+            return self.env["vendor.invoice.import.task"].create({
+                "source_pdf_attachment_id": source.id,
+                "selected_provider_config_id": provider.id,
+            }).with_user(admin)
+
+        first = make_task("first")
+        first_attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": first.id,
+            "sequence": 1,
+            "provider_config_id": provider.id,
+            "status": "success",
+        })
+        first.current_parse_attempt_id = first_attempt.id
+        payload = {
+            "invoice_number": "CC06-001",
+            "supplier_id": supplier.id,
+            "lines": [{"description": "Freight", "amount": 10.0}],
+        }
+        first_statement = first.action_create_statement_from_attempt(
+            first_attempt.id, payload
+        )
+
+        second = make_task("second")
+        second_attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": second.id,
+            "sequence": 1,
+            "provider_config_id": provider.id,
+            "status": "success",
+        })
+        second.current_parse_attempt_id = second_attempt.id
+        with self.assertRaises(ValidationError):
+            second.action_create_statement_from_attempt(second_attempt.id, payload)
+
+        first.action_cancel_statement()
+        second_statement = second.action_create_statement_from_attempt(
+            second_attempt.id, payload
+        )
+        self.assertEqual(first_statement.state, "cancelled")
+        self.assertEqual(second_statement.invoice_number, "CC06-001")
 
     def test_prefilled_statement_matches_supplier_case_insensitively(self):
         partner = self.env["res.partner"].create({

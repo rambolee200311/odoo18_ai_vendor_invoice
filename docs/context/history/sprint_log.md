@@ -1,5 +1,28 @@
 # Sprint Implementation Log
 
+## 2026-09-08 - CC-06 Duplicate Import and Statement Uniqueness
+
+### Scope
+
+- Added a SHA-256 source-PDF checksum and company-scoped duplicate Task guard.
+- Added normalized supplier identity and invoice number fields to Statement.
+- Added a database partial unique index for active Statements, excluding
+  `cancelled`.
+- Added ORM validation messages and backfilled checksums for existing source
+  attachments during module initialization.
+- Added tests for duplicate PDF rejection and reuse of a business key after
+  Statement cancellation.
+
+### Verification
+
+```text
+Python compilation: PASS
+XML parsing: PASS
+Repository verification: 19 pass, 0 fail
+CC-06 duplicate PDF test: PASS
+CC-06 cancelled Statement uniqueness test: PASS
+```
+
 ## 2026-09-08 - CC-05 Verification Correction
 
 The earlier CC-05 entry incorrectly stated that the Odoo runtime tests were not

@@ -1,4 +1,6 @@
 # © 2024 Wukong Digital. License LGPL-3.
+import re
+
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
@@ -64,9 +66,25 @@ class VendorInvoiceStatement(models.Model):
         readonly=True,
     )
     invoice_number = fields.Char(string="Invoice Number", required=True)
+    invoice_number_normalized = fields.Char(
+        string="Normalized Invoice Number",
+        compute="_compute_business_identity",
+        store=True,
+        index=True,
+        copy=False,
+        readonly=True,
+    )
     invoice_date = fields.Date(string="Invoice Date")
     supplier_id = fields.Many2one("res.partner", string="Supplier")
     supplier_name = fields.Char(string="Supplier")
+    supplier_identity_key = fields.Char(
+        string="Supplier Identity Key",
+        compute="_compute_business_identity",
+        store=True,
+        index=True,
+        copy=False,
+        readonly=True,
+    )
     currency_id = fields.Many2one("res.currency", string="Currency")
     total_amount = fields.Monetary(string="Total Amount", currency_field="currency_id")
     total_tax = fields.Monetary(string="Total Tax", currency_field="currency_id")
@@ -95,6 +113,76 @@ class VendorInvoiceStatement(models.Model):
         ),
     ]
 
+    def init(self):
+        self.env.cr.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS
+                vendor_invoice_statement_business_unique
+            ON vendor_invoice_statement (
+                company_id,
+                supplier_identity_key,
+                invoice_number_normalized
+            )
+            WHERE state != 'cancelled'
+              AND supplier_identity_key IS NOT NULL
+              AND invoice_number_normalized IS NOT NULL
+            """
+        )
+
+    @api.depends("invoice_number", "supplier_id", "supplier_name")
+    def _compute_business_identity(self):
+        for statement in self:
+            statement.invoice_number_normalized = self._normalize_invoice_number(
+                statement.invoice_number
+            )
+            statement.supplier_identity_key = (
+                "partner:%s" % statement.supplier_id.id
+                if statement.supplier_id
+                else self._normalize_supplier_name(statement.supplier_name)
+            )
+
+    @staticmethod
+    def _normalize_invoice_number(value):
+        return re.sub(r"\s+", "", (value or "").strip().upper()) or False
+
+    @staticmethod
+    def _normalize_supplier_name(value):
+        return re.sub(r"\s+", " ", (value or "").strip().upper()) or False
+
+    def _check_business_duplicate(self, values, exclude_ids=()):
+        self.env.flush_all()
+        task = (
+            self.env["vendor.invoice.import.task"].browse(values["task_id"])
+            if values.get("task_id")
+            else self
+        )
+        company_id = values.get("company_id") or task.company_id.id
+        invoice_number = values.get("invoice_number", self.invoice_number)
+        supplier_id = values.get("supplier_id", self.supplier_id.id)
+        supplier_name = values.get("supplier_name", self.supplier_name)
+        normalized_invoice = self._normalize_invoice_number(invoice_number)
+        supplier_key = (
+            "partner:%s" % supplier_id
+            if supplier_id
+            else self._normalize_supplier_name(supplier_name)
+        )
+        if not company_id or not normalized_invoice or not supplier_key:
+            return
+        duplicate = self.search([
+            ("company_id", "=", company_id),
+            ("supplier_identity_key", "=", supplier_key),
+            ("invoice_number_normalized", "=", normalized_invoice),
+            ("state", "!=", "cancelled"),
+            ("id", "not in", list(exclude_ids)),
+        ], limit=1)
+        if duplicate:
+            raise ValidationError(
+                _(
+                    "An active Statement already exists for this supplier and "
+                    "invoice number: %s."
+                ) % duplicate.name
+            )
+
     @api.model_create_multi
     def create(self, vals_list):
         raise AccessError(
@@ -110,6 +198,8 @@ class VendorInvoiceStatement(models.Model):
             )
         if any(statement.state != "draft" for statement in self):
             raise ValidationError(_("Only draft Statements can be edited."))
+        for statement in self:
+            statement._check_business_duplicate(vals, exclude_ids=(statement.id,))
         return super().write(vals)
 
     def unlink(self):
@@ -176,9 +266,12 @@ class VendorInvoiceStatement(models.Model):
     @api.model
     def _aggregate_create(self, vals):
         """Persist a validated aggregate command without exposing generic CRUD."""
+        self._check_business_duplicate(vals)
         return super().create(vals)
 
     def _aggregate_write(self, vals):
+        for statement in self:
+            statement._check_business_duplicate(vals, exclude_ids=(statement.id,))
         return super().write(vals)
 
     def _aggregate_unlink(self):

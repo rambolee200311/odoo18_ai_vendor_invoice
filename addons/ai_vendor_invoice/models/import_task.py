@@ -1,5 +1,8 @@
 # © 2024 Wukong Digital. License LGPL-3.
 # Architecture red-line T-025: task.company_id is immutable after creation.
+import base64
+import hashlib
+
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
@@ -29,8 +32,21 @@ class VendorInvoiceImportTask(models.Model):
     source_pdf_attachment_id = fields.Many2one(
         "ir.attachment",
         string="Source PDF",
-        required=True,
+        required=False,
+        readonly=True,
         ondelete="restrict",
+    )
+
+    source_pdf_upload = fields.Binary(
+        string="Upload PDF",
+        help="Upload the source vendor invoice PDF.",
+    )
+    source_pdf_filename = fields.Char(string="PDF Filename")
+    source_pdf_checksum = fields.Char(
+        string="Source PDF Checksum",
+        copy=False,
+        readonly=True,
+        index=True,
     )
 
     # ── state machine ─────────────────────────────────────────────────────────
@@ -60,6 +76,21 @@ class VendorInvoiceImportTask(models.Model):
     enter_parsing_datetime = fields.Datetime(
         string="Entered Parsing At",
         index=True,
+    )
+
+    parse_display_status = fields.Selection(
+        selection=[
+            ("ready", "Ready to run AI"),
+            ("waiting", "Waiting for AI parsing"),
+            ("running", "AI parsing in progress"),
+            ("completed", "Parsing complete - ready for review"),
+            ("ai_error", "AI service temporarily unavailable"),
+            ("timeout", "Parsing timed out"),
+            ("split_required", "Multiple invoices detected - split the PDF"),
+            ("bill_generated", "Bill generated"),
+        ],
+        string="AI Parsing Status",
+        compute="_compute_parse_display_status",
     )
 
     current_parse_attempt_id = fields.Many2one(
@@ -153,18 +184,124 @@ class VendorInvoiceImportTask(models.Model):
         string="Audit Logs",
     )
 
+    _sql_constraints = [
+        (
+            "company_source_pdf_checksum_unique",
+            "unique(company_id, source_pdf_checksum)",
+            "A source PDF can only be imported once per company.",
+        ),
+    ]
+
+    def init(self):
+        self.env.cr.execute(
+            """
+            SELECT id, source_pdf_attachment_id
+            FROM vendor_invoice_import_task
+            WHERE source_pdf_checksum IS NULL
+              AND source_pdf_attachment_id IS NOT NULL
+            """
+        )
+        for task_id, attachment_id in self.env.cr.fetchall():
+            checksum = self._checksum_for_source(
+                None,
+                self.env["ir.attachment"].browse(attachment_id),
+            )
+            if checksum:
+                self.env.cr.execute(
+                    """
+                    UPDATE vendor_invoice_import_task
+                    SET source_pdf_checksum = %s
+                    WHERE id = %s
+                    """,
+                    (checksum, task_id),
+                )
+
+    @api.depends("state", "current_parse_attempt_id.status")
+    def _compute_parse_display_status(self):
+        for task in self:
+            if task.state == "parsing":
+                task.parse_display_status = (
+                    "running"
+                    if task.current_parse_attempt_id.status == "running"
+                    else "waiting"
+                )
+            else:
+                task.parse_display_status = {
+                    "to_parse": "ready",
+                    "awaiting_review": "completed",
+                    "error_ai_unavailable": "ai_error",
+                    "error_timeout": "timeout",
+                    "error_split_required": "split_required",
+                    "bill_generated": "bill_generated",
+                }.get(task.state, "ready")
+
     # ── ORM hooks ─────────────────────────────────────────────────────────────
 
     @api.model_create_multi
     def create(self, vals_list):
+        uploads = []
         for vals in vals_list:
+            upload = vals.pop("source_pdf_upload", None)
+            filename = vals.pop("source_pdf_filename", None) or "vendor_invoice.pdf"
+            uploads.append((upload, filename))
+            if upload and vals.get("source_pdf_attachment_id"):
+                raise ValidationError(
+                    _("Provide either an uploaded PDF or an existing source attachment, not both.")
+                )
+            if not vals.get("source_pdf_attachment_id") and not upload:
+                raise ValidationError(_("Upload a vendor invoice PDF before saving the task."))
+            attachment = (
+                self.env["ir.attachment"].browse(vals["source_pdf_attachment_id"])
+                if vals.get("source_pdf_attachment_id")
+                else self.env["ir.attachment"]
+            )
+            vals["source_pdf_checksum"] = self._checksum_for_source(upload, attachment)
+            company = self.env["res.company"].browse(
+                vals.get("company_id")
+            ) if vals.get("company_id") else self.env.company
+            duplicate = self.search([
+                ("company_id", "=", company.id),
+                ("source_pdf_checksum", "=", vals["source_pdf_checksum"]),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(
+                    _("This PDF was already imported as Task %s.") % duplicate.name
+                )
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code(
                     "vendor.invoice.import.task"
                 ) or _("New")
             vals.setdefault("human_review_result", {})
             vals.setdefault("review_warnings", [])
-        return super().create(vals_list)
+        tasks = super().create(vals_list)
+        for task, (upload, filename) in zip(tasks, uploads):
+            if upload and not task.source_pdf_attachment_id:
+                attachment = self.env["ir.attachment"].create({
+                    "name": filename,
+                    "datas": upload,
+                    "mimetype": "application/pdf",
+                    "res_model": task._name,
+                    "res_id": task.id,
+                })
+                task.source_pdf_attachment_id = attachment.id
+            else:
+                attachment = task.source_pdf_attachment_id
+            if attachment.res_model != task._name or attachment.res_id != task.id:
+                attachment.write({
+                    "res_model": task._name,
+                    "res_id": task.id,
+                })
+        return tasks
+
+    @api.model
+    def _checksum_for_source(self, upload, attachment):
+        if upload:
+            raw = base64.b64decode(upload)
+        else:
+            raw = attachment.raw or b""
+        if not raw:
+            return False
+        return hashlib.sha256(raw).hexdigest()
 
     def write(self, vals):
         # T-025: company_id is immutable after creation.
