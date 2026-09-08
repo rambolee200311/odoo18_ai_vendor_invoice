@@ -13,7 +13,7 @@ from odoo.modules.registry import Registry
 from odoo.tests.common import TransactionCase
 
 from ..adapters.deepseek import DeepSeekAIProviderAdapter
-from ..adapters.base import AIProviderTemporaryError
+from ..adapters.base import AIProviderPermanentError, AIProviderTemporaryError
 from ..adapters.openai import OpenAIAIProviderAdapter
 from ..services import observability_service, parse_service
 from ..schemas.document_extraction import INVOICE_EXTRACTION_RESULT_SCHEMA
@@ -170,20 +170,21 @@ class TestProviderCallEvidence(ObservabilityCase):
         client.responses.create.return_value = response
         adapter._build_client = Mock(return_value=client)
 
-        with self.assertRaises(AIProviderPermanentError):
-            adapter.parse_native_pdf(
-                {
-                    "mode": "native_pdf",
-                    "document_bytes": b"%PDF",
-                    "source": {"page_count": 1},
-                },
-                self.provider,
-                "Extract as JSON.",
-                self.attempt,
-            )
+        with patch.object(observability_service, "config", {"test_enable": True}):
+            with self.assertRaises(AIProviderPermanentError) as raised:
+                adapter.parse_native_pdf(
+                    {
+                        "mode": "native_pdf",
+                        "document_bytes": b"%PDF",
+                        "source": {"page_count": 1},
+                    },
+                    self.provider,
+                    "Extract as JSON.",
+                    self.attempt,
+                )
 
         self.assertEqual(
-            self.attempt.provider_call_ids.failure_stage,
+            raised.exception.failure_stage,
             "PAGE_SCHEMA_VALIDATION",
         )
 

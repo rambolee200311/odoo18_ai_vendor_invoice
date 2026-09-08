@@ -255,7 +255,9 @@ class TestParseLifecycleConvergence(TransactionCase):
     def test_serialization_failure_retries_terminal_write(self):
         source = self.env["ir.attachment"].create({
             "name": "failure-serialization.pdf",
-            "datas": base64.b64encode(b"%PDF-1.4"),
+            "datas": base64.b64encode(
+                b"serialization-failure-test-pdf"
+            ),
             "res_model": "vendor.invoice.import.task",
         })
         provider = self.env["wd.ai.provider.config"].create({
@@ -305,12 +307,15 @@ class TestParseLifecycleConvergence(TransactionCase):
                 failure_stage,
             )
 
-        with patch.object(parse_service, "_write_failed_attempt", side_effect=fail_once), \
-                patch.object(self.env.cr, "rollback"):
-            parse_service._failed_attempt(
-                self.env, task.id, attempt.id,
-                AIProviderPermanentError("schema failure"),
-            )
+        with registry(self.env.cr.dbname).cursor() as execution_cr:
+            execution_env = api.Environment(execution_cr, self.env.uid, {})
+            with patch.object(
+                parse_service, "_write_failed_attempt", side_effect=fail_once
+            ):
+                parse_service._failed_attempt(
+                    execution_env, task.id, attempt.id,
+                    AIProviderPermanentError("schema failure"),
+                )
         with registry(self.env.cr.dbname).cursor() as check_cr:
             check_env = api.Environment(check_cr, self.env.uid, {})
             checked_attempt = check_env[
@@ -533,7 +538,7 @@ class TestClosurePipeline(TransactionCase):
 
 class TestClosurePDFErrors(TransactionCase):
     def test_render_failure_is_distinguishable(self):
-        attachment = SimpleNamespace(raw=b"%PDF-1.4")
+        attachment = SimpleNamespace(id=1, raw=b"%PDF-1.4")
         fake_page = Mock()
         fake_page.get_pixmap.side_effect = RuntimeError("render")
         fake_document = Mock(page_count=1, needs_pass=False)
