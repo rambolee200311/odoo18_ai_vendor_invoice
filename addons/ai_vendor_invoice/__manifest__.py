@@ -18,6 +18,7 @@
         "data/ir_cron.xml",
         "views/diagnostic_views.xml",
         "views/import_task_views.xml",
+        "views/config_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
