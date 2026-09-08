@@ -1,4 +1,8 @@
-# Async Queue Technical Spike Report
+# Async Queue Technical Spike Report (superseded)
+
+> 本文件中的 `80914` 端口结论错误，已由重跑报告更正。请以
+> [async-queue-spike-20260908-rerun.md](./async-queue-spike-20260908-rerun.md)
+> 为准。
 
 **日期**：2026-09-08
 **范围**：queue_job runtime verification only
