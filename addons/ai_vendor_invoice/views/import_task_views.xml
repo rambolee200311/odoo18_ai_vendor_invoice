@@ -19,6 +19,7 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
+                <field name="source_pdf_filename" string="File Name"/>
                 <field name="state"/>
                 <field name="invoice_number"/>
                 <field name="invoice_date"/>

@@ -60,6 +60,11 @@ class VendorInvoiceStatement(models.Model):
         string="Source PDF",
         readonly=True,
     )
+    source_pdf_filename = fields.Char(
+        related="task_id.source_pdf_filename",
+        string="File Name",
+        readonly=True,
+    )
     review_warnings = fields.Json(
         related="task_id.review_warnings",
         string="Review Warnings",
