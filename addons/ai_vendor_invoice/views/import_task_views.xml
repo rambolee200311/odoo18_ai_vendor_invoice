@@ -34,10 +34,6 @@
         <field name="arch" type="xml">
             <form string="Vendor Statement">
                 <header>
-                    <button name="action_apply_ai_candidate_from_statement" type="object"
-                            string="Apply AI Candidate"
-                            class="oe_highlight"
-                            invisible="state != 'draft'"/>
                     <button name="action_confirm_from_statement" type="object"
                             string="Confirm"
                             class="oe_highlight"
