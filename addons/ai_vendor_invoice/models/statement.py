@@ -391,7 +391,7 @@ class VendorInvoiceStatementLine(models.Model):
             raise ValidationError(_("Only lines of a draft Statement can be deleted."))
         return super().unlink()
 
-    def _normalize_amount_values(self, vals, statement=None):
+    def _normalize_amount_values(self, vals, statement=None, driver=None):
         """Normalize one monetary driver and derive the remaining amounts."""
         monetary_fields = {"amount", "tax_rate", "tax_amount", "total_amount"}
         if not monetary_fields & set(vals):
@@ -413,6 +413,8 @@ class VendorInvoiceStatementLine(models.Model):
             vals.get("total_amount", line.total_amount if line else 0.0) or 0.0
         )
         keys = {key for key in monetary_fields if vals.get(key) is not None}
+        if driver:
+            keys = {driver}
         if "amount" in keys:
             if "tax_rate" in keys:
                 tax_amount = amount * tax_rate / 100
@@ -442,6 +444,32 @@ class VendorInvoiceStatementLine(models.Model):
             "tax_amount": tax_amount,
             "total_amount": total_amount,
         }
+
+    def _apply_amount_onchange(self, driver):
+        for line in self:
+            values = {
+                field_name: line[field_name]
+                for field_name in ("amount", "tax_rate", "tax_amount", "total_amount")
+            }
+            changed = line._normalize_amount_values(values, driver=driver)
+            for field_name, value in changed.items():
+                line[field_name] = value
+
+    @api.onchange("amount")
+    def _onchange_amount(self):
+        self._apply_amount_onchange("amount")
+
+    @api.onchange("tax_rate")
+    def _onchange_tax_rate(self):
+        self._apply_amount_onchange("tax_rate")
+
+    @api.onchange("tax_amount")
+    def _onchange_tax_amount(self):
+        self._apply_amount_onchange("tax_amount")
+
+    @api.onchange("total_amount")
+    def _onchange_total_amount(self):
+        self._apply_amount_onchange("total_amount")
 
     @api.model
     def _aggregate_create(self, vals):

@@ -255,6 +255,37 @@ class TestImportTaskModel(TransactionCase):
         self.assertEqual(line.tax_amount, 60.0)
         self.assertEqual(line.total_amount, 260.0)
 
+    def test_statement_line_onchange_updates_linked_amounts(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": 1,
+            "provider_config_id": task.selected_provider_config_id.id,
+            "status": "success",
+        })
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {"invoice_number": "INV-ONCHANGE", "lines": [{
+                "description": "Freight",
+                "amount": 100.0,
+                "tax_rate": 10.0,
+            }]},
+        )
+        line = statement.line_ids
+        line.tax_rate = 20.0
+        line._onchange_tax_rate()
+        self.assertEqual((line.amount, line.tax_amount, line.total_amount), (100.0, 20.0, 120.0))
+        line.tax_amount = 5.0
+        line._onchange_tax_amount()
+        self.assertEqual((line.amount, line.tax_rate, line.total_amount), (100.0, 5.0, 105.0))
+        line.total_amount = 130.0
+        line._onchange_total_amount()
+        self.assertEqual((line.amount, line.tax_amount, line.tax_rate), (100.0, 30.0, 30.0))
+
     def test_statement_line_rejects_nonzero_tax_on_zero_amount(self):
         admin = self.env.ref("base.user_admin")
         admin.write({
