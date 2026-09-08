@@ -70,6 +70,10 @@ class TestImportTaskModel(TransactionCase):
         task = self._make_task()
         self.assertEqual(task.state, "to_parse")
 
+    def test_task_defaults_to_synchronous_parse(self):
+        task = self._make_task()
+        self.assertTrue(task.synchronous_parse)
+
     def test_task_name_sequence_generated(self):
         task = self._make_task()
         self.assertTrue(task.name, "Task name should be auto-generated")
@@ -430,6 +434,22 @@ class TestParseAttemptModel(TransactionCase):
             parse_service.start_parse(self.env, task.id, provider.id)
         with self.assertRaises(ValueError):
             parse_service.start_parse(self.env, task.id, provider.id)
+
+    def test_rerun_uses_task_parse_mode(self):
+        task, provider = self._make_base()
+        from ..services import parse_service
+
+        with patch.object(parse_service, "start_parse", return_value=True) as start_parse:
+            task.action_rerun_ai()
+            start_parse.assert_called_once_with(
+                self.env,
+                task.id,
+                provider.id,
+                synchronous=True,
+            )
+            task.synchronous_parse = False
+            task.action_rerun_ai()
+            self.assertFalse(start_parse.call_args.kwargs["synchronous"])
 
     def test_queue_entry_requires_real_delay(self):
         task, provider = self._make_base()

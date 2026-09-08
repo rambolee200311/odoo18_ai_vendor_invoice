@@ -72,6 +72,11 @@ class VendorInvoiceImportTask(models.Model):
         string="AI Provider",
         required=True,
     )
+    synchronous_parse = fields.Boolean(
+        string="Synchronous Parse",
+        default=True,
+        help="Run AI parsing in this request instead of submitting a queue job.",
+    )
 
     enter_parsing_datetime = fields.Datetime(
         string="Entered Parsing At",
@@ -326,7 +331,7 @@ class VendorInvoiceImportTask(models.Model):
         return (latest.sequence if latest else 0) + 1
 
     def action_rerun_ai(self):
-        """Queue a new attempt without changing historical attempts."""
+        """Run a new attempt synchronously or asynchronously."""
         self.ensure_one()
         from ..services.parse_service import start_parse
 
@@ -334,7 +339,7 @@ class VendorInvoiceImportTask(models.Model):
             self.env,
             self.id,
             self.selected_provider_config_id.id,
-            synchronous=self.env.context.get("ai_invoice_sync", False),
+            synchronous=self.synchronous_parse,
         )
 
     def action_open_statement(self):
