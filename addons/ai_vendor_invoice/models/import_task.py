@@ -272,6 +272,9 @@ class VendorInvoiceImportTask(models.Model):
                 if vals.get("source_pdf_attachment_id")
                 else self.env["ir.attachment"]
             )
+            vals["source_pdf_filename"] = (
+                filename if upload else attachment.name or filename
+            )
             vals["source_pdf_checksum"] = self._checksum_for_source(upload, attachment)
             company = self.env["res.company"].browse(
                 vals.get("company_id")
