@@ -282,7 +282,188 @@ migration 设计。
 - 所有 Bill Creator 边界转换；
 - 生产环境迁移和生产数据回填。
 
-## 11. v1.5.1 相对 v1.5 的简短修订记录
+## 11. Invoice 追溯扩展
+
+模块通过 Odoo 标准 `_inherit` 与账单建立追溯关系：
+
+```text
+account.move.vendor_invoice_statement_id
+    -> vendor.invoice.statement
+
+account.move.line.vendor_statement_line_id
+    -> vendor.invoice.statement.line
+```
+
+关系要求：
+
+- Invoice 侧外键是账单追溯的数据库权威；
+- Statement 与 Statement Line 侧只提供只读关联；
+- Statement 到 Vendor Bill 使用 `restrict`，避免误删账单导致追溯断裂；
+- Vendor Bill Line 到 Statement Line 使用 `set null`；
+- 删除账单不能删除 Statement 或其审计信息；
+- Statement、Vendor Bill 和 Vendor Bill Line 必须能够双向导航。
+
+账单创建由 Task 聚合动作负责。普通 Statement `create/write/unlink` 不得绕过
+Task 的账单创建和投影流程。
+
+## 12. Statement 与兼容投影
+
+Statement 是人工确认后的业务权威单据。现有 `human_review_result` 是兼容
+投影，关系为：
+
+```text
+Statement + Statement Lines
+    -> Task.human_review_result
+    -> Vendor Bill Creator
+```
+
+投影规则：
+
+- 只允许 Statement 单向投影到 Task；
+- 投影和 Statement 业务动作在同一事务中完成；
+- 投影失败时整体回滚；
+- 禁止从 `human_review_result` 反向覆盖 Statement；
+- Vendor Bill Creator 继续读取 Task 的兼容投影；
+- 任何投影入口都必须经过 Task 聚合边界；
+- 投影内容必须与当前 Statement 表头和 Lines 一致。
+
+## 13. PDF、Provider 与 Parse Attempt 边界
+
+同步解析的技术边界为：
+
+```text
+Source PDF Attachment
+  -> PDF preprocessing
+  -> Provider input
+  -> one synchronous Provider request
+  -> Canonical/Mapping result
+  -> Parse Attempt
+  -> Statement + Statement Lines
+```
+
+约束：
+
+- 原始 PDF 保留在 `ir.attachment`；
+- Task 保存文件名和 SHA-256 checksum；
+- Provider API key 不写入 PDF、Parse Attempt、Statement 或日志；
+- Provider 返回结果先写入 Parse Attempt，再由 Task 聚合动作生成业务单据；
+- Provider 失败只更新当前 Attempt/Task 的错误信息，不创建半成品 Statement；
+- 多张独立发票不能静默合并；当前流程应报告拆分错误；
+- 同步请求期间不持有数据库长事务锁；
+- Provider 返回后必须重新检查 Task 是否已取消或已被其他 Attempt 替代。
+
+异步队列不属于本版本流程。其端到端认证另行进行，不在本任务中修改
+`queue_job`、引入 Redis 或设计异步取消。
+
+## 14. 事务、幂等与并发规则
+
+### 14.1 Task 与 PDF 幂等
+
+- 创建 Task 时以公司和活动 PDF checksum 检查重复；
+- 已取消 Task 不再占用 checksum；
+- 同一 Task 不能创建第二个 Statement；
+- 同步解析结果必须确认仍指向当前有效 Task 和 Attempt；
+- stale worker 只能更新自己的 Parse Attempt，不能覆盖当前 Statement 或 Task。
+
+### 14.2 Statement 与 Bill
+
+- Statement Confirm、Cancel 和 Bill 创建必须使用短事务；
+- 状态转换前重新读取当前状态；
+- 非 Draft 的 Statement 不允许业务编辑；
+- Bill 创建必须具备幂等保护，重复执行不能产生第二张 Vendor Bill；
+- 关联 Invoice 失败时，Statement 状态和关联关系整体回滚；
+- 并发确认、并发 Bill 创建和并发 Candidate 操作需要依赖 Task 聚合锁及
+  当前 Attempt 检查。
+
+### 14.3 错误处理
+
+- 用户可见错误使用安全的 `parse_error_summary` 或 ValidationError；
+- 不向用户暴露 Provider secret、完整原始响应或内部堆栈；
+- 不将失败操作伪装成成功；
+- 错误状态只能表示当前 Task/Attempt 的真实失败；
+- 取消、解析失败、投影失败和账单关联失败必须保留可追溯审计记录。
+
+## 15. 权限与审计
+
+权限边界：
+
+| 角色 | 权限 |
+|---|---|
+| 普通用户 | 按公司规则读取允许的 Task、Statement、来源 PDF 和账单链接 |
+| Reviewer | 编辑 Draft Statement/Lines，执行确认、取消等人工业务动作 |
+| Configuration Manager | 维护 Provider、Alias、Keyword、Tax、Currency、Threshold 配置 |
+| 系统/Task 聚合动作 | 创建解析结果、执行投影和账单关联 |
+
+以下操作需要审计：
+
+- PDF 上传、checksum 判定和文件名写入；
+- Parse Attempt 创建、重跑、成功、失败和替代；
+- Task Cancel；
+- Statement 创建、人工编辑、确认和取消；
+- Candidate 技术应用；
+- Statement 到 `human_review_result` 的投影；
+- Vendor Bill 创建和 Statement/Invoice 关联；
+- 账单删除导致的 `set null` 追溯变化。
+
+审计记录不得保存 Provider API key。原始 AI 响应和运输/对账字段应遵守现有
+访问控制，不能通过普通 RPC 明文返回敏感配置。
+
+## 16. 当前数据约束
+
+### 16.1 业务唯一性
+
+- Task：公司 + 活动 PDF checksum；
+- Statement：公司 + supplier identity key + normalized invoice number；
+- Task 与 Statement：一对一；
+- Statement Line：从属于 Statement，删除时 cascade；
+- 取消记录不阻塞新的活动导入或活动 Statement。
+
+### 16.2 金额一致性
+
+金额以货币精度进行舍入。保存前必须满足：
+
+```text
+total_amount = amount + tax_amount
+tax_amount = amount * tax_rate / 100
+```
+
+如果 `amount = 0`，则 `tax_amount` 必须为零。金额 onchange 只负责交互体验，
+ORM 归一化负责最终持久化一致性。
+
+### 16.3 开发数据策略
+
+当前已执行的五条 Task 文件名回填只针对开发/UAT 数据库。生产环境不得将
+该次操作视为已完成 migration；如未来需要生产迁移，必须另立迁移设计和
+验收记录。
+
+## 17. 测试矩阵
+
+| 层级 | 必须覆盖的行为 | 当前状态 |
+|---|---|---|
+| 模型单元测试 | 字段约束、唯一性、状态保护、金额归一化 | 已有聚焦测试 |
+| Task 流程测试 | 同步解析、Cancel、统一 error、stale result | CC-08 聚焦测试已通过 |
+| Statement 测试 | 状态动作、Draft 只读、Task 一对一、Bill 关联 | 部分验证 |
+| Line 测试 | 四字段计算、优先级、零金额边界、onchange | CC-09 聚焦测试已通过 |
+| UI/XML 测试 | 菜单、Task/Statement/Line Form、列表列和按钮 | XML 检查及浏览器已验证 |
+| 集成测试 | PDF -> Provider -> Attempt -> Statement -> Bill | 同步路径部分验证 |
+| 安全测试 | User/Reviewer/Config Manager、多公司、敏感数据 | 未完成完整矩阵 |
+| 并发测试 | Confirm、Bill、Candidate、stale worker | 未完成完整矩阵 |
+| 异步专项 | queue job 端到端和取消/重试 | 延后，不阻塞本版本 |
+
+测试结论不得把同步路径的通过扩大解释为异步队列通过，也不得把开发数据库
+回填扩大解释为生产迁移完成。
+
+## 18. 未完成事项
+
+以下事项不改变当前同步版实现基线，但需要后续独立验证或业务决定：
+
+1. 异步队列端到端执行、重试、中断和 stale worker 专项认证；
+2. 完整并发和多公司安全矩阵；
+3. Vendor Bill Creator 全部边界状态的运行时验证；
+4. 生产环境迁移与历史数据策略；
+5. 如未来重新启用 Candidate 人工入口，另行决定是否采用“仅覆盖未编辑字段”。
+
+## 19. v1.5.1 相对 v1.5 的简短修订记录
 
 1. 将 v1.5 内容固定为历史设计基线，不覆盖原文。
 2. 按当前实现同步 Statement、Line、Task 字段和关系名称。
