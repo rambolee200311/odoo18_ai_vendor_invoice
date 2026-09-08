@@ -83,7 +83,13 @@ def _capture_durable(attempt, operation, callback, default=None):
             )
             durable_attempt = evidence_env[
                 "vendor.invoice.import.parse.attempt"
-            ].browse(attempt.id)
+            ].browse(attempt.id).exists()
+            if not durable_attempt:
+                # A queue job can become visible before the surrounding
+                # transaction commits the newly created Attempt. Keep the
+                # audit write in that transaction rather than violating the
+                # Attempt foreign key from a second connection.
+                return callback(attempt.env, attempt)
             result = callback(evidence_env, durable_attempt)
             evidence_cr.commit()
             return result
@@ -324,7 +330,7 @@ def persist_attempt_raw_response(attempt, raw_response):
         attachment = attempt.env["ir.attachment"].sudo().create({
             "name": "ai-response-%s.json" % attempt.sequence,
             "type": "binary",
-            "datas": raw_bytes,
+            "datas": base64.b64encode(raw_bytes),
             "mimetype": "application/json",
             "res_model": attempt._name,
             "res_id": attempt.id,

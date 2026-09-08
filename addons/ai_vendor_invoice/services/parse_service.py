@@ -149,28 +149,13 @@ def _audit(env, task, attempt, action, snapshot_delta):
 
 
 def _publish_attempt_running(env, attempt):
-    """Publish worker-start observability without holding the parse transaction."""
-    if env.context.get("ai_invoice_sync"):
-        now = fields.Datetime.now()
-        attempt.write({
-            "status": "running",
-            "started_at": now,
-            "last_activity_at": now,
-        })
-        return
-    with db_connect(env.cr.dbname).cursor() as lifecycle_cr:
-        lifecycle_env = api.Environment(lifecycle_cr, env.uid, dict(env.context))
-        lifecycle_attempt = lifecycle_env[
-            "vendor.invoice.import.parse.attempt"
-        ].browse(attempt.id)
-        now = fields.Datetime.now()
-        lifecycle_attempt.write({
-            "status": "running",
-            "started_at": now,
-            "last_activity_at": now,
-        })
-        lifecycle_cr.commit()
-    attempt.invalidate_recordset(["status", "started_at", "last_activity_at"])
+    """Publish worker-start state in the surrounding queue transaction."""
+    now = fields.Datetime.now()
+    attempt.write({
+        "status": "running",
+        "started_at": now,
+        "last_activity_at": now,
+    })
 
 
 def start_parse(env, task_id, provider_config_id, synchronous=False):
