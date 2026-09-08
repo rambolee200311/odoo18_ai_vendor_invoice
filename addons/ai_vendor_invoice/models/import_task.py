@@ -195,6 +195,32 @@ class VendorInvoiceImportTask(models.Model):
 
         return start_parse(self.env, self.id, self.selected_provider_config_id.id)
 
+    def action_open_statement(self):
+        self.ensure_one()
+        if not self.statement_id:
+            raise ValidationError(_("This task has no human Statement."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Vendor Statement"),
+            "res_model": "vendor.invoice.statement",
+            "view_mode": "form",
+            "res_id": self.statement_id.id,
+            "target": "current",
+        }
+
+    def action_open_source_pdf(self):
+        self.ensure_one()
+        if not self.source_pdf_attachment_id:
+            raise ValidationError(_("This task has no source PDF."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Source PDF"),
+            "res_model": "ir.attachment",
+            "view_mode": "form",
+            "res_id": self.source_pdf_attachment_id.id,
+            "target": "current",
+        }
+
     @api.depends(
         "current_parse_attempt_id",
         "current_parse_attempt_id.status",
@@ -376,6 +402,16 @@ class VendorInvoiceImportTask(models.Model):
         )
         return statement
 
+    def action_apply_ai_candidate_from_statement(self):
+        """Apply the current AI candidate from the Statement form."""
+        self.ensure_one()
+        if not self.statement_id:
+            raise ValidationError(_("This task has no human Statement."))
+        attempt = self.statement_id.source_parse_attempt_id
+        canonical = attempt.canonical_result or {}
+        payload = self._statement_payload_from_canonical(canonical)
+        return self.action_apply_ai_candidate(attempt.id, payload)
+
     def action_confirm_statement(self, statement_payload=None):
         """Persist the review, projection, and aggregate confirmation atomically."""
         self.ensure_one()
@@ -504,9 +540,65 @@ class VendorInvoiceImportTask(models.Model):
         statement = self.statement_id
         return {
             "invoice_number": statement.invoice_number,
+            "invoice_date": statement.invoice_date,
+            "supplier_id": statement.supplier_id.id,
+            "supplier_name": statement.supplier_name,
+            "currency_id": statement.currency_id.id,
+            "total_amount": statement.total_amount,
+            "total_tax": statement.total_tax,
+            "subtotal": statement.subtotal,
+            "note": statement.note,
             "lines": [
-                {"description": line.description, "amount": line.amount}
+                {
+                    "description": line.description,
+                    "product_id": line.product_id.id,
+                    "quantity": line.quantity,
+                    "price_unit": line.price_unit,
+                    "amount": line.amount,
+                    "tax_raw_text": line.tax_raw_text,
+                    "tax_rate": line.tax_rate,
+                    "tax_amount": line.tax_amount,
+                    "reconciliation_clue": line.reconciliation_clue,
+                    "charge_details": line.charge_details,
+                    "tax_ids": line.tax_ids.ids,
+                    "reconciliation_clues": line.reconciliation_clues or [],
+                }
                 for line in statement.line_ids
+            ],
+        }
+
+    def _statement_payload_from_canonical(self, canonical):
+        header = canonical.get("header") or {}
+        value = lambda field: (header.get(field) or {}).get("value")
+        supplier_name = value("supplier_raw_text")
+        currency_name = value("currency_raw_text")
+        supplier = self._find_supplier_partner(supplier_name)
+        currency = self.env["res.currency"].search(
+            ["|", ("name", "=", currency_name), ("symbol", "=", currency_name)],
+            limit=1,
+        ) if currency_name else self.env["res.currency"]
+        return {
+            "invoice_number": value("invoice_number"),
+            "invoice_date": value("invoice_date"),
+            "supplier_id": supplier.id or None,
+            "supplier_name": supplier_name,
+            "currency_id": currency.id or None,
+            "total_amount": value("total_amount") or 0.0,
+            "total_tax": value("total_tax") or 0.0,
+            "subtotal": value("subtotal") or 0.0,
+            "lines": [
+                {
+                    "description": (line.get("description") or {}).get("value"),
+                    "amount": (line.get("amount") or {}).get("value"),
+                    "price_unit": (line.get("amount") or {}).get("value"),
+                    "tax_raw_text": (line.get("tax_raw_text") or {}).get("value"),
+                    "tax_rate": (line.get("tax_rate") or {}).get("value"),
+                    "tax_amount": (line.get("tax_amount") or {}).get("value"),
+                    "reconciliation_clue": line.get("reconciliation_clue"),
+                    "charge_details": line.get("charge_details"),
+                    "reconciliation_clues": line.get("reconciliation_clues", []),
+                }
+                for line in canonical.get("lines", [])
             ],
         }
 

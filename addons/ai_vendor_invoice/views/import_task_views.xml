@@ -34,10 +34,27 @@
         <field name="arch" type="xml">
             <form string="Vendor Statement">
                 <header>
+                    <button name="action_apply_ai_candidate_from_statement" type="object"
+                            string="Apply AI Candidate"
+                            class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_confirm_from_statement" type="object"
+                            string="Confirm"
+                            class="oe_highlight"
+                            invisible="state not in ('draft', 'confirmed')"/>
                     <button name="action_cancel_statement" type="object"
                             string="Cancel"
                             confirm="Cancel this Statement?"
                             invisible="state not in ('draft', 'confirmed')"/>
+                    <button name="action_open_import_task" type="object"
+                            string="Open Import Task"
+                            invisible="not task_id"/>
+                    <button name="action_open_source_pdf" type="object"
+                            string="Open Source PDF"
+                            invisible="not source_pdf_attachment_id"/>
+                    <button name="action_open_vendor_bill" type="object"
+                            string="Open Vendor Bill"
+                            invisible="not vendor_bill_id"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,confirmed,bill_created,cancelled"/>
                 </header>
@@ -58,6 +75,7 @@
                             <field name="currency_id"/>
                             <field name="task_id" readonly="1"/>
                             <field name="source_parse_attempt_id" readonly="1"/>
+                            <field name="source_pdf_attachment_id" readonly="1"/>
                             <field name="vendor_bill_id" readonly="1"/>
                         </group>
                     </group>
@@ -87,6 +105,9 @@
                                 <group string="Notes">
                                     <field name="note" nolabel="1"/>
                                 </group>
+                            </group>
+                            <group string="Review Warnings">
+                                <field name="review_warnings" readonly="1" nolabel="1"/>
                             </group>
                         </page>
                         <page string="Technical Information">
@@ -136,6 +157,13 @@
                     <button name="action_rerun_ai" type="object" string="Re-run AI"
                             class="oe_highlight"
                             invisible="state == 'parsing'"/>
+                    <button name="action_open_statement" type="object"
+                            string="Open Statement"
+                            class="oe_highlight"
+                            invisible="not statement_id"/>
+                    <button name="action_open_source_pdf" type="object"
+                            string="Open Source PDF"
+                            invisible="not source_pdf_attachment_id"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -144,6 +172,7 @@
                         <field name="company_id" readonly="1"/>
                         <field name="source_pdf_attachment_id"/>
                         <field name="selected_provider_config_id"/>
+                        <field name="statement_id" readonly="1"/>
                         <field name="parse_status" readonly="1"/>
                         <field name="parse_error_summary" readonly="1"/>
                         <field name="queue_diagnostic" readonly="1"/>
@@ -163,12 +192,6 @@
                                     <field name="queue_diagnostic"/>
                                 </list>
                             </field>
-                        </page>
-                        <page string="Review">
-                            <field name="human_reviewed" readonly="1"/>
-                            <field name="human_review_result" widget="vendor_invoice_review"/>
-                            <field name="review_warnings"/>
-                            <field name="statement_id" readonly="1"/>
                         </page>
                         <page string="Audit Log">
                             <field name="audit_log_ids" readonly="1">

@@ -1,5 +1,84 @@
 # Sprint Implementation Log
 
+## 2026-09-08 - CC-05 Unified Statement Review Entry
+
+### Scope
+
+- Made Vendor Statement the only business-facing human review entry.
+- Added native navigation between Import Task, Vendor Statement, source PDF, and
+  generated Vendor Bill.
+- Moved Apply AI Candidate and Confirm actions to the Statement form while
+  retaining Task aggregate commands and the `human_review_result` projection.
+- Removed the Task Review page and retired the dedicated Owl review assets.
+
+### Verification
+
+```text
+Python compilation: PASS
+XML parsing: PASS
+Repository verification: 19 pass, 0 fail
+Odoo runtime tests: NOT RUN; urllib3 is unavailable in the local runtime
+```
+
+## 2026-09-08 - CC-04 Vendor Statement State Machine
+
+### Scope
+
+- Added the Statement lifecycle states `draft`, `confirmed`, `cancelled`, and
+  `bill_created`.
+- Restricted confirmation, cancellation, and bill-created transitions to
+  explicit aggregate/Bill Creator commands.
+- Required a confirmed Statement before Vendor Bill creation and atomically
+  linked the generated bill to the Statement.
+- Added statusbar/cancel controls and transition audit actions.
+
+### Verification
+
+```text
+Targeted Statement state/form assertions: PASS
+Python compilation: PASS
+Repository verification: 19 pass, 0 fail
+Odoo runtime tests: NOT RUN; urllib3 is unavailable in the local runtime
+```
+
+## 2026-09-08 - CC-03 Vendor Statement Form Design
+
+### Scope
+
+- Added the `Vendor Statement` document title and an automatic Statement number.
+- Added the `vendor/stm/%(year)s` sequence with four-digit numbering, producing
+  references such as `vendor/stm/20260001`.
+- Reorganized the Statement form into a Vendor Bill-inspired native Odoo layout
+  with a two-column header, invoice lines notebook page, totals, notes, and
+  technical information.
+- Preserved the existing Statement/Line fields, aggregate mutation boundary,
+  projection, and vendor-bill integration.
+
+### Verification
+
+```text
+Targeted Statement model/sequence/form assertions: PASS
+Python compilation: PASS
+Repository verification: 19 pass, 0 fail
+Odoo runtime tests: NOT RUN; urllib3 is unavailable in the local runtime
+```
+
+## 2026-09-08 - CC-02 AI Invoice Menu Simplification
+
+### Scope
+
+- Renamed the addon-owned child menus to `Imports` and `Statements`.
+- Preserved the `AI Invoice` root, existing menu XML IDs, actions, model bindings,
+  security, and workflow behavior.
+
+### Verification
+
+```text
+Targeted menu assertions: PASS
+Python compilation: PASS
+Repository verification: 19 pass, 0 fail
+```
+
 ## 2026-08-21 - Intent-1 Foundation
 
 ### Scope

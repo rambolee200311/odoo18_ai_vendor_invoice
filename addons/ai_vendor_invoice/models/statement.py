@@ -53,6 +53,16 @@ class VendorInvoiceStatement(models.Model):
         ondelete="restrict",
         index=True,
     )
+    source_pdf_attachment_id = fields.Many2one(
+        related="task_id.source_pdf_attachment_id",
+        string="Source PDF",
+        readonly=True,
+    )
+    review_warnings = fields.Json(
+        related="task_id.review_warnings",
+        string="Review Warnings",
+        readonly=True,
+    )
     invoice_number = fields.Char(string="Invoice Number", required=True)
     invoice_date = fields.Date(string="Invoice Date")
     supplier_id = fields.Many2one("res.partner", string="Supplier")
@@ -113,6 +123,55 @@ class VendorInvoiceStatement(models.Model):
         """Delegate cancellation to the owning Task aggregate."""
         self.ensure_one()
         return self.task_id.action_cancel_statement()
+
+    def action_apply_ai_candidate_from_statement(self):
+        """Apply the current ParseAttempt candidate from the business form."""
+        self.ensure_one()
+        return self.task_id.action_apply_ai_candidate_from_statement()
+
+    def action_confirm_from_statement(self):
+        """Confirm the current Statement through its owning Task aggregate."""
+        self.ensure_one()
+        return self.task_id.action_confirm_statement(
+            self.task_id._statement_payload_from_record()
+        )
+
+    def action_open_import_task(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Import Task"),
+            "res_model": "vendor.invoice.import.task",
+            "view_mode": "form",
+            "res_id": self.task_id.id,
+            "target": "current",
+        }
+
+    def action_open_source_pdf(self):
+        self.ensure_one()
+        if not self.source_pdf_attachment_id:
+            raise ValidationError(_("This Statement has no source PDF."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Source PDF"),
+            "res_model": "ir.attachment",
+            "view_mode": "form",
+            "res_id": self.source_pdf_attachment_id.id,
+            "target": "current",
+        }
+
+    def action_open_vendor_bill(self):
+        self.ensure_one()
+        if not self.vendor_bill_id:
+            raise ValidationError(_("This Statement has no Vendor Bill."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Vendor Bill"),
+            "res_model": "account.move",
+            "view_mode": "form",
+            "res_id": self.vendor_bill_id.id,
+            "target": "current",
+        }
 
     @api.model
     def _aggregate_create(self, vals):
