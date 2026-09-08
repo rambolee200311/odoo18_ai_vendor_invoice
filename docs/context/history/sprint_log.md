@@ -1,5 +1,20 @@
 # Sprint Implementation Log
 
+## 2026-09-08 - PDF Upload Form Correction
+
+### Scope
+
+- Exposed the existing `source_pdf_upload` Binary field on the Import Task form.
+- Bound the upload control to `source_pdf_filename` so users can select a PDF
+  during manual verification.
+
+### Verification
+
+```text
+PDF upload view assertions: PASS
+Repository verification: 19 pass, 0 fail
+```
+
 ## 2026-09-08 - CC-06 Duplicate Import and Statement Uniqueness
 
 ### Scope

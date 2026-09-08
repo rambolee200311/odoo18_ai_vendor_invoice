@@ -170,6 +170,9 @@
                     <group>
                         <field name="name" readonly="1"/>
                         <field name="company_id" readonly="1"/>
+                        <field name="source_pdf_upload"
+                               filename="source_pdf_filename"/>
+                        <field name="source_pdf_filename" invisible="1"/>
                         <field name="source_pdf_attachment_id"/>
                         <field name="selected_provider_config_id"/>
                         <field name="statement_id" readonly="1"/>
