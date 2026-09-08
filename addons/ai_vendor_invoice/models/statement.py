@@ -8,6 +8,15 @@ class VendorInvoiceStatement(models.Model):
     _description = "Vendor Invoice Human Statement"
     _order = "id desc"
 
+    name = fields.Char(
+        string="Statement Number",
+        required=True,
+        copy=False,
+        readonly=True,
+        default=lambda self: self.env["ir.sequence"].next_by_code(
+            "vendor.invoice.statement"
+        ) or _("New"),
+    )
     task_id = fields.Many2one(
         "vendor.invoice.import.task",
         string="Import Task",

@@ -137,6 +137,7 @@ class TestImportTaskModel(TransactionCase):
             attempt.id,
             {"invoice_number": "INV-001", "lines": [{"description": "Freight", "amount": 10.0}]},
         )
+        self.assertRegex(statement.name, r"^vendor/stm/\d{8}$")
         self.assertEqual(statement.source_parse_attempt_id, attempt)
         self.assertEqual(task.statement_id, statement)
         self.assertEqual(len(statement.line_ids), 1)
