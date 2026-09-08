@@ -217,6 +217,96 @@ class TestImportTaskModel(TransactionCase):
         self.assertEqual(len(statement.line_ids), 1)
         self.assertEqual(statement.line_ids.description, "Freight")
 
+    def test_statement_line_amounts_recalculate_deterministically(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": 1,
+            "provider_config_id": task.selected_provider_config_id.id,
+            "status": "success",
+        })
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {"invoice_number": "INV-AMOUNTS", "lines": [{
+                "description": "Freight",
+                "amount": 100.0,
+                "tax_rate": 10.0,
+            }]},
+        )
+        line = statement.line_ids
+        self.assertEqual(line.tax_amount, 10.0)
+        self.assertEqual(line.total_amount, 110.0)
+
+        line.write({"tax_rate": 20.0})
+        self.assertEqual(line.amount, 100.0)
+        self.assertEqual(line.tax_amount, 20.0)
+        self.assertEqual(line.total_amount, 120.0)
+        line.write({"tax_amount": 5.0})
+        self.assertEqual(line.tax_rate, 5.0)
+        self.assertEqual(line.total_amount, 105.0)
+        line.write({"total_amount": 130.0})
+        self.assertEqual(line.tax_amount, 30.0)
+        self.assertEqual(line.tax_rate, 30.0)
+        line.write({"amount": 200.0})
+        self.assertEqual(line.tax_amount, 60.0)
+        self.assertEqual(line.total_amount, 260.0)
+
+    def test_statement_line_rejects_nonzero_tax_on_zero_amount(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": 1,
+            "provider_config_id": task.selected_provider_config_id.id,
+            "status": "success",
+        })
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {"invoice_number": "INV-ZERO", "lines": [{
+                "description": "Zero",
+                "amount": 0.0,
+            }]},
+        )
+        with self.assertRaises(ValidationError):
+            statement.line_ids.write({"amount": 0.0, "tax_amount": 1.0})
+        self.assertEqual(statement.line_ids.tax_rate, 0.0)
+        self.assertEqual(statement.line_ids.total_amount, 0.0)
+
+    def test_statement_totals_and_non_draft_line_readonly(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": 1,
+            "provider_config_id": task.selected_provider_config_id.id,
+            "status": "success",
+        })
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {"invoice_number": "INV-TOTALS", "lines": [{
+                "description": "Freight",
+                "amount": 100.0,
+                "tax_rate": 10.0,
+            }]},
+        )
+        self.assertEqual(statement.subtotal, 100.0)
+        self.assertEqual(statement.total_tax, 10.0)
+        self.assertEqual(statement.total_amount, 110.0)
+        self.assertEqual(statement.overall_tax_rate, 10.0)
+        task.action_cancel_statement()
+        with self.assertRaises(ValidationError):
+            statement.line_ids.write({"amount": 50.0})
+
     def test_statement_confirmation_projects_human_review_result(self):
         admin = self.env.ref("base.user_admin")
         admin.write({

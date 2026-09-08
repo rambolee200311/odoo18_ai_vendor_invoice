@@ -671,9 +671,6 @@ class VendorInvoiceImportTask(models.Model):
             "supplier_id": payload.get("supplier_id"),
             "supplier_name": payload.get("supplier_name"),
             "currency_id": payload.get("currency_id"),
-            "total_amount": payload.get("total_amount", 0.0),
-            "total_tax": payload.get("total_tax", 0.0),
-            "subtotal": payload.get("subtotal", 0.0),
             "note": payload.get("note"),
         }
 

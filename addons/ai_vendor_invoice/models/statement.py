@@ -86,9 +86,33 @@ class VendorInvoiceStatement(models.Model):
         readonly=True,
     )
     currency_id = fields.Many2one("res.currency", string="Currency")
-    total_amount = fields.Monetary(string="Total Amount", currency_field="currency_id")
-    total_tax = fields.Monetary(string="Total Tax", currency_field="currency_id")
-    subtotal = fields.Monetary(string="Subtotal", currency_field="currency_id")
+    total_amount = fields.Monetary(
+        string="Total Amount",
+        currency_field="currency_id",
+        compute="_compute_totals",
+        store=True,
+        readonly=True,
+    )
+    total_tax = fields.Monetary(
+        string="Total Tax",
+        currency_field="currency_id",
+        compute="_compute_totals",
+        store=True,
+        readonly=True,
+    )
+    subtotal = fields.Monetary(
+        string="Subtotal",
+        currency_field="currency_id",
+        compute="_compute_totals",
+        store=True,
+        readonly=True,
+    )
+    overall_tax_rate = fields.Float(
+        string="Overall Tax Rate",
+        compute="_compute_totals",
+        store=True,
+        readonly=True,
+    )
     note = fields.Text(string="Notes")
     vendor_bill_id = fields.Many2one(
         "account.move",
@@ -139,6 +163,25 @@ class VendorInvoiceStatement(models.Model):
                 "partner:%s" % statement.supplier_id.id
                 if statement.supplier_id
                 else self._normalize_supplier_name(statement.supplier_name)
+            )
+
+    @api.depends(
+        "line_ids.amount",
+        "line_ids.tax_amount",
+        "line_ids.total_amount",
+        "currency_id",
+    )
+    def _compute_totals(self):
+        for statement in self:
+            subtotal = sum(line.amount or 0.0 for line in statement.line_ids)
+            total_tax = sum(line.tax_amount or 0.0 for line in statement.line_ids)
+            total_amount = sum(line.total_amount or 0.0 for line in statement.line_ids)
+            round_amount = statement.currency_id.round if statement.currency_id else lambda value: value
+            statement.subtotal = round_amount(subtotal)
+            statement.total_tax = round_amount(total_tax)
+            statement.total_amount = round_amount(total_amount)
+            statement.overall_tax_rate = (
+                (total_tax / subtotal) * 100 if subtotal else 0.0
             )
 
     @staticmethod
@@ -299,6 +342,10 @@ class VendorInvoiceStatementLine(models.Model):
     tax_raw_text = fields.Char(string="Tax")
     tax_rate = fields.Float(string="Tax Rate")
     tax_amount = fields.Monetary(string="Tax Amount", currency_field="currency_id")
+    total_amount = fields.Monetary(
+        string="Total Amount",
+        currency_field="currency_id",
+    )
     reconciliation_clue = fields.Char(string="Reconciliation Clue")
     charge_details = fields.Text(string="Charge Details")
     tax_ids = fields.Many2many("account.tax", string="Taxes")
@@ -314,29 +361,100 @@ class VendorInvoiceStatementLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        raise AccessError(
-            _("Statement lines must be created through a Task aggregate command.")
-        )
+        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            raise AccessError(_("Only an invoice reviewer can edit Statement lines."))
+        for vals in vals_list:
+            statement = self.env["vendor.invoice.statement"].browse(
+                vals.get("statement_id")
+            )
+            if not statement or statement.state != "draft":
+                raise ValidationError(_("Only lines of a draft Statement can be created."))
+            vals.update(self._normalize_amount_values(vals, statement=statement))
+        return super().create(vals_list)
 
     def write(self, vals):
         if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
-            raise AccessError(
-                _("Statement lines must be changed through a Task aggregate command.")
-            )
+            raise AccessError(_("Only an invoice reviewer can edit Statement lines."))
         if any(line.statement_id.state != "draft" for line in self):
             raise ValidationError(_("Only lines of a draft Statement can be edited."))
+        if {"amount", "tax_rate", "tax_amount", "total_amount"} & set(vals):
+            if len(self) != 1:
+                raise ValidationError(_("Amount fields must be edited on one line at a time."))
+            vals = dict(vals)
+            vals.update(self._normalize_amount_values(vals))
         return super().write(vals)
 
     def unlink(self):
+        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            raise AccessError(_("Only an invoice reviewer can delete Statement lines."))
         if any(line.statement_id.state != "draft" for line in self):
             raise ValidationError(_("Only lines of a draft Statement can be deleted."))
-        raise AccessError(
-            _("Statement lines must be deleted through a Task aggregate command.")
+        return super().unlink()
+
+    def _normalize_amount_values(self, vals, statement=None):
+        """Normalize one monetary driver and derive the remaining amounts."""
+        monetary_fields = {"amount", "tax_rate", "tax_amount", "total_amount"}
+        if not monetary_fields & set(vals):
+            return {}
+        line = self[:1]
+        statement = statement or line.statement_id
+        currency = (
+            statement.currency_id or self.env.company.currency_id
+            if statement
+            else self.env.company.currency_id
         )
+        round_amount = currency.round
+        amount = float(vals.get("amount", line.amount if line else 0.0) or 0.0)
+        tax_rate = float(vals.get("tax_rate", line.tax_rate if line else 0.0) or 0.0)
+        tax_amount = float(
+            vals.get("tax_amount", line.tax_amount if line else 0.0) or 0.0
+        )
+        total_amount = float(
+            vals.get("total_amount", line.total_amount if line else 0.0) or 0.0
+        )
+        keys = {key for key in monetary_fields if vals.get(key) is not None}
+        if "amount" in keys:
+            if "tax_rate" in keys:
+                tax_amount = amount * tax_rate / 100
+            elif "tax_amount" in keys:
+                tax_rate = tax_amount / amount * 100 if amount else 0.0
+            elif "total_amount" in keys:
+                tax_amount = total_amount - amount
+                tax_rate = tax_amount / amount * 100 if amount else 0.0
+            else:
+                tax_amount = amount * tax_rate / 100
+        elif "tax_rate" in keys:
+            tax_amount = amount * tax_rate / 100
+        elif "tax_amount" in keys:
+            tax_rate = tax_amount / amount * 100 if amount else 0.0
+        elif "total_amount" in keys:
+            tax_amount = total_amount - amount
+            tax_rate = tax_amount / amount * 100 if amount else 0.0
+        if not amount and abs(tax_amount) > currency.rounding / 2:
+            raise ValidationError(
+                _("Tax amount must be zero when untaxed amount is zero.")
+            )
+        tax_amount = round_amount(tax_amount)
+        total_amount = round_amount(amount + tax_amount)
+        return {
+            "amount": amount,
+            "tax_rate": tax_rate,
+            "tax_amount": tax_amount,
+            "total_amount": total_amount,
+        }
 
     @api.model
     def _aggregate_create(self, vals):
-        return super().create(vals)
+        vals_list = vals if isinstance(vals, list) else [vals]
+        normalized = []
+        for values in vals_list:
+            values = dict(values)
+            statement = self.env["vendor.invoice.statement"].browse(
+                values["statement_id"]
+            )
+            values.update(self._normalize_amount_values(values, statement=statement))
+            normalized.append(values)
+        return super().create(normalized)
 
     def _aggregate_unlink(self):
         return super().unlink()
