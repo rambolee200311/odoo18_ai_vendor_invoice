@@ -1,477 +1,961 @@
-# AI Vendor Invoice - TDD v1.5.1 反工程技术设计草案
+# AI Vendor Invoice 技术详细设计
+模块名称：**ai_vendor_invoice**
+文档版本：**v1.5.1（同步版反工程技术基线草案）**
+文档状态：**DRAFT - NOT FROZEN**
+反工程日期：**2026-09-08**
+上游历史基线：**TDD v1.5（已冻结，保留原文）**
+上游对应提交：`560441e08a997a4dc062a45408f30633db5e287a`
 
-> **状态：DRAFT - NOT FROZEN**
->
-> 本文档是基于当前代码、测试记录和人工页面验证反向整理的同步版
-> 技术基线草案。不授权生产代码修改，不自动冻结 v1.5.1。
+本文件不是差异报告，而是基于当前代码、已确认 Coding Contract、自动化测试
+和人工浏览器验证整理出的完整技术设计。当前同步实现优先于历史 v1.5 中
+已经废止或未被当前业务使用的描述。
 
-## 1. 版本与上游基线
+前置依赖：
+- 业务SRS：`spec_wd_ai_vendor_invoice.md` v1.3.3（业务冻结）
+- DDD领域设计：`ddd_wd_ai_vendor_invoice_v1.2.md`（领域模型终审）
 
-| 项目 | 内容 |
+说明：本文件为面向 Odoo 18 的可执行技术详细设计；不新增业务需求；正文
+描述当前已实现的同步版。异步队列章节仅保留技术边界和后续认证要求，不属于
+本次同步版冻结范围。
+
+## 🔒 技术基线冻结
+- Odoo版本：18.0
+- Python版本：Odoo 18 配套版本
+- 数据库：PostgreSQL
+- ORM：Odoo 18 ORM
+- 前端：Odoo 18 Owl
+- OCA依赖：`queue‑job`：锁定Odoo 18兼容版本
+
+> 修订记录：account_invoice_import 移除运行时依赖。源码探查确认：OCA‑edi 18.0分支存在该模块，但无可独立调用的底层账单创建helper；模块逻辑强耦合文件上传向导，仅可作为阅读参考。
+> 备注：SPIKE‑OCA‑001已完成源码探查，账单vals组装由本模块bill_creator自主实现。
+
+> 2026-08-26 extraction-contract amendment: DeepSeek Vision page extraction
+> is governed by `transport-invoice-page-v1` and
+> `vision-extraction-v1.2`. The page contract uses scalar standard fields plus
+> `raw_facts`/line `raw_fields`; Python injects `source_page`. Page-level
+> `is_multi_invoice`, top-level `references`, and top-level `addresses` are
+> not part of the extraction contract. Document-level multi-invoice detection
+> remains in the normalizer and downstream Task behavior is unchanged.
+
+## 目录
+1. [总体技术栈与依赖说明](#1-总体技术栈与依赖说明)
+2. [模块目录结构（重构，区分domain/service/adapter/schema）](#2-模块目录结构重构区分domainserviceadapterschema)
+3. [ORM数据库模型设计（修正锁、字段、约束、ondelete）](#3-orm数据库模型设计odoo18修正版)
+4. [JSON‑B值对象Schema（修复Canonical字段结构漂移）](#4-json‑b值对象schema定义修复canonical字段结构漂移)
+5. [领域服务伪代码（Odoo 18事务/锁/queue‑job语义修正）](#5-领域服务伪代码odoo18事务锁queue‑job语义修正)
+6. [异步队列Worker、Cron定时任务（竞态、stale‑worker、重试‑超时闭环）](#5-领域服务伪代码odoo18事务锁queue‑job语义修正)
+7. [OCA account_invoice_import复用边界 + Spike任务标记（已闭环）](#6-oca-account_invoice_import复用边界spike‑oca‑001-已闭环)
+8. [AI Adapter外部调用设计（接口、异常分类）](#7-ai-provider-adapter设计)
+9. [UI/视图层设计（Owl视图、wizard、按钮、提示逻辑）](#8-ui--owl视图设计)
+10. [安全与权限设计（access、record‑rule、完整权限矩阵）](#9-安全与权限设计增加完整权限矩阵)
+11. [错误码、日志、告警策略](#10-错误码日志告警策略)
+12. [附件存储技术决策（ir.attachment关联方案）](#bill-creator-关键伪代码事务完整性防止孤立bill)
+13. [部署、前置条件](#11-部署前置条件)
+14. [测试设计（扩充并发、事务回滚、竞态用例）](#12-测试设计扩充并发事务竞态用例)
+15. [风险点与防护清单](#13-风险点与防护清单)
+16. [📜技术不变量表（Coding Contract，用于代码评审门禁）](#14-技术不变量表coding-contract评审门禁)
+
+## 1 总体技术栈与依赖说明
+Odoo 18.0，PostgreSQL；前端Owl组件
+
+- OCA：`queue‑job`（异步worker，禁止同步阻塞HTTP）
+- 第三方库：`jsonschema`，用于运行时校验JSON‑B值对象
+- 外部系统：多模态AI服务商HTTP接口（DeepSeek / Claude等）
+
+### 🔴架构红线（复制进代码头部注释）
+> AI Provider只负责解析；Mapping只负责推荐；人工负责最终确认；Invoice Creator负责生成 Draft Vendor Bill。
+> `human_review_result`是生成`account.move`唯一数据源，禁止从`canonical_result` / `mapping_result`补任何业务字段。
+> 数据库排他行锁仅在短事务内；锁绝对不能持有外部AI HTTP网络IO。
+> Stale‑worker守卫：过期attempt不允许修改task状态，仅允许写attempt自身记录。
+> 一个task最多生成一张vendor bill；禁止产生孤立草稿账单。
+> 禁止调用OCA `account_invoice_import`原有同步文件导入入口。
+> 不依赖OCA `account_invoice_import`运行时；账单vals全部由本模块`bill_creator`自主组装。
+
+## 2 模块目录结构（重构）
+```text
+wd_ai_vendor_invoice/
+├── __init__.py
+├── __manifest__.py
+├── models/
+│   ├── __init__.py
+│   ├── import_task.py          # vendor.invoice.import.task 聚合根
+│   ├── import_parse_attempt.py # parse_attempt子实体
+│   ├── import_log.py           # audit_log审计日志
+│   ├── ai_provider_config.py   # AI服务商配置主数据
+│   ├── mapping_*.py            # 4套映射配置主数据
+│   ├── conf_threshold.py       # 置信度阈值配置
+│   ├── system_config.py        # 系统全局参数
+│   └── lock_service.py         # 🔒独立锁工具服务（封装SELECT‑FOR‑UPDATE）
+├── services/                   # 领域服务，不直接暴露RPC
+│   ├── __init__.py
+│   ├── parse_service.py        # start_parse orchestration
+│   ├── mapping_service.py
+│   ├── review_service.py
+│   ├── bill_creator.py
+│   ├── validation_service.py
+│   └── timeout_service.py      # cron超时业务逻辑
+├── adapters/                   # 🤖外部AI适配器，与领域业务解耦
+│   ├── __init__.py
+│   ├── base.py                 # Abstract AIProviderAdapter
+│   ├── deepseek.py
+│   └── claude.py
+├── schemas/                    # 📄JSON Schema定义，独立存放
+│   ├── __init__.py
+│   ├── canonical.py
+│   ├── mapping.py
+│   ├── human_review.py
+│   └── warning.py
+├── data/
+│   ├── ir_cron.xml
+│   └── system_config_data.xml
+├── security/
+│   ├── ir.model.access.csv
+│   ├── record_rules.xml
+│   └── groups.xml              # 用户组定义
+├── views/
+│   ├── import_task_views.xml
+│   ├── config_views.xml
+│   └── wizard/                 # 复核弹窗/owl组件
+├── static/
+│   └── src/owl/                # 前端高亮、按钮组件
+├── tests/
+│   ├── __init__.py
+│   ├── test_domain_flow.py
+│   ├── test_async_worker.py
+│   ├── test_bill_creation.py
+│   ├── test_mapping_engine.py
+│   ├── test_cron_timeout.py
+│   ├── test_concurrency.py     # ⚡新增并发/竞态测试
+│   └── test_security.py        # 🔐权限测试
+└── readme.md
+```
+
+### 2.1 Extraction contract additions
+
+The DeepSeek adapter is a page fact extractor, not a business decision maker.
+Its hard-coded Prompt version and extraction contract version are captured on
+each ParseAttempt together with the Provider Config model-name snapshot.
+Uncertain printed identifiers are retained as raw label/value facts. The
+normalizer performs only deterministic page ordering, duplicate merging,
+lexical normalization, conflict detection, and construction of the frozen
+CanonicalResult. Business semantic interpretation remains outside the AI
+extraction contract.
+
+约定：领域`service`/`adapter`/`schema`不在model内混杂；service不暴露RPC；所有外部入口通过model‑action/wizard调用。
+
+### 2.2 Extraction-contract test boundary
+
+Extraction-contract tests are isolated from Statement, Human Review, Mapping,
+Bill Creator, and Task state-machine tests. They cover Prompt constants,
+request messages, scalar page fields, raw-fact provenance injection,
+reference non-classification, document-level multi-invoice detection,
+ParseAttempt snapshots, and preservation of the private raw-response
+attachment mechanism. The complete test intent is
+`INTENT-TEST-AI-VENDOR-EXTRACTION-CONTRACT-001`.
+
+## 3 ORM数据库模型设计（Odoo 18修正版）
+### 3.1 vendor.invoice.import.task（聚合根）
+
+|字段|类型|约束/索引|说明|
+|---|---|---|---|
+|name|Char|required, copy=False|任务业务编号，序列生成|
+|source_pdf_attachment_id|Many2one(ir.attachment)|required, ondelete="restrict"|原始PDF；task与bill分别持有引用；不修改原attachment res_model/res_id|
+|company_id|Many2one(res.company)|required, index, default=lambda self: self.env.company|任务所属会计公司；task创建后不可修改；异步worker不依赖env.company获取公司|
+|state|Selection|required, index|to_parse / parsing / awaiting_review / bill_generated / error_split_required / error_ai_unavailable / error_timeout|
+|selected_provider_config_id|Many2one(wd.ai.provider.config)|required|用户选定AI服务商|
+|enter_parsing_datetime|Datetime|index|task进入parsing时刻，业务超时判定起点|
+|current_parse_attempt_id|Many2one(vendor.invoice.import.parse.attempt)|ondelete="set null", index|当前业务有效的AI Attempt。解析期间指当前执行Attempt；解析成功后继续指向当前提供给人工复核的最新AI候选Attempt。|
+|parse_attempt_ids|One2many(vendor.invoice.import.parse.attempt, task_id)| |全部历史AI尝试记录|
+|human_review_result|Json|default=lambda self: dict()|HumanReviewResult值对象，账单唯一数据源；Odoo18内部映射PostgreSQL jsonb；禁止直接写原生PostgreSQL JSON操作|
+|human_reviewed|Boolean|default=False|本轮是否完成整体人工复核；重跑后置False，旧数据保留|
+|review_warnings|Json|default=lambda self: []|结构化警告数组`[{"code":"","message":""}]`|
+|vendor_bill_id|Many2one(account.move)|index, ondelete="restrict"|生成的草稿供应商账单；ondelete改为restrict，防止删除bill后task可再次生成账单|
+|audit_log_ids|One2many(vendor.invoice.import.log, task_id)| |审计日志|
+
+数据库约束：`vendor_bill_id`非空，业务禁止再次调用bill‑creator；行锁通过`lock_service`工具获取，禁止模拟`recordset.with_for_update()`伪写法。
+
+### 3.2 vendor.invoice.import.parse.attempt（子实体，隶属于task聚合）
+
+|字段|类型|约束/索引|说明|
+|---|---|---|---|
+|task_id|Many2one(vendor.invoice.import.task)|required, ondelete="cascade", index|归属task，级联删除|
+|sequence|Integer|required|序号1,2,3|
+|provider_config_id|Many2one(wd.ai.provider.config)|required|本次attempt使用AI配置|
+|started_at|Datetime|index|worker实际开始执行时间；queued状态为空|
+|finished_at|Datetime|nullable|结束时间；running/queued状态为null|
+|attempt_internal_retry_count|Integer|default=0|本次attempt内部AI请求重试次数；每次重试+1；持久入库，供cron做判断依据|
+|status|Selection|required, index|queued / running / success / failed / superseded|
+|last_activity_at|Datetime|index|worker活性时间，queued状态为空；每次AI调用/重试更新，仅用于worker本地诊断；禁止作为cron跨事务心跳判定依据|
+|canonical_result|Json|nullable|CanonicalInvoiceResult；Odoo18 json存储|
+|mapping_result|Json|nullable|MappingResult，与本attempt一一绑定|
+|raw_response_attachment_id|Many2one(ir.attachment)|ondelete="set null"|AI原始完整响应报文附件；仅限Reviewer/Config Manager/指定技术管理员访问，禁止public|
+|error_message|Text|nullable|失败详情|
+
+> SQL唯一约束：
+```python
+_sql_constraints = [
+    (
+        "task_sequence_unique",
+        "unique(task_id, sequence)",
+        "Parse attempt sequence must be unique per task.",
+    )
+]
+```
+
+> ParseAttempt不冗余存储company；业务读取来源：`attempt.task_id.company_id`。
+> Model层queue‑job入口方法：
+```python
+def job_run_parse(self):
+    """queue_job延迟任务入口；ORM model method，禁止业务service直接with_delay"""
+    self.ensure_one()
+    return parse_service.run_parse_attempt(self.task_id.id, self.id)
+```
+
+### 3.3 vendor.invoice.import.log（审计日志）
+
+|字段|类型|约束|说明|
+|---|---|---|---|
+|task_id|Many2one(vendor.invoice.import.task)|required, ondelete="cascade", index| |
+|parse_attempt_id|Many2one(vendor.invoice.import.parse.attempt)|ondelete="set null"|可选关联attempt|
+|action|Selection|required|ai_parse / ai_re_run / human_modify / bill_create|
+|action_datetime|Datetime|required| |
+|user_id|Many2one(res.users)|required|操作人|
+|snapshot_delta|Text| |变更摘要，只记录差异，不存完整大JSON|
+
+### 3.4 全局配置主数据（简要）
+- `wd.ai.provider.config`：接口地址、密钥、模型名称、单次attempt最大内部重试、单次HTTP请求超时、启用开关；**API密钥仅服务端受控sudo路径读取；禁止输出RPC、日志、error_message、raw response、Sentry**
+  - api_key字段权限约束：`groups="wd_ai_vendor_invoice.group_config_manager"`，普通业务用户仅可引用provider ID，不可读取密钥明文。Adapter内部使用`sudo()`读取密钥。
+- `wd.confidence.threshold`：全局置信度阈值、关键字段阈值、关键字段清单
+- `wd.mapping.vendor_alias`：供应商别名映射
+- `wd.mapping.product_keyword`：产品关键词映射
+- `wd.mapping.tax_text`：税率文本‑tax映射
+- `wd.mapping.currency_text`：币种文本‑currency映射
+- `wd.system.config`：兜底默认产品、cron巡检间隔、task全局业务超时、金额容差
+
+全部mapping配置为只读主数据；mapping_engine只读取，不会自动改写配置表。
+
+#### 🔒 lock_service.py 工具（Odoo18行锁封装）
+> 变更：移除泛化lock_by_id；改为两个专用函数，杜绝动态SQL标识符风险
+```python
+def lock_task(task_id: int):
+    """获取task排他行锁；在当前事务内生效；事务提交/回滚释放锁"""
+    env.cr.execute(
+        "SELECT id FROM vendor_invoice_import_task WHERE id = %s FOR UPDATE",
+        (task_id,)
+    )
+    return env["vendor.invoice.import.task"].browse(task_id)
+
+def lock_attempt(attempt_id: int):
+    """获取parse attempt排他行锁；在当前事务内生效；事务提交/回滚释放锁"""
+    env.cr.execute(
+        "SELECT id FROM vendor_invoice_import_parse_attempt WHERE id = %s FOR UPDATE",
+        (attempt_id,)
+    )
+    return env["vendor.invoice.import.parse_attempt"].browse(attempt_id)
+```
+
+## 4 JSON‑B 值对象Schema定义（修复Canonical字段结构漂移）
+使用`jsonschema`做应用层校验；Odoo Json字段，PostgreSQL底层jsonb；禁止业务代码写PostgreSQL原生JSON操作语句；JSON Schema仅校验结构；业务完整性由`validation_service`完成。
+
+### 4.1 CanonicalInvoiceResult（AI归一输出，恢复DDD定义的value‑with‑confidence结构）
+```json
+{
+  "$schema":"http://json‑schema.org/draft‑2020‑12/schema",
+  "type":"object",
+  "required":["header","lines","is_multi_invoice"],
+  "additionalProperties": false,
+  "properties":{
+    "header":{
+      "type":"object",
+      "required":["invoice_number","invoice_date","supplier_raw_text","currency_raw_text","total_amount","total_tax"],
+      "additionalProperties": false,
+      "properties":{
+        "invoice_number":{
+          "type":"object",
+          "required":["value","confidence"],
+          "additionalProperties": false,
+          "properties":{"value":{"type":["string","null"]},"confidence":{"type":"number","minimum":0,"maximum":1}}
+        },
+        "invoice_date":{
+          "type":"object",
+          "required":["value","confidence"],
+          "additionalProperties": false,
+          "properties":{"value":{"type":["string","null"],"format":"date"},"confidence":{"type":"number","minimum":0,"maximum":1}}
+        },
+        "supplier_raw_text":{
+          "type":"object",
+          "required":["value","confidence"],
+          "additionalProperties": false,
+          "properties":{"value":{"type":["string","null"]},"confidence":{"type":"number","minimum":0,"maximum":1}}
+        },
+        "currency_raw_text":{
+          "type":"object",
+          "required":["value","confidence"],
+          "additionalProperties": false,
+          "properties":{"value":{"type":["string","null"]},"confidence":{"type":"number","minimum":0,"maximum":1}}
+        },
+        "total_amount":{
+          "type":"object",
+          "required":["value","confidence"],
+          "additionalProperties": false,
+          "properties":{"value":{"type":["string","null"]},"confidence":{"type":"number","minimum":0,"maximum":1}}
+        },
+        "total_tax":{
+          "type":"object",
+          "required":["value","confidence"],
+          "additionalProperties": false,
+          "properties":{"value":{"type":["string","null"]},"confidence":{"type":"number","minimum":0,"maximum":1}}
+        }
+      }
+    },
+    "lines":{
+      "type":"array",
+      "items":{
+        "type":"object",
+        "required":["description","amount","tax_raw_text"],
+        "additionalProperties": false,
+        "properties":{
+          "description":{
+            "type":"object",
+            "required":["value","confidence"],
+            "additionalProperties": false,
+            "properties":{"value":{"type":["string","null"]},"confidence":{"type":"number","minimum":0,"maximum":1}}
+          },
+          "amount":{
+            "type":"object",
+            "required":["value","confidence"],
+            "additionalProperties": false,
+            "properties":{"value":{"type":["string","null"]},"confidence":{"type":"number","minimum":0,"maximum":1}}
+          },
+          "tax_raw_text":{
+            "type":"object",
+            "required":["value","confidence"],
+            "additionalProperties": false,
+            "properties":{"value":{"type":["string","null"]},"confidence":{"type":"number","minimum":0,"maximum":1}}
+          }
+        }
+      }
+    },
+    "is_multi_invoice":{"type":"boolean"}
+  }
+}
+```
+
+### 4.2 PageExtractionResult（单页事实提取契约）
+
+单页结果只允许页面事实，不承载文档级业务结论。标准 `header` 和
+`lines[*]` 字段保持 plain scalar；无法确定业务语义的打印内容进入
+`raw_facts` 或 `lines[*].raw_fields`。`source_page` 不由模型声明，而由
+DeepSeek adapter 按本地渲染页码注入。
+
+```json
+{
+  "type": "object",
+  "required": ["page_number"],
+  "additionalProperties": false,
+  "properties": {
+    "page_number": {"type": "integer", "minimum": 1},
+    "header": {
+      "type": "object",
+      "additionalProperties": {"type": ["string", "number", "null"]}
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": {"type": ["string", "number", "null"]},
+        "properties": {
+          "raw_fields": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/raw_fact"}
+          }
+        }
+      }
+    },
+    "raw_facts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/raw_fact"}
+    }
+  },
+  "$defs": {
+    "raw_fact": {
+      "type": "object",
+      "required": ["source_label", "source_value"],
+      "additionalProperties": false,
+      "properties": {
+        "source_label": {"type": "string"},
+        "source_value": {"type": ["string", "number", "null"]}
+      }
+    }
+  }
+}
+```
+
+该契约明确不包含 page-level `is_multi_invoice`、顶层
+`references` 或顶层 `addresses`。不同显式发票号的文档级判断由
+Document Normalizer 完成；Canonical Schema 和既有 Task 状态流转不变。
+
+### 4.2 MappingResult（映射引擎输出候选）
+> 说明：以下仅结构示意，正式可执行JSON Schema以 `schemas/*.py` 为准。
+```json
+{
+  "type":"object",
+  "properties":{
+    "supplier_candidates":{
+      "type":"array",
+      "items":{
+        "type":"object",
+        "properties":{
+          "partner_id":{"type":["integer","null"]},
+          "name":{"type":"string"},
+          "match_score":{"type":"number"},
+          "match_type":{"type":"string"},
+          "matched_rule_id":{"type":["integer","null"]}
+        }
+      }
+    },
+    "product_candidates":{"type":"array"},
+    "tax_candidates":{"type":"array"},
+    "currency_candidates":{"type":"array"}
+  }
+}
+```
+
+### 4.3 HumanReviewResult（账单唯一数据源）
+> Invoice Creator只读取该对象，禁止从canonical/mapping补任何字段
+> 说明：以下仅结构示意，正式可执行JSON Schema以 `schemas/*.py` 为准。
+```json
+{
+  "type":"object",
+  "properties":{
+    "header":{
+      "type":"object",
+      "properties":{
+        "supplier_id":{"type":["integer","null"]},
+        "invoice_number":{"type":["string","null"]},
+        "invoice_date":{"type":["string","null"],"format":"date"},
+        "currency_id":{"type":["integer","null"]},
+        "total_amount":{"type":["string","null"]},
+        "total_tax":{"type":["string","null"]}
+      }
+    },
+    "lines":[
+      {
+        "type":"object",
+        "properties":{
+          "product_id":{"type":["integer","null"]},
+          "description":{"type":["string","null"]},
+          "quantity":{"type":["string","null"]},
+          "unit_price":{"type":["string","null"]},
+          "subtotal":{"type":["string","null"]},
+          "tax_ids":{"type":"array","items":{"type":"integer"}},
+          "tax_amount":{"type":["string","null"]},
+          "line_total_amount":{"type":["string","null"]}
+        }
+      }
+    ]
+  }
+}
+```
+
+### 4.4 review_warnings数组元素
+> 说明：以下仅结构示意，正式可执行JSON Schema以 `schemas/*.py` 为准。
+```json
+{"code":"AMOUNT_MISMATCH","message":"文本描述"}
+```
+
+## 5 领域服务伪代码（Odoo18事务、queue‑job语义修正）
+全部service位于`services/`，不暴露RPC；由model action/wizard调用。
+⚠️OCA queue‑job重要约束：禁止在delayed job内部调用`env.cr.commit()`。
+
+### 5.1 start_parse(task_id, provider_config_id) — orchestration统一入口
+> 契约：`start_parse()` **不主动执行commit**。Task状态变更、ParseAttempt创建以及queue‑job入队处于同一个Odoo业务事务；由Odoo请求生命周期统一提交或回滚。`SELECT FOR UPDATE`锁在该事务结束后释放。异步worker在独立事务中运行，因此AI HTTP调用期间不会持有Task行锁。
+> `with cr.savepoint()` 仅子事务回滚点，不等于commit，不会释放FOR UPDATE行锁。
+
+```python
+def start_parse(task_id: int, provider_config_id: int):
+    cr = env.cr
+    with cr.savepoint():
+        # 1.获取排他行锁
+        task = lock_task(task_id)
+        # 状态校验：仅允许 to_parse / awaiting_review / error_*
+        check_task_allow_start_parse(task)
+        # 2.创建全新parse_attempt：状态=queued，尚未进入worker执行
+        new_attempt = env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": get_next_sequence(task),
+            "provider_config_id": provider_config_id,
+            "started_at": False,
+            "last_activity_at": False,
+            "status": "queued",
+            "attempt_internal_retry_count": 0,
+        })
+        # 3.更新task状态
+        task.write({
+            "current_parse_attempt_id": new_attempt.id,
+            "state": "parsing",
+            "enter_parsing_datetime": fields.Datetime.now(),
+            "human_reviewed": False,
+        })
+    # 4. queue‑job入队；与上面task/attempt写操作属于同一个外层RPC事务；请求结束才统一commit
+    # 不允许直接对service做with_delay；调用model层ORM包装入口
+    new_attempt.with_delay(
+        description=f"AI Vendor Invoice Parse #{new_attempt.sequence}",
+    ).job_run_parse()
+```
+
+### 5.2 run_parse_attempt(task_id, attempt_id) — queue‑job异步worker
+P0：stale‑worker守卫逻辑；不允许过期attempt修改task状态；仅允许修改attempt自身记录。
+注意：所有数据库写操作使用worker内部事务；不调用`cr.commit()`。
+```python
+def run_parse_attempt(task_id: int, attempt_id:int):
+    task = env["vendor.invoice.import.task"].browse(task_id)
+    attempt = env["vendor.invoice.import.parse.attempt"].browse(attempt_id)
+
+    # queue‑job不保留原始RPC context；强制使用task携带的company_id
+    task = task.with_company(task.company_id)
+
+    # ==========【守卫条件 P0】陈旧worker防护 ==========
+    # worker执行时，检查：当前task的current_attempt是否等于本attempt；attempt必须是queued/running
+    if not (
+        task.state == "parsing"
+        and task.current_parse_attempt_id.id == attempt.id
+        and attempt.status in ("queued","running")
+    ):
+        # 过期attempt：标记 superseded，仅更新attempt自身记录，**禁止修改task任何字段**
+        attempt.with_env(env).write({
+            "status":"superseded",
+            "error_message":"Stale worker skip; attempt superseded by newer attempt"
+        })
+        return
+
+    # 切换为running，填充执行时间戳
+    att = lock_attempt(attempt.id)
+    att.write({
+        "status":"running",
+        "started_at": fields.Datetime.now(),
+        "last_activity_at": fields.Datetime.now(),
+    })
+
+    # ---------- 真正执行AI调用（外部HTTP，无数据库锁持有） ----------
+    try:
+        canonical_result, raw_bytes = ai_provider.parse_pdf(
+            pdf_attachment=task.source_pdf_attachment_id,
+            provider_config=attempt.provider_config_id,
+            max_attempt_retry=attempt.provider_config_id.max_internal_retry,
+            attempt_obj=attempt
+        )
+    except AIProviderTemporaryError as e:
+        # 可重试错误，adapter内部已经完成attempt_internal_retry_count自增并写入attempt
+        with env.cr.savepoint():
+            att = lock_attempt(attempt.id)
+            att.write({
+                "status":"failed",
+                "finished_at": fields.Datetime.now(),
+                "error_message":str(e)
+            })
+            task = lock_task(task.id)
+            task.write({"state":"error_ai_unavailable"})
+        return
+    except AIProviderPermanentError as e:
+        with env.cr.savepoint():
+            att = lock_attempt(attempt.id)
+            att.write({
+                "status":"failed",
+                "finished_at": fields.Datetime.now(),
+                "error_message":str(e)
+            })
+            task = lock_task(task.id)
+            task.write({"state":"error_ai_unavailable"})
+        return
+
+    # AI调用成功，执行mapping
+    mapping_result = mapping_service.do_mapping(canonical_result)
+
+    # ---------- 回写结果，再次执行守卫 ----------
+    with env.cr.savepoint():
+        task = lock_task(task.id)
+        att = lock_attempt(attempt.id)
+        # 二次守卫：防止中途task被人为重跑切换current_attempt
+        if not (
+            task.state == "parsing"
+            and task.current_parse_attempt_id.id == att.id
+            and att.status == "running"
+        ):
+            # attempt保存成功结果，状态superseded；**禁止修改task状态**
+            raw_att = store_raw_response_as_attachment(task, raw_bytes)
+            att.write({
+                "status":"superseded",
+                "canonical_result":canonical_result,
+                "mapping_result":mapping_result,
+                "raw_response_attachment_id": raw_att.id,
+                "finished_at": fields.Datetime.now(),
+                "last_activity_at": fields.Datetime.now(),
+            })
+            return
+
+        # ✅ 守卫全部通过，正常更新attempt + task流转状态
+        raw_att = store_raw_response_as_attachment(task, raw_bytes)
+        att.write({
+            "status":"success",
+            "canonical_result":canonical_result,
+            "mapping_result":mapping_result,
+            "raw_response_attachment_id": raw_att.id,
+            "finished_at": fields.Datetime.now(),
+            "last_activity_at": fields.Datetime.now(),
+        })
+        # 判断is_multi_invoice流转task状态
+        if canonical_result["is_multi_invoice"]:
+            task.write({"state":"error_split_required"})
+        else:
+            task.write({"state":"awaiting_review"})
+```
+
+### 5.3 Cron任务 wd_cron_check_parsing_timeout（修复竞态）
+> 异常语义：
+> - `error_ai_unavailable`：worker正常走完错误处理流程，AI服务最终不可用
+> - `error_timeout`：worker进程挂死、进程丢失活性，cron兜底超时
+
+> 业务超时基准使用task.enter_parsing_datetime；覆盖queued / running两种状态；不再依靠`last_activity_at`做跨进程活性判断；该字段仅本地诊断。
+> Task.parsing是业务级“解析处理中”，包含queue排队queued以及worker执行running；具体技术状态以ParseAttempt.status、关联queue.job为准。
+```python
+def cron_check_parsing_timeout():
+    sys_cfg = env["wd.system.config"].get_config()
+    timeout = sys_cfg.task_timeout
+    now = fields.Datetime.now()
+    candidates = env["vendor.invoice.import.task"].search([
+        ("state","=","parsing"),
+    ])
+    for task in candidates:
+        att = task.current_parse_attempt_id
+        if not att:
+            continue
+        if (now - task.enter_parsing_datetime) > timeout:
+            with env.cr.savepoint():
+                t = lock_task(task.id)
+                a = lock_attempt(att.id)
+                a.write({"status":"failed","error_message":"Task cron timeout: parsing lifecycle exceed system timeout"})
+                t.write({"state":"error_timeout"})
+                create_audit_log(t, a, action="cron_timeout")
+```
+
+### 5.4 Bill Creator 关键伪代码（事务完整性，防止孤立bill）
+> ⚠️重要：账单生成步骤处于同一个Odoo业务事务；内部可以使用savepoint作为局部回滚边界；任意异常全部回滚，禁止遗留孤立`account.move`；只读取`human_review_result`。
+业务约束：`vendor_bill_id ondelete="restrict"`；幂等：task有bill_id直接拒绝。
+
+> 修订：SPIKE‑OCA‑001已闭环；不再调用OCA模块helper；`convert_human_result_to_bill_vals`为本模块内部实现。
+> 新增服务端硬校验：task状态必须awaiting_review，human_reviewed=True，存在human_review_result。
+
+```python
+def create_vendor_bill(task_id):
+    with env.cr.savepoint():
+        task = lock_task(task_id)
+        task = task.with_company(task.company_id)
+
+        # ============服务端硬校验，不依赖UI============
+        if task.state != "awaiting_review":
+            raise BusinessException("Task state must be awaiting_review before generate bill")
+        if not task.human_reviewed:
+            raise BusinessException("Task must be human reviewed before generate bill")
+        if not task.human_review_result:
+            raise BusinessException("Missing human review result")
+        # 幂等防护：已经生成账单直接拒绝
+        if task.vendor_bill_id:
+            raise BusinessException("Bill already generated for this task")
+
+        review_data = task.human_review_result
+        # 1.执行pre_check_integrity【Odoo move技术完整性校验，抛异常阻断，事务回滚】
+        validation_service.pre_check_integrity(review_data)
+        # 2.金额校验，返回警告列表，不抛异常
+        warnings = validation_service.check_amount_balance(review_data, task.company_id, sys_config.amount_tolerance)
+        task.write({"review_warnings": warnings})
+        # 3.无明细兜底逻辑：校验全部通过，lines为空，使用系统默认产品生成单行
+        bill_vals = convert_human_result_to_bill_vals(review_data, sys_cfg.default_product_id)
+        bill_vals["company_id"] = task.company_id.id
+
+        # 本模块内部组装vals，不调用OCA account_invoice_import代码
+        bill = env["account.move"].create(bill_vals)
+
+        # 🔒附件技术决策：Task保留原始PDF attachment；生成Bill时复制一条独立attachment记录挂载至Bill，两条attachment对应同一原始PDF内容。
+        new_att = task.source_pdf_attachment_id.copy({"res_model":"account.move","res_id":bill.id})
+
+        task.write({
+            "vendor_bill_id": bill.id,
+            "state": "bill_generated"
+        })
+        create_audit_log(task, action="bill_create")
+        return bill
+```
+
+```python
+def action_confirm_review_and_create_bill(self, review_payload):
+    """UI唯一后端入口：复核保存 + 生成账单，同一个业务事务"""
+    lock_task(self.id)
+    review_service.save(self, review_payload)
+    self.human_reviewed = True
+    return bill_creator.create_vendor_bill(self.id)
+```
+
+> UI业务约束：前端按钮【确认复核并生成草稿账单】不拆成两次RPC；后端提供单一入口`action_confirm_review_and_create_bill`，复核保存+生成账单在同一个事务，失败完整rollback。
+
+## 6 OCA account_invoice_import 复用边界（SPIKE‑OCA‑001 已闭环）
+
+|项目|说明|
 |---|---|
-| 当前草案版本 | TDD v1.5.1 |
-| 反工程方法 | 以实现事实为准，结合仍有效的业务契约 |
-| 上游历史基线 | TDD v1.5，已于 2026-09-08 固定为历史设计基线 |
-| 对应冻结提交 | `560441e08a997a4dc062a45408f30633db5e287a` |
-| 本次代码变更 | 无 |
-| 技术范围 | 当前同步解析版 |
-| 异步范围 | 延后，不阻塞本草案 |
+|Spike编号|SPIKE‑OCA‑001【已完成】|
+|探查事实|OCA‑edi 18.0分支存在`account_invoice_import`模块；全部账单构建逻辑耦合在wizard向导内部；不存在可独立外部调用的账单创建helper函数|
+|✅允许|阅读源码参考`account.move` / `move.line` vals组装思路；复用Odoo Core `ir.attachment`|
+|❌严格禁止|manifest增加运行时依赖；调用wizard/do/import_file同步导入入口；invoice2data模板解析；直接复制OCA业务代码|
+|最终决策|账单vals转换逻辑`convert_human_result_to_bill_vals`完全在本模块`bill_creator`内部实现，不依赖OCA模块运行。|
 
-历史 v1.5 保留原有设计内容，不要求当前代码回退以符合历史设计。
+## 7 AI Provider Adapter设计
+协议：HTTPS POST；请求体包含PDF二进制/base64 + Prompt指令
+Prompt Schema固定指令输出`is_multi_invoice`、字段级`value+confidence`结构
 
-## 2. 当前架构
+异常分类：
+- `AIProviderTemporaryError`：可重试网络异常（连接超时、5xx）→ adapter内部循环，每一次重试更新`attempt.attempt_internal_retry_count`、更新`last_activity_at`
+- `AIProviderPermanentError`：4xx、鉴权错误、返回非法JSON →不重试，标记attempt failed
 
-```text
-PDF 上传
-  -> Import Task（技术聚合根）
-  -> Parse Attempt（AI 解析尝试）
-  -> Vendor Invoice Statement（业务单据）
-  -> 人工编辑/确认/取消
-  -> Vendor Bill
-```
+原始完整响应报文保存为`ir.attachment`，业务逻辑不读取该附件，用于排错审计。
 
-- `vendor.invoice.import.task` 是技术聚合根，负责 PDF、解析尝试、状态和
-  错误。
-- `vendor.invoice.statement` 是人工复核和业务单据入口。
-- Task 与 Statement 为一对一关系；Statement Line 从属于 Statement。
-- Task 聚合动作负责系统创建、解析和账单流程；普通 Statement CRUD 不是
-  系统流程入口。
-- AI Invoice 是独立应用，菜单包含 Imports、Statements、Configuration。
+## 8 UI / Owl视图设计
+- 主列表视图：`vendor.invoice.import.task`，过滤状态，操作按钮：上传PDF、重跑AI、打开复核弹窗
+- 复核弹窗（Owl组件）
+  - 数据源：task + `parse_attempt_ids`全部历史attempt
+  - 展示当前`human_review_result`表单
+  - 展示全部parse_attempt历史AI候选；按钮【应用本次AI候选结果】：仅把选中attempt的canonical/mapping填充表单，不会自动覆盖用户已经编辑的内容
+  - 视觉高亮：读取`wd.confidence.threshold`配置，普通字段黄色，关键字段红色；仅UI提示，前端不做阻断
+  - 唯一按钮：【确认复核并生成草稿账单】
 
-## 3. 模型与字段
+> 变更：不拆分为 submit_review + create_vendor_bill 两次RPC；调用后端统一入口 `action_confirm_review_and_create_bill`。
 
-### 3.1 Import Task
+禁止：不做双表单diff并行编辑模式。
 
-Task 当前状态为：
+## 9 安全与权限设计（增加完整权限矩阵）
+DDD定义三类角色，尽量复用Odoo account权限组组合；最小新增安全组。
 
-```text
-to_parse
-parsing
-awaiting_review
-bill_generated
-error
-cancelled
-```
+|Action|AI Invoice User|AI Invoice Reviewer|AI Invoice Config Manager|
+|---|---|---|---|
+|创建Task|✓|✓|✓|
+|上传PDF|✓|✓|✓|
+|AI解析/重跑|✓|✓|✓|
+|查看AI结果|✓|✓|✓|
+|修改Human Review|✗|✓|✓|
+|生成Bill|✗|✓|✓|
+|查看全部Task|✗|✓|✓|
+|修改Provider配置|✗|✗|✓|
+|修改Mapping映射|✗|✗|✓|
 
-关键能力：
+- `security/ir.model.access.csv`分配模型读写权限。
+- `record‑rule`：普通User仅查看自己创建的task；Reviewer/Config Manager查看全部task。
+- AI服务商配置中的密钥字段：仅Config Manager组可读，普通用户不可见。
+- raw_response_attachment_id：权限继承task；仅Reviewer / Config Manager / 指定技术管理员可读，禁止public。
 
-- 保存上传 PDF 的 `source_pdf_filename`；
-- 保存 `source_pdf_attachment_id` 和 PDF SHA-256 checksum；
-- 同公司、相同活动 PDF 默认不能重复创建 Task；
-- Cancel 后释放 checksum，允许重新导入；
-- 使用统一 `error` 状态和 `parse_error_summary`；
-- 支持同步解析模式；
-- 取消后的同步解析结果失效，不得创建 Statement 或 Vendor Bill。
+> 开发security.xml注意：`group_config_manager`不要通过`implied_ids`隐式继承Reviewer财务复核权限；权限采用组合模式。
 
-### 3.2 Vendor Invoice Statement
+## 10 错误码、日志、告警策略
+日志分级
+- INFO：任务流转、解析启动、账单生成
+- WARNING：金额警告、mapping无候选
+- ERROR：AI调用失败、cron超时、异常状态流转
 
-模型：`vendor.invoice.statement`。
+告警触发条件（对接Sentry/监控）
+- task大量进入`error_ai_unavailable`
+- task大量进入`error_timeout`
+- bill‑creator抛出业务异常
 
-| 字段 | 当前实现 |
+> 不变量：Provider API Secret禁止写入普通日志、audit日志、error_message、raw response、Sentry breadcrumbs。
+
+禁止：业务`review_warnings`警告不上报监控；仅基础设施异常告警。
+
+## 11 部署前置条件
+- Odoo安装模块：`queue‑job`
+- manifest depends：`["account","contacts","queue_job"]`
+- 修订：不再要求部署`account_invoice_import`
+- SPIKE‑OCA‑001技术探查已完成（文档闭环）
+- 配置系统参数：兜底默认费用产品、cron间隔、task超时、金额容差
+- AI服务商配置、四类mapping映射预先维护完成。
+
+## 12 测试设计（扩充并发、事务回滚、竞态用例）
+单元测试（`tests/`）
+- 领域单元：mapping_engine、validation_service校验逻辑、schema校验
+- Extraction Contract：Prompt/version、messages与请求参数、PageExtraction
+  scalar字段、raw provenance、`source_page`本地注入、未知运输reference不
+  解释为`invoice_number`
+- Document Normalizer：跨页确定性合并、显式发票号冲突、多发票不静默选择、
+  lexical alias限制及raw fact页面保留
+- ParseAttempt审计：`prompt_version`、`extraction_contract_version`、
+  `model_name_snapshot`及私有raw response附件回归
+- 状态机全部状态流转；stale‑worker守卫逻辑；queued→running流转；superseded不计入AI失败统计
+- bill‑creator幂等；重复调用不会生成多张bill；校验awaiting_review+human_reviewed硬约束
+- cron超时逻辑；模拟hang住的parsing task；业务超时基于task.enter_parsing_datetime，覆盖queued、running
+
+集成测试
+- 完整端到端：PDF上传 → AI解析 → 人工复核 → 生成draft bill
+- 多invoice PDF：识别`is_multi_invoice`流转`error_split_required`
+- 重跑AI：生成新attempt；旧attempt标记superseded；不覆盖旧`human_review_result`
+- 无明细兜底生成单行账单
+- 模拟worker挂死，cron兜底超时
+
+新增P0并发测试
+- 并发`start_parse`，仅产生一个current_parse_attempt；数据库unique(task_id,sequence)约束生效
+- 并发生成bill：一个成功，另一个抛出业务异常，不会生成两张bill
+- stale‑worker：旧attempt返回，标记superseded，禁止修改task状态
+- 事务回滚：account.move创建成功，后续步骤异常，整体回滚，无孤立草稿账单
+- 权限矩阵全覆盖测试
+- API密钥不泄露日志/RPC/异常返回
+- queue‑job仅使用model method作为延迟入口；service不可直接with_delay
+- 异步job公司上下文隔离；account.move写入正确company_id
+
+UI测试约定：不做完整浏览器E2E；对关键UI业务行为编写Owl组件契约测试：【应用AI候选】不会覆盖用户已编辑表单；人工测试做视觉与完整交互验收。
+
+## 13 风险点与防护清单
+
+|风险|防护措施|
 |---|---|
-| `name` | 必填、序列生成、只读的 Statement 编号 |
-| `task_id` | 必填 Many2one；Task 聚合关系；cascade；每个 Task 至多一个 Statement |
-| `company_id` | 从 Task related/store/index/readonly |
-| `supplier_id` / `supplier_name` | 供应商身份 |
-| `source_pdf_attachment_id` | 来源 PDF 的只读关联 |
-| `source_pdf_filename` | 从 Task 关联的只读文件名 |
-| `source_parse_attempt_id` | 必填的来源 Parse Attempt 关联 |
-| `invoice_number` | 发票号 |
-| `invoice_date` | 发票日期 |
-| `currency_id` | 单据货币 |
-| `subtotal` | Statement Lines 未税金额汇总 |
-| `total_tax` | Statement Lines 税额汇总 |
-| `total_amount` | 含税金额汇总 |
-| `overall_tax_rate` | 汇总税率 |
-| `vendor_bill_id` | 只读 Vendor Bill 追溯关联 |
-| `line_ids` | Statement Lines |
-| `state` | 存储 Selection，由业务动作控制 |
+|数据库行锁持有AI HTTP网络IO|`start_parse`短事务；task/attempt写与queue‑job入队属于同一RPC事务；请求结束统一commit释放锁之后worker才会执行；禁止在with‑for‑update范围内执行外部HTTP调用|
+|陈旧worker返回覆盖新attempt|worker执行前守卫判断；过期attempt标记superseded，只能修改自身记录，禁止修改task状态；superseded不计入AI失败统计|
+|重复生成多张bill|bill‑creator行锁 + `vendor_bill_id`非空校验；`ondelete="restrict"`；事务整体回滚；服务端硬校验awaiting_review+human_reviewed|
+|开发直接读取canonical_result生成账单|代码评审：bill‑creator只允许读取`human_review_result`；代码注释红线|
+|误用OCA同步文件导入入口|文档+代码注释+评审检查；禁止调用do/import_file；不再依赖OCA模块运行|
+|置信度业务阻断|后端：置信度只用于UI渲染，业务不做任何阻断；仅完整性校验阻断账单|
+|重跑自动覆盖人工修改结果|重跑生成新attempt；UI需要手动【应用本次AI候选】才填充表单；旧attempt superseded|
+|queue‑job内部执行cr.commit()|代码评审禁止；遵循OCA queue‑job规范，worker不调用commit()|
+|cron无法识别queued永久卡死任务|业务超时基准采用task.enter_parsing_datetime，覆盖queued/running；last_activity_at仅用于本地诊断，不作为跨事务判定条件|
+|删除account.move绕过幂等|`vendor_bill_id ondelete="restrict"`，禁止删除已经生成bill的关联账单|
+|错误引入OCA模块运行时依赖|manifest评审门禁，禁止添加`account_invoice_import`依赖|
+|动态SQL标识符注入风险|lock_service移除泛化lock_by_id；使用lock_task / lock_attempt专用函数，不接收外部model_name入参|
+|API密钥泄露|密钥受控sudo读取；禁止出现在RPC、日志、error_message、raw附件、Sentry；字段配置groups权限隔离|
+|raw_response附件越权访问|ACL约束，仅Reviewer/Config Manager/指定技术管理员可读，权限继承task，禁止public|
+|queue‑job丢失原始RPC公司上下文|task持久化company_id；异步任务强制with_company切换；account.move显式传入company_id|
+|直接对service执行with_delay触发队列异常|queue‑job仅允许model method作为延迟任务入口，禁止service实例with_delay|
 
-当前 Statement 状态为：
+## 📜14 技术不变量表（Coding Contract，评审门禁）
 
-```text
-draft
-confirmed
-cancelled
-bill_created
-```
-
-活动 Statement 使用公司、供应商身份和标准化发票号进行业务唯一性控制；
-取消的 Statement 不占用该业务唯一键。
-
-### 3.3 Vendor Invoice Statement Line
-
-模型：`vendor.invoice.statement.line`。
-
-| 字段 | 当前实现 |
+|ID|技术不变量|
 |---|---|
-| `statement_id` | 必填 Many2one，cascade |
-| `sequence` | 明细顺序 |
-| `description` | 必填描述 |
-| `product_id` | 产品 |
-| `quantity` | 数量，默认 1 |
-| `price_unit` | 单价 |
-| `amount` | 未税金额 |
-| `tax_rate` | 百分比税率 |
-| `tax_amount` | 税额 |
-| `total_amount` | 含税金额 |
-| `tax_raw_text` | 原始税文本 |
-| `tax_ids` | Odoo 税配置 |
-| `reconciliation_clue` | 对账线索 |
-| `charge_details` | 费用明细 |
-| `reconciliation_clues` | JSON 对账线索 |
-| `currency_id` | 从 Statement 关联的货币 |
+|T‑001|Odoo版本固定为18.0|
+|T‑002|AI HTTP调用不得持有数据库行锁|
+|T‑003|一个task最多存在一个current parse attempt|
+|T‑004|stale worker不得修改task状态，仅允许修改自身attempt记录；状态标记为superseded，不计入AI失败统计|
+|T‑005|一个task最多生成一个vendor bill|
+|T‑006|bill creator不得读取canonical_result|
+|T‑007|bill creator不得读取mapping_result|
+|T‑008|Mapping Engine不得修改mapping主数据|
+|T‑009|AI重跑不得覆盖human_review_result|
+|T‑010|JSON Schema仅做结构校验；业务完整性校验由validation_service执行|
+|T‑011|业务校验不得改变AI异常状态|
+|T‑012|OCA同步文件导入入口不得调用|
+|T‑013|task事务失败不得留下孤立vendor bill|
+|T‑014|queue‑job worker内部禁止调用env.cr.commit()|
+|T‑015|task/vendor_bill幂等必须数据库并发安全|
+|T‑016|SPIKE‑OCA‑001已完成；禁止依赖OCA account_invoice_import运行时；账单vals由本模块自主实现|
+|T‑017|Provider API Secret禁止通过RPC、日志、审计、异常信息暴露。|
+|T‑018|ParseAttempt(task_id, sequence)必须数据库唯一。|
+|T‑019|Bill Creator仅允许awaiting_review且human_reviewed=True的Task执行。|
+|T‑020|Task/Attempt状态修改与queue‑job入队属于同一Odoo事务。|
+|T‑021|error_ai_unavailable表示AI正常错误流程最终失败；error_timeout表示worker活性丢失导致超时。|
+|T‑022|Attempt在queue中为queued，worker真正开始后才进入running。|
+|T‑023|superseded attempt不得计入AI失败统计。|
+|T‑024|queue_job只以Odoo Model method作为延迟任务入口；普通service不得直接作为with_delay调用对象。|
+|T‑025|task.company_id任务创建后不可变更；异步worker不依赖env.company获取会计公司上下文。|
+|T‑026|cron解析超时判定基准使用task.enter_parsing_datetime，同时覆盖queued、running状态；last_activity_at仅用于本地诊断，不参与跨事务超时判定。|
+|T‑027|account.move创建必须显式传入company_id，不依赖环境上下文。|
+|T‑028|security.xml中group_config_manager禁止implied_ids隐式继承Reviewer权限，权限采用组合模式。|
+|T‑029|复核保存与账单生成必须使用同一个后端事务入口action_confirm_review_and_create_bill，禁止拆分为两次RPC。|
 
-历史 v1.5 中未被当前业务使用的 `raw_fields`、`confidence`、
-`mapping_status`、`human_reviewed` 等字段不属于 v1.5.1 当前基线；本草案
-不授权补充这些字段。
+---
 
-## 4. 状态与业务动作
+TDD版本：**v1.4.2**
+前置依赖：SRS v1.3.3、DDD v1.2
+变更摘要：
+1. v1.4.1全部变更继承；
+2. P0修复：last_activity_at跨事务心跳失效；queue_job不允许service直接with_delay；queue_job丢失RPC‑context导致company上下文丢失；cron无法捕获queued永久卡死；
+3. P1收口：task持久化company_id；bill创建显式携带company_id；savepoint措辞修正；provider api_key字段groups权限；security权限继承约束；新增UI统一事务入口；补充对应并发测试；风险清单同步扩充；
+4. 新增技术不变量T‑024 ~ T‑029。
 
-### 4.1 Task
+## 附录：v1.4.1 → v1.4.2 修改备查（不参与业务阅读，仅变更追溯）
+1. 文档头部版本升级 v1.4.1 → v1.4.2
+2. ORM task模型新增`company_id`字段，task创建后不可修改。
+3. parse_attempt补充model层queue‑job入口`job_run_parse`；禁止service直接with_delay；调整start_parse入队调用。
+4. run_parse_attempt函数内部增加task公司上下文切换`task.with_company(task.company_id)`。
+5. 修正cron超时逻辑：放弃last_activity_at跨事务判定，改用task.enter_parsing_datetime，覆盖queued/running。
+6. bill_creator增加task公司上下文切换，bill_vals显式注入`company_id`；补充`action_confirm_review_and_create_bill`伪代码。
+7. 修正Bill Creator章节savepoint描述措辞。
+8. ai_provider_config api_key增加groups权限约束。
+9. 安全章节补充：group_config_manager禁止implied_ids隐式继承Reviewer权限。
+10. 测试用例增加queue‑job入口约束、异步公司上下文隔离、account.move公司正确性测试。
+11. 风险清单补充queue‑job入口风险、异步上下文丢失风险。
+12. 技术不变量表追加T‑024 ~ T‑029。
+13. 文档末尾变更摘要更新；增加本附录用于变更追溯。
 
-- `Run AI` 执行新的 Parse Attempt；重跑本身不等于接受候选结果。
-- `Cancel` 将 Task 置为 `cancelled`，释放 PDF checksum，并阻断过期同步结果。
-- 解析成功进入 `awaiting_review`，失败统一进入 `error`。
-- 账单生成成功后进入 `bill_generated`。
+---
 
-### 4.2 Statement
+## v1.5.1 当前实现覆盖说明
 
-- 新建单据处于 `draft`；
-- Draft 可由 Reviewer 编辑；
-- Confirmed、Cancelled、Bill Created 为业务只读；
-- 状态字段不能通过普通 `write` 直接修改；
-- 状态转换通过 Task/Statement 业务动作完成；
-- Bill 创建后 Statement 进入 `bill_created`。
+本节是 v1.5.1 对前述继承章节的有效覆盖，优先级高于历史 v1.4.2
+措辞；它把完整技术结构收口到当前代码。
 
-## 5. 同步解析流程
+### A. 当前模型字段
 
-```text
-上传 PDF
-  -> 创建 Task 与来源附件
-  -> 计算 checksum 并检查活动重复项
-  -> 同步调用 PDF 预处理和 Provider
-  -> 创建 Parse Attempt
-  -> 生成 Statement 与 Lines
-  -> awaiting_review
-```
+当前实际模型为 `vendor.invoice.import.task`、`vendor.invoice.statement` 和
+`vendor.invoice.statement.line`。Statement 使用 `name`、`supplier_id`、
+`source_pdf_attachment_id`、`source_pdf_filename`、
+`source_parse_attempt_id`、`invoice_number`、`invoice_date`、金额汇总、
+`vendor_bill_id`、`line_ids` 和存储 Selection `state`。Line 使用
+`amount`、`tax_rate`、`tax_amount`、`total_amount` 及当前代码中的产品、
+税、费用和对账字段。
 
-同步模式是 v1.5.1 的验收范围。取消后，解析结果必须再次检查 Task 是否
-仍然有效；失效结果不得写入 Statement 或创建 Bill。
+历史 v1.5 中的 `raw_fields`、`confidence`、`mapping_status` 和
+`human_reviewed` 当前不属于业务基线，不补字段、不要求代码回退。
 
-异步队列端到端尚未验收，作为后续独立技术认证事项，不属于本次同步版冻结
-门槛；本次不修改 queue_job、不引入 Redis、不设计异步取消。
+### B. 当前状态与业务入口
 
-## 6. AI Candidate 当前行为
+Task 状态为 `to_parse`、`parsing`、`awaiting_review`、`bill_generated`、
+`error`、`cancelled`；Statement 状态为 `draft`、`confirmed`、`cancelled`、
+`bill_created`。Statement 是人工复核唯一业务入口，Task 是技术聚合根。
+Statement Form 和 Statement Line Form 是人工编辑界面；Task Form 保留
+上传、解析、取消、错误和导航能力。
 
-后端兼容方法当前会：
+`Apply AI Candidate` 表单按钮已移除。后端兼容方法仍可校验成功 Attempt、
+覆盖表头并删除重建 Lines，但该方法不是人工复核入口，v1.5.1 不自动恢复
+“只覆盖未编辑字段”。
 
-1. 选择并校验当前成功的 Parse Attempt；
-2. 覆盖 Statement 表头候选值；
-3. 删除已有 Statement Lines；
-4. 按候选结果重建 Lines；
-5. 更新 `source_parse_attempt_id`。
+### C. 当前同步处理
 
-该方法是技术兼容操作，不是人工复核入口。Statement 表单上的
-`Apply AI Candidate` 按钮已经移除；人工复核直接使用 Statement Form 和
-Line Form。v1.5.1 不自动恢复历史版本“只覆盖未编辑字段”的行为。
-
-## 7. 金额联动与只读规则
-
-金额语义：
-
-```text
-amount       = 无税金额
-tax_rate     = 税率百分比
-tax_amount   = 税额
-total_amount = 含税金额
-```
-
-公式：
-
-```text
-tax_amount = amount * tax_rate / 100
-total_amount = amount + tax_amount
-tax_rate = tax_amount / amount * 100
-```
-
-多字段同时写入时优先级为：
-
-```text
-amount > tax_rate > tax_amount > total_amount
-```
-
-四个字段分别有 onchange，可在表单中实时联动；ORM 归一化作为持久化
-一致性保障。无税金额为零时，税额必须为零，否则抛出 ValidationError。
-
-Statement 表头自动汇总 `subtotal`、`total_tax`、`total_amount` 和
-`overall_tax_rate`。
-
-Reviewer 只能编辑 Draft Statement 及其 Lines。非 Reviewer、非 Draft 的
-create/write/unlink 均由 ORM 拒绝，视图同时提供只读控制。
-
-## 8. UI、菜单与权限
-
-菜单结构：
+当前验收链路为：
 
 ```text
-AI Invoice
-  ├── Imports
-  ├── Statements
-  └── Configuration
+PDF upload -> Task -> checksum check -> synchronous Provider parse
+-> Parse Attempt -> Statement/Lines -> awaiting_review -> Vendor Bill
 ```
 
-Imports 列表显示 File Name 和 Error，不显示 Company、Current Attempt。
-Statements 列表显示 File Name。
+Task 取消后释放 checksum；过期同步结果不能写入 Statement 或创建 Bill。
+异步 queue-job 端到端认证延后，不阻塞本同步版设计，不在本版本修改
+queue-job、Redis 或异步取消规则。
 
-已验证的表单包括：
+### D. 当前金额与页面规则
 
-- Task Form：PDF 上传、Run AI、Cancel、Error Badge、Statement/PDF 导航；
-- Statement Form：表头、状态动作、来源追溯、汇总和 Lines；
-- Statement Line Form：独立编辑界面；
-- Configuration：Provider、Alias、Keyword、Tax、Currency、Threshold、
-  System Configuration 子菜单。
+Line 金额使用 `amount`（无税）、`tax_rate`、`tax_amount` 和 `total_amount`
+（含税）。优先级为 `amount > tax_rate > tax_amount > total_amount`。
+四个 onchange 提供实时联动，ORM 归一化提供保存时一致性；无税金额为零
+时税额必须为零。Statement 汇总 `subtotal`、`total_tax`、`total_amount`
+和 `overall_tax_rate`。只有 Reviewer 能编辑 Draft，非 Draft 在 View 和 ORM
+两层只读。
 
-权限边界：
+### E. 当前 UI、数据和验收结论
 
-- Reviewer 负责 Draft Statement/Line 人工编辑和业务确认；
-- Configuration Manager 维护配置；
-- Task 保持技术信息和解析历史；
-- 来源 PDF、Parse Attempt、Task、Statement、Vendor Bill 之间可追溯导航。
+- AI Invoice 为独立应用，包含 Imports、Statements、Configuration；
+- Imports 显示 File Name、Error，不显示 Company、Current Attempt；
+- Statements 显示 File Name；
+- 新 Task 持久化 PDF 文件名；
+- 开发数据库曾从附件名回填五条既有 Task，非生产迁移；
+- Python/XML、CC-08、CC-09 和 realtime onchange 聚焦测试已通过；
+- Task、Statement、Line Form、菜单、文件名、错误徽章和金额联动已完成
+  人工浏览器验证；
+- 异步端到端、完整并发矩阵、生产迁移和部分 Bill Creator 边界仍未验证。
 
-## 9. 数据约束与回填
-
-- PDF checksum 对活动 Task 唯一；取消 Task 后可复用；
-- Statement 活动业务唯一键为公司、供应商身份、标准化发票号；
-- Task 与 Statement 一对一；
-- Statement Lines cascade 隶属 Statement；
-- 状态转换受业务动作和 ORM 权限保护；
-- 新建 Task 时持久化上传文件名。
-
-开发数据库中曾从 `ir.attachment.name` 对 5 条既有 Task 执行一次性文件名
-回填。这是开发/UAT 数据操作，不代表所有环境已经迁移，也不构成生产
-migration 设计。
-
-## 10. 测试与验收
-
-### Automated Tests
-
-- Python 编译：通过；
-- XML 结构和仓库检查：19 pass，0 fail；
-- CC-08 聚焦测试：3 tests，0 failed，0 errors；
-- CC-09 金额聚焦测试：4 tests，0 failed，0 errors；
-- 实时 onchange 与 ORM 金额测试：2 tests，0 failed，0 errors。
-
-### Manual Browser UAT
-
-开发数据库已人工验证：
-
-- AI Invoice、Imports、Statements、Configuration 菜单；
-- Task Form、Statement Form、Statement Line Form；
-- Task Cancel 和 Error Badge；
-- 金额实时联动；
-- Imports 的 File Name/Error；
-- Statements 的 File Name；
-- Apply AI Candidate 按钮已移除；
-- 新旧 Task/Statement 文件名显示。
-
-### Not Yet Verified
-
-- 异步队列端到端执行和中断；
-- 完整并发矩阵；
-- 所有 Bill Creator 边界转换；
-- 生产环境迁移和生产数据回填。
-
-## 11. Invoice 追溯扩展
-
-模块通过 Odoo 标准 `_inherit` 与账单建立追溯关系：
-
-```text
-account.move.vendor_invoice_statement_id
-    -> vendor.invoice.statement
-
-account.move.line.vendor_statement_line_id
-    -> vendor.invoice.statement.line
-```
-
-关系要求：
-
-- Invoice 侧外键是账单追溯的数据库权威；
-- Statement 与 Statement Line 侧只提供只读关联；
-- Statement 到 Vendor Bill 使用 `restrict`，避免误删账单导致追溯断裂；
-- Vendor Bill Line 到 Statement Line 使用 `set null`；
-- 删除账单不能删除 Statement 或其审计信息；
-- Statement、Vendor Bill 和 Vendor Bill Line 必须能够双向导航。
-
-账单创建由 Task 聚合动作负责。普通 Statement `create/write/unlink` 不得绕过
-Task 的账单创建和投影流程。
-
-## 12. Statement 与兼容投影
-
-Statement 是人工确认后的业务权威单据。现有 `human_review_result` 是兼容
-投影，关系为：
-
-```text
-Statement + Statement Lines
-    -> Task.human_review_result
-    -> Vendor Bill Creator
-```
-
-投影规则：
-
-- 只允许 Statement 单向投影到 Task；
-- 投影和 Statement 业务动作在同一事务中完成；
-- 投影失败时整体回滚；
-- 禁止从 `human_review_result` 反向覆盖 Statement；
-- Vendor Bill Creator 继续读取 Task 的兼容投影；
-- 任何投影入口都必须经过 Task 聚合边界；
-- 投影内容必须与当前 Statement 表头和 Lines 一致。
-
-## 13. PDF、Provider 与 Parse Attempt 边界
-
-同步解析的技术边界为：
-
-```text
-Source PDF Attachment
-  -> PDF preprocessing
-  -> Provider input
-  -> one synchronous Provider request
-  -> Canonical/Mapping result
-  -> Parse Attempt
-  -> Statement + Statement Lines
-```
-
-约束：
-
-- 原始 PDF 保留在 `ir.attachment`；
-- Task 保存文件名和 SHA-256 checksum；
-- Provider API key 不写入 PDF、Parse Attempt、Statement 或日志；
-- Provider 返回结果先写入 Parse Attempt，再由 Task 聚合动作生成业务单据；
-- Provider 失败只更新当前 Attempt/Task 的错误信息，不创建半成品 Statement；
-- 多张独立发票不能静默合并；当前流程应报告拆分错误；
-- 同步请求期间不持有数据库长事务锁；
-- Provider 返回后必须重新检查 Task 是否已取消或已被其他 Attempt 替代。
-
-异步队列不属于本版本流程。其端到端认证另行进行，不在本任务中修改
-`queue_job`、引入 Redis 或设计异步取消。
-
-## 14. 事务、幂等与并发规则
-
-### 14.1 Task 与 PDF 幂等
-
-- 创建 Task 时以公司和活动 PDF checksum 检查重复；
-- 已取消 Task 不再占用 checksum；
-- 同一 Task 不能创建第二个 Statement；
-- 同步解析结果必须确认仍指向当前有效 Task 和 Attempt；
-- stale worker 只能更新自己的 Parse Attempt，不能覆盖当前 Statement 或 Task。
-
-### 14.2 Statement 与 Bill
-
-- Statement Confirm、Cancel 和 Bill 创建必须使用短事务；
-- 状态转换前重新读取当前状态；
-- 非 Draft 的 Statement 不允许业务编辑；
-- Bill 创建必须具备幂等保护，重复执行不能产生第二张 Vendor Bill；
-- 关联 Invoice 失败时，Statement 状态和关联关系整体回滚；
-- 并发确认、并发 Bill 创建和并发 Candidate 操作需要依赖 Task 聚合锁及
-  当前 Attempt 检查。
-
-### 14.3 错误处理
-
-- 用户可见错误使用安全的 `parse_error_summary` 或 ValidationError；
-- 不向用户暴露 Provider secret、完整原始响应或内部堆栈；
-- 不将失败操作伪装成成功；
-- 错误状态只能表示当前 Task/Attempt 的真实失败；
-- 取消、解析失败、投影失败和账单关联失败必须保留可追溯审计记录。
-
-## 15. 权限与审计
-
-权限边界：
-
-| 角色 | 权限 |
-|---|---|
-| 普通用户 | 按公司规则读取允许的 Task、Statement、来源 PDF 和账单链接 |
-| Reviewer | 编辑 Draft Statement/Lines，执行确认、取消等人工业务动作 |
-| Configuration Manager | 维护 Provider、Alias、Keyword、Tax、Currency、Threshold 配置 |
-| 系统/Task 聚合动作 | 创建解析结果、执行投影和账单关联 |
-
-以下操作需要审计：
-
-- PDF 上传、checksum 判定和文件名写入；
-- Parse Attempt 创建、重跑、成功、失败和替代；
-- Task Cancel；
-- Statement 创建、人工编辑、确认和取消；
-- Candidate 技术应用；
-- Statement 到 `human_review_result` 的投影；
-- Vendor Bill 创建和 Statement/Invoice 关联；
-- 账单删除导致的 `set null` 追溯变化。
-
-审计记录不得保存 Provider API key。原始 AI 响应和运输/对账字段应遵守现有
-访问控制，不能通过普通 RPC 明文返回敏感配置。
-
-## 16. 当前数据约束
-
-### 16.1 业务唯一性
-
-- Task：公司 + 活动 PDF checksum；
-- Statement：公司 + supplier identity key + normalized invoice number；
-- Task 与 Statement：一对一；
-- Statement Line：从属于 Statement，删除时 cascade；
-- 取消记录不阻塞新的活动导入或活动 Statement。
-
-### 16.2 金额一致性
-
-金额以货币精度进行舍入。保存前必须满足：
-
-```text
-total_amount = amount + tax_amount
-tax_amount = amount * tax_rate / 100
-```
-
-如果 `amount = 0`，则 `tax_amount` 必须为零。金额 onchange 只负责交互体验，
-ORM 归一化负责最终持久化一致性。
-
-### 16.3 开发数据策略
-
-当前已执行的五条 Task 文件名回填只针对开发/UAT 数据库。生产环境不得将
-该次操作视为已完成 migration；如未来需要生产迁移，必须另立迁移设计和
-验收记录。
-
-## 17. 测试矩阵
-
-| 层级 | 必须覆盖的行为 | 当前状态 |
-|---|---|---|
-| 模型单元测试 | 字段约束、唯一性、状态保护、金额归一化 | 已有聚焦测试 |
-| Task 流程测试 | 同步解析、Cancel、统一 error、stale result | CC-08 聚焦测试已通过 |
-| Statement 测试 | 状态动作、Draft 只读、Task 一对一、Bill 关联 | 部分验证 |
-| Line 测试 | 四字段计算、优先级、零金额边界、onchange | CC-09 聚焦测试已通过 |
-| UI/XML 测试 | 菜单、Task/Statement/Line Form、列表列和按钮 | XML 检查及浏览器已验证 |
-| 集成测试 | PDF -> Provider -> Attempt -> Statement -> Bill | 同步路径部分验证 |
-| 安全测试 | User/Reviewer/Config Manager、多公司、敏感数据 | 未完成完整矩阵 |
-| 并发测试 | Confirm、Bill、Candidate、stale worker | 未完成完整矩阵 |
-| 异步专项 | queue job 端到端和取消/重试 | 延后，不阻塞本版本 |
-
-测试结论不得把同步路径的通过扩大解释为异步队列通过，也不得把开发数据库
-回填扩大解释为生产迁移完成。
-
-## 18. 未完成事项
-
-以下事项不改变当前同步版实现基线，但需要后续独立验证或业务决定：
-
-1. 异步队列端到端执行、重试、中断和 stale worker 专项认证；
-2. 完整并发和多公司安全矩阵；
-3. Vendor Bill Creator 全部边界状态的运行时验证；
-4. 生产环境迁移与历史数据策略；
-5. 如未来重新启用 Candidate 人工入口，另行决定是否采用“仅覆盖未编辑字段”。
-
-## 19. v1.5.1 相对 v1.5 的简短修订记录
-
-1. 将 v1.5 内容固定为历史设计基线，不覆盖原文。
-2. 按当前实现同步 Statement、Line、Task 字段和关系名称。
-3. 纳入已测试、已人工确认的 Cancel、统一 error、同步解析、金额联动、
-   表单、菜单和文件名行为。
-4. 记录 Candidate 当前覆盖并重建 Lines 的技术行为，以及 UI 按钮移除事实。
-5. 将当前不需要的历史字段标记为废止，不产生补字段要求。
-6. 将异步队列明确延期，不阻塞同步版技术基线。
+### F. v1.5.1 状态
 
 ```text
 TDD_V1_5 = FROZEN
