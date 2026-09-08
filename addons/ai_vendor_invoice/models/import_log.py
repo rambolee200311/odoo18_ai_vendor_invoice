@@ -29,6 +29,7 @@ class VendorInvoiceImportLog(models.Model):
             ("statement_candidate_apply", "Statement Candidate Apply"),
             ("statement_confirm", "Statement Confirm"),
             ("statement_cancel", "Statement Cancel"),
+            ("task_cancel", "Task Cancel"),
             ("statement_bill_created", "Statement Bill Created"),
             ("bill_create", "Bill Create"),
             ("cron_timeout", "Cron Timeout"),

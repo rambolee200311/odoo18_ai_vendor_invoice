@@ -120,6 +120,8 @@ def _failed_attempt(env, task_id, attempt_id, error, failure_stage=None):
 def _write_failed_attempt(env, task_id, attempt_id, summary, failure_stage):
     task = env["wd.lock.service"].lock_task(task_id)
     attempt = env["wd.lock.service"].lock_attempt(attempt_id)
+    if attempt.status == "cancelled":
+        return
     now = fields.Datetime.now()
     attempt.write({
         "status": "failed",
@@ -133,7 +135,7 @@ def _write_failed_attempt(env, task_id, attempt_id, summary, failure_stage):
         failure_stage,
     )
     if task.current_parse_attempt_id == attempt and task.state == "parsing":
-        task.write({"state": "error_ai_unavailable"})
+        task.write({"state": "error"})
         _audit(env, task, attempt, "ai_parse", "AI parse failed.")
 
 
@@ -174,8 +176,7 @@ def _publish_attempt_running(env, attempt):
 def start_parse(env, task_id, provider_config_id, synchronous=False):
     task = env["wd.lock.service"].lock_task(task_id)
     task.ensure_one()
-    if task.state not in ("to_parse", "awaiting_review", "error_ai_unavailable",
-                          "error_timeout", "error_split_required"):
+    if task.state not in ("to_parse", "awaiting_review", "error"):
         raise ValueError("Task cannot start an AI parse in its current state.")
     active_attempt = env["vendor.invoice.import.parse.attempt"].search(
         [
@@ -221,7 +222,7 @@ def run_parse_attempt(env, task_id, attempt_id):
     task = task.with_company(task.company_id)
     attempt = env["vendor.invoice.import.parse.attempt"].browse(attempt_id)
     attempt.ensure_one()
-    if attempt.status in ("success", "failed", "superseded"):
+    if attempt.status in ("success", "failed", "superseded", "cancelled"):
         return False
     if not (task.state == "parsing" and task.current_parse_attempt_id == attempt
             and attempt.status in ("queued", "running")):
@@ -287,9 +288,11 @@ def run_parse_attempt(env, task_id, attempt_id):
         )
         return False
     # Re-check after HTTP/mapping: the worker may have been superseded.
+    task.invalidate_recordset(["state", "current_parse_attempt_id"])
+    attempt.invalidate_recordset(["status"])
     if not (task.state == "parsing" and task.current_parse_attempt_id == attempt
             and attempt.status == "running"):
-        if attempt.status in ("success", "failed", "superseded"):
+        if attempt.status in ("success", "failed", "superseded", "cancelled"):
             return False
         now = fields.Datetime.now()
         attempt.write({
@@ -303,9 +306,11 @@ def run_parse_attempt(env, task_id, attempt_id):
     task = env["wd.lock.service"].lock_task(task.id)
     task = task.with_company(task.company_id)
     attempt = env["wd.lock.service"].lock_attempt(attempt.id)
+    task.invalidate_recordset(["state", "current_parse_attempt_id"])
+    attempt.invalidate_recordset(["status"])
     if not (task.state == "parsing" and task.current_parse_attempt_id == attempt
             and attempt.status == "running"):
-        if attempt.status in ("success", "failed", "superseded"):
+        if attempt.status in ("success", "failed", "superseded", "cancelled"):
             return False
         now = fields.Datetime.now()
         attempt.write({
@@ -325,7 +330,7 @@ def run_parse_attempt(env, task_id, attempt_id):
     })
     if input_mode == "native_pdf":
         task._create_prefilled_statement_from_canonical(attempt, canonical)
-    task.write({"state": "error_split_required" if canonical.get("is_multi_invoice")
+    task.write({"state": "error" if canonical.get("is_multi_invoice")
                 else "awaiting_review"})
     _audit(env, task, attempt, "ai_parse", "AI parse completed successfully.")
     observability_service.finalize_observability(attempt)

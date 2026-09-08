@@ -328,6 +328,51 @@ class TestImportTaskModel(TransactionCase):
         with self.assertRaises(ValidationError):
             task.write({"company_id": self.env.company.id})
 
+    def test_cancelled_task_releases_pdf_checksum(self):
+        provider = self._make_provider()
+        pdf = base64.b64encode(b"%PDF-cc08-cancel")
+
+        def make_task(name):
+            attachment = self.env["ir.attachment"].create({
+                "name": "%s.pdf" % name,
+                "datas": pdf,
+            })
+            return self.env["vendor.invoice.import.task"].create({
+                "source_pdf_attachment_id": attachment.id,
+                "selected_provider_config_id": provider.id,
+            })
+
+        first = make_task("first")
+        first.action_cancel_task()
+        second = make_task("second")
+        self.assertEqual(first.state, "cancelled")
+        self.assertEqual(second.state, "to_parse")
+
+    def test_cancel_task_marks_active_attempt_cancelled(self):
+        task = self._make_task()
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": 1,
+            "provider_config_id": task.selected_provider_config_id.id,
+            "status": "running",
+        })
+        task.write({
+            "current_parse_attempt_id": attempt.id,
+            "state": "parsing",
+        })
+
+        task.action_cancel_task()
+
+        self.assertEqual(task.state, "cancelled")
+        self.assertEqual(attempt.status, "cancelled")
+
+    def test_error_state_uses_error_badge(self):
+        task = self._make_task()
+        task.state = "error"
+        self.assertEqual(task.parse_error_badge, "Error")
+        task.state = "cancelled"
+        self.assertFalse(task.parse_error_badge)
+
     # ── JSON field defaults ───────────────────────────────────────────────────
 
     def test_task_human_review_result_default_is_dict(self):

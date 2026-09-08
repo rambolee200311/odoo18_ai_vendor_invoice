@@ -30,7 +30,7 @@ def reconcile_failed_queue_attempts(env):
                 "error_message": summary,
                 "error_summary": summary,
             })
-            task.write({"state": "error_ai_unavailable"})
+            task.write({"state": "error"})
             env["vendor.invoice.import.log"].create({
                 "task_id": task.id,
                 "parse_attempt_id": attempt.id,
@@ -85,7 +85,7 @@ def check_parsing_timeout(env):
                 "error_message": summary,
                 "error_summary": summary,
             })
-            task.write({"state": "error_timeout"})
+            task.write({"state": "error"})
             env["vendor.invoice.import.log"].create({
                 "task_id": task.id,
                 "parse_attempt_id": attempt.id,

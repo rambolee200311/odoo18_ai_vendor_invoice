@@ -92,6 +92,7 @@ class VendorInvoiceImportParseAttempt(models.Model):
             ("success", "Success"),
             ("failed", "Failed"),
             ("superseded", "Superseded"),
+            ("cancelled", "Cancelled"),
         ],
         string="Status",
         required=True,

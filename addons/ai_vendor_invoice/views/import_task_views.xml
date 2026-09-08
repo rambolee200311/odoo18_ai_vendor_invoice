@@ -156,7 +156,9 @@
                 <header>
                     <button name="action_rerun_ai" type="object" string="Run AI"
                             class="oe_highlight"
-                            invisible="state == 'parsing'"/>
+                            invisible="state in ('parsing', 'bill_generated', 'cancelled')"/>
+                    <button name="action_cancel_task" type="object" string="Cancel"
+                            invisible="state in ('bill_generated', 'cancelled')"/>
                     <button name="action_open_statement" type="object"
                             string="Open Statement"
                             class="oe_highlight"
@@ -164,7 +166,8 @@
                     <button name="action_open_source_pdf" type="object"
                             string="Open Source PDF"
                             invisible="not source_pdf_attachment_id"/>
-                    <field name="state" widget="statusbar"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="to_parse,parsing,awaiting_review,bill_generated,cancelled"/>
                 </header>
                 <sheet>
                     <group>
@@ -177,6 +180,8 @@
                         <field name="synchronous_parse"/>
                         <field name="statement_id" readonly="1"/>
                         <field name="parse_status" readonly="1"/>
+                        <field name="parse_error_badge" widget="badge"
+                               class="text-bg-danger" readonly="1"/>
                         <field name="parse_error_summary" readonly="1"/>
                         <field name="queue_diagnostic" readonly="1"/>
                     </group>

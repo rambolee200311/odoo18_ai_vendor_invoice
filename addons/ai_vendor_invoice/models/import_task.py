@@ -56,9 +56,8 @@ class VendorInvoiceImportTask(models.Model):
             ("parsing", "Parsing"),
             ("awaiting_review", "Awaiting Review"),
             ("bill_generated", "Bill Generated"),
-            ("error_split_required", "Error: Split Required"),
-            ("error_ai_unavailable", "Error: AI Unavailable"),
-            ("error_timeout", "Error: Timeout"),
+            ("error", "Error"),
+            ("cancelled", "Cancelled"),
         ],
         string="State",
         required=True,
@@ -89,10 +88,9 @@ class VendorInvoiceImportTask(models.Model):
             ("waiting", "Waiting for AI parsing"),
             ("running", "AI parsing in progress"),
             ("completed", "Parsing complete - ready for review"),
-            ("ai_error", "AI service temporarily unavailable"),
-            ("timeout", "Parsing timed out"),
-            ("split_required", "Multiple invoices detected - split the PDF"),
+            ("error", "Parsing error"),
             ("bill_generated", "Bill generated"),
+            ("cancelled", "Cancelled"),
         ],
         string="AI Parsing Status",
         compute="_compute_parse_display_status",
@@ -125,6 +123,10 @@ class VendorInvoiceImportTask(models.Model):
         compute="_compute_parse_observability",
         readonly=True,
         help="Safe, non-sensitive user-facing summary of the current parse error.",
+    )
+    parse_error_badge = fields.Char(
+        string="Parse Error",
+        compute="_compute_parse_error_badge",
     )
 
     queue_diagnostic = fields.Selection(
@@ -189,15 +191,21 @@ class VendorInvoiceImportTask(models.Model):
         string="Audit Logs",
     )
 
-    _sql_constraints = [
-        (
-            "company_source_pdf_checksum_unique",
-            "unique(company_id, source_pdf_checksum)",
-            "A source PDF can only be imported once per company.",
-        ),
-    ]
+    _sql_constraints = []
 
     def init(self):
+        self.env.cr.execute(
+            "ALTER TABLE vendor_invoice_import_task "
+            "DROP CONSTRAINT IF EXISTS company_source_pdf_checksum_unique"
+        )
+        self.env.cr.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS
+                company_source_pdf_checksum_active_unique
+            ON vendor_invoice_import_task (company_id, source_pdf_checksum)
+            WHERE source_pdf_checksum IS NOT NULL AND state != 'cancelled'
+            """
+        )
         self.env.cr.execute(
             """
             SELECT id, source_pdf_attachment_id
@@ -234,11 +242,15 @@ class VendorInvoiceImportTask(models.Model):
                 task.parse_display_status = {
                     "to_parse": "ready",
                     "awaiting_review": "completed",
-                    "error_ai_unavailable": "ai_error",
-                    "error_timeout": "timeout",
-                    "error_split_required": "split_required",
+                    "error": "error",
                     "bill_generated": "bill_generated",
+                    "cancelled": "cancelled",
                 }.get(task.state, "ready")
+
+    @api.depends("state")
+    def _compute_parse_error_badge(self):
+        for task in self:
+            task.parse_error_badge = "Error" if task.state == "error" else False
 
     # ── ORM hooks ─────────────────────────────────────────────────────────────
 
@@ -267,6 +279,7 @@ class VendorInvoiceImportTask(models.Model):
             duplicate = self.search([
                 ("company_id", "=", company.id),
                 ("source_pdf_checksum", "=", vals["source_pdf_checksum"]),
+                ("state", "!=", "cancelled"),
             ], limit=1)
             if duplicate:
                 raise ValidationError(
@@ -368,7 +381,36 @@ class VendorInvoiceImportTask(models.Model):
             "target": "current",
         }
 
+    def action_cancel_task(self):
+        """Cancel the Task and invalidate any in-flight synchronous parse."""
+        self.ensure_one()
+        if self.state in ("bill_generated", "cancelled"):
+            raise ValidationError(_("This Task cannot be cancelled in its current state."))
+        attempt = self.current_parse_attempt_id
+        if attempt and attempt.status in ("queued", "running"):
+            if attempt.queue_job_id and attempt.queue_job_id.state not in (
+                "done", "failed", "cancelled",
+            ):
+                attempt.queue_job_id.button_cancelled()
+            now = fields.Datetime.now()
+            attempt.write({
+                "status": "cancelled",
+                "finished_at": now,
+                "completed_at": now,
+                "error_summary": "Cancelled by the user.",
+                "error_message": "Cancelled by the user.",
+            })
+        self.write({"state": "cancelled"})
+        self.env["vendor.invoice.import.log"].create({
+            "task_id": self.id,
+            "parse_attempt_id": attempt.id if attempt else False,
+            "action": "task_cancel",
+            "snapshot_delta": "Import Task cancelled by the user.",
+        })
+        return True
+
     @api.depends(
+        "state",
         "current_parse_attempt_id",
         "current_parse_attempt_id.status",
         "current_parse_attempt_id.error_summary",

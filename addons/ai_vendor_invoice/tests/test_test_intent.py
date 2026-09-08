@@ -236,7 +236,7 @@ class TestParseLifecycleConvergence(TransactionCase):
         self.assertEqual(attempt.status, "failed")
         self.assertTrue(attempt.completed_at)
         self.assertTrue(attempt.finished_at)
-        self.assertEqual(task.state, "error_ai_unavailable")
+        self.assertEqual(task.state, "error")
 
     def test_repeated_execution_of_terminal_attempt_is_idempotent(self):
         task, attempt, _provider = self._parse_fixture()
@@ -245,12 +245,12 @@ class TestParseLifecycleConvergence(TransactionCase):
             "completed_at": fields.Datetime.now(),
             "finished_at": fields.Datetime.now(),
         })
-        task.write({"state": "error_ai_unavailable"})
+        task.write({"state": "error"})
         self.assertFalse(parse_service.run_parse_attempt(
             self.env, task.id, attempt.id
         ))
         self.assertEqual(attempt.status, "failed")
-        self.assertEqual(task.state, "error_ai_unavailable")
+        self.assertEqual(task.state, "error")
 
     def test_serialization_failure_retries_terminal_write(self):
         source = self.env["ir.attachment"].create({
@@ -320,7 +320,7 @@ class TestParseLifecycleConvergence(TransactionCase):
                 "vendor.invoice.import.task"
             ].browse(task.id)
             self.assertEqual(checked_attempt.status, "failed")
-            self.assertEqual(checked_task.state, "error_ai_unavailable")
+            self.assertEqual(checked_task.state, "error")
         with registry(self.env.cr.dbname).cursor() as cleanup_cr:
             cleanup_env = api.Environment(cleanup_cr, self.env.uid, {})
             cleanup_env["vendor.invoice.import.task"].browse(task.id).unlink()

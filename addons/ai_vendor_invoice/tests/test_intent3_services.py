@@ -103,7 +103,7 @@ class TestTimeoutService(TransactionCase):
 
         self.assertEqual(timeout_service.check_parsing_timeout(self.env), 2)
         for task, attempt in records:
-            self.assertEqual(task.state, "error_timeout")
+            self.assertEqual(task.state, "error")
             self.assertEqual(attempt.status, "failed")
 
 
