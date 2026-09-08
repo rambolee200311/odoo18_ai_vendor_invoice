@@ -139,6 +139,7 @@ class TestImportTaskModel(TransactionCase):
         )
         self.assertRegex(statement.name, r"^vendor/stm/\d{8}$")
         self.assertEqual(statement.source_parse_attempt_id, attempt)
+        self.assertEqual(statement.state, "draft")
         self.assertEqual(task.statement_id, statement)
         self.assertEqual(len(statement.line_ids), 1)
         self.assertEqual(statement.line_ids.description, "Freight")
@@ -177,6 +178,7 @@ class TestImportTaskModel(TransactionCase):
             }],
         })
         self.assertEqual(task.state, "awaiting_review")
+        self.assertEqual(task.statement_id.state, "confirmed")
         self.assertEqual(task.human_review_result["header"]["invoice_number"], "INV-002")
         self.assertEqual(task.human_review_result["header"]["supplier_id"],
                          self.env.ref("base.res_partner_1").id)
@@ -185,6 +187,32 @@ class TestImportTaskModel(TransactionCase):
             task.human_review_result["lines"][0]["statement_line_id"],
             task.statement_id.line_ids.id,
         )
+
+    def test_statement_state_transition_commands_guard_direct_state_write(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {
+                "task_id": task.id,
+                "sequence": 1,
+                "provider_config_id": task.selected_provider_config_id.id,
+                "status": "success",
+            }
+        )
+        task.current_parse_attempt_id = attempt.id
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {"invoice_number": "INV-STATE", "lines": [{"description": "Freight", "amount": 10.0}]},
+        )
+        with self.assertRaises(AccessError):
+            statement.write({"state": "confirmed"})
+        task.action_cancel_statement()
+        self.assertEqual(statement.state, "cancelled")
+        with self.assertRaises(ValidationError):
+            task.action_cancel_statement()
 
     def test_statement_projection_rejects_inconsistent_result(self):
         admin = self.env.ref("base.user_admin")

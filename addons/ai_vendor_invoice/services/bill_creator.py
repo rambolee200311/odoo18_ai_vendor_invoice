@@ -101,6 +101,10 @@ def _create_locked(env, task):
     if task.statement_required and not task.statement_id:
         raise ValidationError(_("A Statement is required before creating a bill."))
     if task.statement_id:
+        if task.statement_id.state != "confirmed":
+            raise ValidationError(
+                _("A Statement must be confirmed before creating a bill.")
+            )
         from .statement_projection import assert_projection_consistent
 
         assert_projection_consistent(task.statement_id, review_result)
@@ -128,6 +132,15 @@ def _create_locked(env, task):
         "vendor_bill_id": bill.id,
         "state": "bill_generated",
     })
+    task.statement_id._aggregate_write({
+        "vendor_bill_id": bill.id,
+        "state": "bill_created",
+    })
+    task._log_statement_change(
+        "statement_bill_created",
+        task.statement_id.source_parse_attempt_id,
+        "Draft vendor bill %s linked to Statement." % bill.display_name,
+    )
     _audit(env, task, "bill_create", "Draft vendor bill %s created." % bill.display_name)
     return bill
 

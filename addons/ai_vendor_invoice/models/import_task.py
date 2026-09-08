@@ -333,6 +333,8 @@ class VendorInvoiceImportTask(models.Model):
         self._check_statement_command_access()
         if not self.statement_id:
             raise ValidationError(_("This task has no human Statement to edit."))
+        if self.statement_id.state != "draft":
+            raise ValidationError(_("Only a draft Statement can be edited."))
         from .statement import validate_statement_payload
 
         payload = validate_statement_payload(statement_payload)
@@ -360,6 +362,8 @@ class VendorInvoiceImportTask(models.Model):
         if not self.statement_id:
             return self.action_create_statement_from_attempt(attempt.id, payload)
         statement = self.statement_id
+        if statement.state != "draft":
+            raise ValidationError(_("Only a draft Statement can apply an AI candidate."))
         statement._aggregate_write(
             dict(self._statement_values(payload, attempt), source_parse_attempt_id=attempt.id)
         )
@@ -386,6 +390,10 @@ class VendorInvoiceImportTask(models.Model):
                 )
         if not self.statement_id:
             raise ValidationError(_("A human Statement is required."))
+        if self.statement_id.state not in ("draft", "confirmed"):
+            raise ValidationError(
+                _("Only a draft or confirmed Statement can be confirmed.")
+            )
         from ..services.statement_projection import (
             assert_projection_consistent,
             statement_to_human_review_result,
@@ -393,15 +401,35 @@ class VendorInvoiceImportTask(models.Model):
 
         projection = statement_to_human_review_result(self.statement_id)
         assert_projection_consistent(self.statement_id, projection)
+        self.statement_id._aggregate_write({"state": "confirmed"})
         self.write({
             "human_review_result": projection,
             "human_reviewed": True,
             "state": "awaiting_review",
         })
         self._log_statement_change(
-            "human_modify",
+            "statement_confirm",
             self.statement_id.source_parse_attempt_id,
             "Human Statement confirmed.",
+        )
+        return True
+
+    def action_cancel_statement(self):
+        """Cancel a Statement without changing the Task import lifecycle."""
+        self.ensure_one()
+        self._check_statement_command_access()
+        statement = self.statement_id
+        if not statement:
+            raise ValidationError(_("A human Statement is required."))
+        if statement.state not in ("draft", "confirmed"):
+            raise ValidationError(_("Only a draft or confirmed Statement can be cancelled."))
+        if statement.vendor_bill_id or self.vendor_bill_id:
+            raise ValidationError(_("A Statement linked to a Vendor Bill cannot be cancelled."))
+        statement._aggregate_write({"state": "cancelled"})
+        self._log_statement_change(
+            "statement_cancel",
+            statement.source_parse_attempt_id,
+            "Human Statement cancelled.",
         )
         return True
 

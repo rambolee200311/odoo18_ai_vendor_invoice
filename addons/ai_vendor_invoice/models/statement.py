@@ -3,6 +3,14 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
 
 
+STATEMENT_STATES = [
+    ("draft", "Draft"),
+    ("confirmed", "Confirmed"),
+    ("cancelled", "Cancelled"),
+    ("bill_created", "Bill Created"),
+]
+
+
 class VendorInvoiceStatement(models.Model):
     _name = "vendor.invoice.statement"
     _description = "Vendor Invoice Human Statement"
@@ -16,6 +24,14 @@ class VendorInvoiceStatement(models.Model):
         default=lambda self: self.env["ir.sequence"].next_by_code(
             "vendor.invoice.statement"
         ) or _("New"),
+    )
+    state = fields.Selection(
+        selection=STATEMENT_STATES,
+        string="Status",
+        required=True,
+        default="draft",
+        index=True,
+        copy=False,
     )
     task_id = fields.Many2one(
         "vendor.invoice.import.task",
@@ -46,6 +62,14 @@ class VendorInvoiceStatement(models.Model):
     total_tax = fields.Monetary(string="Total Tax", currency_field="currency_id")
     subtotal = fields.Monetary(string="Subtotal", currency_field="currency_id")
     note = fields.Text(string="Notes")
+    vendor_bill_id = fields.Many2one(
+        "account.move",
+        string="Vendor Bill",
+        ondelete="restrict",
+        index=True,
+        copy=False,
+        readonly=True,
+    )
     line_ids = fields.One2many(
         "vendor.invoice.statement.line",
         "statement_id",
@@ -68,16 +92,27 @@ class VendorInvoiceStatement(models.Model):
         )
 
     def write(self, vals):
-        if self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
-            return super().write(vals)
-        raise AccessError(
-            _("Statement records must be changed through a Task aggregate command.")
-        )
+        if "state" in vals:
+            raise AccessError(_("Statement state must be changed through a transition command."))
+        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            raise AccessError(
+                _("Statement records must be changed through a Task aggregate command.")
+            )
+        if any(statement.state != "draft" for statement in self):
+            raise ValidationError(_("Only draft Statements can be edited."))
+        return super().write(vals)
 
     def unlink(self):
+        if any(statement.state != "draft" for statement in self):
+            raise ValidationError(_("Only draft Statements can be deleted."))
         raise AccessError(
             _("Statement records must be deleted through a Task aggregate command.")
         )
+
+    def action_cancel_statement(self):
+        """Delegate cancellation to the owning Task aggregate."""
+        self.ensure_one()
+        return self.task_id.action_cancel_statement()
 
     @api.model
     def _aggregate_create(self, vals):
@@ -132,13 +167,17 @@ class VendorInvoiceStatementLine(models.Model):
         )
 
     def write(self, vals):
-        if self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
-            return super().write(vals)
-        raise AccessError(
-            _("Statement lines must be changed through a Task aggregate command.")
-        )
+        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            raise AccessError(
+                _("Statement lines must be changed through a Task aggregate command.")
+            )
+        if any(line.statement_id.state != "draft" for line in self):
+            raise ValidationError(_("Only lines of a draft Statement can be edited."))
+        return super().write(vals)
 
     def unlink(self):
+        if any(line.statement_id.state != "draft" for line in self):
+            raise ValidationError(_("Only lines of a draft Statement can be deleted."))
         raise AccessError(
             _("Statement lines must be deleted through a Task aggregate command.")
         )
