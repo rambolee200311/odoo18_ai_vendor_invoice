@@ -208,7 +208,7 @@ def start_parse(env, task_id, provider_config_id, synchronous=False):
            "Queued parse attempt %s" % attempt.sequence)
     if synchronous:
         return run_parse_attempt(
-            env.with_context(ai_invoice_sync=True),
+            task.with_context(ai_invoice_sync=True).env,
             task.id,
             attempt.id,
         ) or attempt

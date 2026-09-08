@@ -451,6 +451,19 @@ class TestParseAttemptModel(TransactionCase):
             task.action_rerun_ai()
             self.assertFalse(start_parse.call_args.kwargs["synchronous"])
 
+    def test_synchronous_parse_uses_recordset_context(self):
+        task, provider = self._make_base()
+        from ..services import parse_service
+
+        with patch.object(parse_service, "run_parse_attempt", return_value=True) as run:
+            parse_service.start_parse(
+                self.env,
+                task.id,
+                provider.id,
+                synchronous=True,
+            )
+            self.assertTrue(run.call_args.args[0].context["ai_invoice_sync"])
+
     def test_queue_entry_requires_real_delay(self):
         task, provider = self._make_base()
         attempt = self.env["vendor.invoice.import.parse.attempt"].create(
