@@ -1,5 +1,24 @@
 # Sprint Implementation Log
 
+## 2026-09-08 - CC-01 AI Invoice Independent Application
+
+### Scope
+
+- Promoted `ai_vendor_invoice` to an installable Odoo application.
+- Added an addon-owned `AI Invoice` root menu.
+- Reparented the existing import-task and Statement actions under the new root.
+- Preserved existing action XML IDs, model bindings, security, dependencies, and
+  AI/vendor-bill processing behavior.
+
+### Verification
+
+```text
+Manifest and XML validation: PASS
+Targeted application-menu checks: PASS
+Python compilation: PASS
+Repository verification: 19 pass, 0 fail
+```
+
 ## 2026-08-21 - Intent-1 Foundation
 
 ### Scope
