@@ -8,11 +8,23 @@
 - Bound the upload control to `source_pdf_filename` so users can select a PDF
   during manual verification.
 
+## 2026-09-08 - CC-01 AI Invoice Independent Application
+
+### Scope
+
+- Promoted `ai_vendor_invoice` to an installable Odoo application.
+- Added an addon-owned `AI Invoice` root menu.
+- Reparented the existing import-task and Statement actions under the new root.
+- Preserved existing action XML IDs, model bindings, security, dependencies, and
+  AI/vendor-bill processing behavior.
+
 ### Verification
 
 ```text
 PDF upload view assertions: PASS
 Repository verification: 19 pass, 0 fail
+Manifest and XML validation: PASS
+Targeted application-menu checks: PASS
 ```
 
 ## 2026-09-08 - CC-06 Duplicate Import and Statement Uniqueness
@@ -136,6 +148,8 @@ Odoo runtime tests: NOT RUN; urllib3 is unavailable in the local runtime
 
 ```text
 Targeted menu assertions: PASS
+Manifest and XML validation: PASS
+Targeted application-menu checks: PASS
 Python compilation: PASS
 Repository verification: 19 pass, 0 fail
 ```
