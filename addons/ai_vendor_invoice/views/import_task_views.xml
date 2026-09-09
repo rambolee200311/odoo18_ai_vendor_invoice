@@ -75,7 +75,6 @@
                             <field name="source_pdf_attachment_id" readonly="1"/>
                             <field name="vendor_bill_id" readonly="1"/>
                         </group>
-                    </group>
                     <notebook>
                         <page string="Statement Lines">
                             <field name="line_ids" readonly="state != 'draft'">
@@ -151,6 +150,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
