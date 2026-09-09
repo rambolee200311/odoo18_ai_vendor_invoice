@@ -9,7 +9,7 @@
     "summary": "AI-assisted vendor invoice recognition and import",
     "author": "Wukong Digital",
     "license": "LGPL-3",
-    "depends": ["account", "contacts", "queue_job"],
+    "depends": ["account", "contacts", "mail", "queue_job"],
     "data": [
         "security/groups.xml",
         "security/ir.model.access.csv",

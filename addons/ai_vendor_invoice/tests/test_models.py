@@ -42,6 +42,7 @@ class TestImportTaskModel(TransactionCase):
             {
                 "name": "test.pdf",
                 "datas": b"",
+                "mimetype": "application/pdf",
                 "res_model": "vendor.invoice.import.task",
             }
         )
@@ -139,8 +140,51 @@ class TestImportTaskModel(TransactionCase):
         )
         self.assertEqual(statement.source_parse_attempt_id, attempt)
         self.assertEqual(task.statement_id, statement)
+        self.assertEqual(statement.source_pdf_attachment_id, task.source_pdf_attachment_id)
+        self.assertEqual(
+            statement.source_pdf_attachment_id.raw,
+            task.source_pdf_attachment_id.raw,
+        )
+        source_attachment_messages = statement.message_ids.filtered(
+            lambda message: statement.source_pdf_attachment_id in message.attachment_ids
+        )
+        self.assertEqual(len(source_attachment_messages), 1)
         self.assertEqual(len(statement.line_ids), 1)
         self.assertEqual(statement.line_ids.description, "Freight")
+
+        statement._attach_source_pdf_to_chatter()
+        self.assertEqual(
+            len(statement.message_ids.filtered(
+                lambda message: statement.source_pdf_attachment_id in message.attachment_ids
+            )),
+            1,
+        )
+
+    def test_statement_rejects_non_pdf_source_attachment(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        task.source_pdf_attachment_id.write({"mimetype": "text/plain"})
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {
+                "task_id": task.id,
+                "sequence": 1,
+                "provider_config_id": task.selected_provider_config_id.id,
+                "status": "success",
+            }
+        )
+        with self.assertRaises(ValidationError):
+            task.action_create_statement_from_attempt(
+                attempt.id,
+                {"invoice_number": "INV-NON-PDF"},
+            )
+
+    def test_statement_form_exposes_source_pdf_and_native_chatter(self):
+        view = self.env.ref("ai_vendor_invoice.view_vendor_invoice_statement_form")
+        self.assertIn("source_pdf_attachment_id", view.arch)
+        self.assertIn("<chatter", view.arch)
 
     def test_statement_confirmation_projects_human_review_result(self):
         admin = self.env.ref("base.user_admin")

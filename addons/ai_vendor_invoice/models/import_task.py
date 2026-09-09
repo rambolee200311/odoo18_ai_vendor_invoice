@@ -260,6 +260,7 @@ class VendorInvoiceImportTask(models.Model):
         statement = self.env["vendor.invoice.statement"]._aggregate_create(
             self._statement_values(payload, attempt)
         )
+        statement._attach_source_pdf_to_chatter()
         self.env["vendor.invoice.statement.line"]._aggregate_create(
             self._statement_line_values(payload, statement)
         )
@@ -307,6 +308,7 @@ class VendorInvoiceImportTask(models.Model):
         statement = self.env["vendor.invoice.statement"]._aggregate_create(
             self._statement_values(payload, attempt)
         )
+        statement._attach_source_pdf_to_chatter()
         self.env["vendor.invoice.statement.line"]._aggregate_create(
             self._statement_line_values(payload, statement)
         )

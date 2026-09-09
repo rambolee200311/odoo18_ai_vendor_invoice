@@ -7,6 +7,7 @@ class VendorInvoiceStatement(models.Model):
     _name = "vendor.invoice.statement"
     _description = "Vendor Invoice Human Statement"
     _order = "id desc"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
 
     task_id = fields.Many2one(
         "vendor.invoice.import.task",
@@ -27,6 +28,12 @@ class VendorInvoiceStatement(models.Model):
         required=True,
         ondelete="restrict",
         index=True,
+    )
+    source_pdf_attachment_id = fields.Many2one(
+        "ir.attachment",
+        string="Source PDF",
+        related="task_id.source_pdf_attachment_id",
+        readonly=True,
     )
     invoice_number = fields.Char(string="Invoice Number", required=True)
     invoice_date = fields.Date(string="Invoice Date")
@@ -80,6 +87,21 @@ class VendorInvoiceStatement(models.Model):
 
     def _aggregate_unlink(self):
         return super().unlink()
+
+    def _attach_source_pdf_to_chatter(self):
+        """Expose the existing Task PDF through native Statement Chatter."""
+        self.ensure_one()
+        attachment = self.task_id.source_pdf_attachment_id
+        if not attachment or not attachment.exists():
+            raise ValidationError(_("The source supplier invoice PDF is missing."))
+        if attachment.mimetype != "application/pdf":
+            raise ValidationError(_("The source supplier invoice attachment must be a PDF."))
+        if attachment not in self.message_ids.mapped("attachment_ids"):
+            self.message_post(
+                body=_("Source supplier invoice PDF attached."),
+                attachment_ids=[attachment.id],
+            )
+        return attachment
 
 
 class VendorInvoiceStatementLine(models.Model):

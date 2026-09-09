@@ -33,6 +33,7 @@
             <form>
                 <sheet>
                     <group>
+                        <field name="source_pdf_attachment_id" readonly="1"/>
                         <field name="supplier_id"/>
                         <field name="invoice_number"/>
                         <field name="invoice_date"/>
@@ -51,6 +52,7 @@
                     </list>
                     </field>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
