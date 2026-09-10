@@ -25,7 +25,11 @@
                 <field name="invoice_date"/>
                 <field name="supplier_id"/>
                 <field name="currency_id" readonly="state != 'draft'"/>
-                <field name="total_amount"/>
+                <field name="subtotal" sum="Untaxed Amount"/>
+                <field name="total_tax" sum="Tax Amount"/>
+                <field name="total_amount" sum="Total Amount"/>
+                <field name="overall_tax_rate"/>
+                <field name="all_checked"/>
             </list>
         </field>
     </record>
@@ -74,6 +78,11 @@
                             <field name="source_parse_attempt_id" readonly="1"/>
                             <field name="source_pdf_attachment_id" readonly="1"/>
                             <field name="vendor_bill_id" readonly="1"/>
+                            <field name="subtotal" readonly="1"/>
+                            <field name="total_tax" readonly="1"/>
+                            <field name="total_amount" readonly="1"/>
+                            <field name="overall_tax_rate" readonly="1"/>
+                            <field name="all_checked" readonly="state != 'draft'"/>
                         </group>
                     </group>
                     <notebook>
@@ -81,21 +90,32 @@
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list>
                                     <field name="sequence" widget="handle"/>
-                                    <field name="product_id"/>
+                                    <field name="checked"/>
+                                    <field name="product_id"
+                                           domain="[('type', '=', 'service')]"/>
                                     <field name="description"/>
+                                    <field name="order_no"/>
+                                    <field name="order_id"/>
                                     <field name="quantity"/>
                                     <field name="price_unit"/>
                                     <field name="tax_ids" widget="many2many_tags"/>
                                     <field name="tax_rate"/>
-                                    <field name="tax_amount"/>
-                                    <field name="amount"/>
-                                    <field name="total_amount"/>
+                                    <field name="tax_amount" sum="Tax Amount"/>
+                                    <field name="amount" sum="Untaxed Amount"/>
+                                    <field name="total_amount" sum="Total Amount"/>
                                     <field name="reconciliation_clue"/>
                                 </list>
                                 <form string="Statement Line">
                                     <group>
                                         <field name="statement_id" readonly="1"/>
+                                        <field name="checked"
+                                               readonly="parent.state != 'draft'"/>
                                         <field name="product_id"
+                                               domain="[('type', '=', 'service')]"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="order_no"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="order_id"
                                                readonly="parent.state != 'draft'"/>
                                         <field name="quantity"
                                                readonly="parent.state != 'draft'"/>

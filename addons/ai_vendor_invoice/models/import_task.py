@@ -684,8 +684,11 @@ class VendorInvoiceImportTask(models.Model):
             {
                 "statement_id": statement.id,
                 "sequence": index * 10,
+                "checked": line.get("checked", False),
                 "description": line["description"],
                 "product_id": line.get("product_id"),
+                "order_no": line.get("order_no"),
+                "order_id": line.get("order_id"),
                 "quantity": line.get("quantity", 1.0),
                 "price_unit": line.get("price_unit", 0.0),
                 "amount": line["amount"],
@@ -716,9 +719,12 @@ class VendorInvoiceImportTask(models.Model):
                 {
                     "product_id": line.get("product_id"),
                     "description": line.get("description"),
+                    "checked": line.get("checked", False),
                     "quantity": line.get("quantity", 1.0),
                     "price_unit": line.get("unit_price", 0.0),
                     "amount": line.get("line_total_amount", line.get("subtotal", 0.0)),
+                    "order_no": line.get("order_no"),
+                    "order_id": line.get("order_id"),
                     "tax_ids": line.get("tax_ids", []),
                     "tax_raw_text": line.get("tax_raw_text"),
                     "reconciliation_clues": line.get("reconciliation_clues", []),
@@ -742,7 +748,10 @@ class VendorInvoiceImportTask(models.Model):
             "lines": [
                 {
                     "description": line.description,
+                    "checked": line.checked,
                     "product_id": line.product_id.id,
+                    "order_no": line.order_no,
+                    "order_id": line.order_id,
                     "quantity": line.quantity,
                     "price_unit": line.price_unit,
                     "amount": line.amount,

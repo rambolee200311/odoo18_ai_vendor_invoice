@@ -120,6 +120,12 @@ class VendorInvoiceStatement(models.Model):
         store=True,
         readonly=True,
     )
+    all_checked = fields.Boolean(
+        string="All Checked",
+        compute="_compute_all_checked",
+        inverse="_inverse_all_checked",
+        store=True,
+    )
     note = fields.Text(string="Notes")
     vendor_bill_id = fields.Many2one(
         "account.move",
@@ -190,6 +196,19 @@ class VendorInvoiceStatement(models.Model):
             statement.overall_tax_rate = (
                 (total_tax / subtotal) * 100 if subtotal else 0.0
             )
+
+    @api.depends("line_ids.checked")
+    def _compute_all_checked(self):
+        for statement in self:
+            statement.all_checked = bool(statement.line_ids) and all(
+                statement.line_ids.mapped("checked")
+            )
+
+    def _inverse_all_checked(self):
+        for statement in self:
+            if statement.state != "draft":
+                raise ValidationError(_("Only draft Statements can change line checks."))
+            statement.line_ids.write({"checked": statement.all_checked})
 
     @staticmethod
     def _normalize_invoice_number(value):
@@ -356,8 +375,15 @@ class VendorInvoiceStatementLine(models.Model):
         index=True,
     )
     sequence = fields.Integer(required=True, default=10)
+    checked = fields.Boolean(string="Checked", default=False)
     description = fields.Text(required=True)
-    product_id = fields.Many2one("product.product", string="Product")
+    product_id = fields.Many2one(
+        "product.product",
+        string="Product",
+        domain=[("type", "=", "service")],
+    )
+    order_no = fields.Char(string="Transport Order No.")
+    order_id = fields.Char(string="Transport Order ID")
     quantity = fields.Float(default=1.0)
     price_unit = fields.Monetary(currency_field="currency_id")
     amount = fields.Monetary(required=True, currency_field="currency_id")

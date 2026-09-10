@@ -381,6 +381,74 @@ class TestImportTaskModel(TransactionCase):
         self.assertIn("source_pdf_attachment_id", view.arch)
         self.assertIn("<chatter", view.arch)
 
+    def test_statement_totals_checks_transport_fields_and_service_domain(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create(
+            {
+                "task_id": task.id,
+                "sequence": 1,
+                "provider_config_id": task.selected_provider_config_id.id,
+                "status": "success",
+            }
+        )
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {
+                "invoice_number": "INV-CC08",
+                "lines": [
+                    {
+                        "description": "Freight",
+                        "amount": 100.0,
+                        "tax_rate": 21.0,
+                        "order_no": "ORDER-001",
+                        "order_id": "transport-001",
+                    },
+                    {
+                        "description": "Handling",
+                        "amount": 50.0,
+                        "tax_rate": 0.0,
+                        "order_no": "ORDER-002",
+                        "order_id": "transport-002",
+                    },
+                ],
+            },
+        )
+        self.assertEqual(statement.subtotal, 150.0)
+        self.assertEqual(statement.total_tax, 21.0)
+        self.assertEqual(statement.total_amount, 171.0)
+        self.assertAlmostEqual(statement.overall_tax_rate, 14.0)
+        self.assertFalse(statement.all_checked)
+        self.assertEqual(statement.line_ids[0].order_no, "ORDER-001")
+        self.assertEqual(statement.line_ids[0].order_id, "transport-001")
+
+        statement.write({"all_checked": True})
+        self.assertTrue(all(statement.line_ids.mapped("checked")))
+        self.assertTrue(statement.all_checked)
+        statement.line_ids[0].write({"checked": False})
+        self.assertFalse(statement.all_checked)
+
+        statement.write({"all_checked": False})
+        self.assertFalse(any(statement.line_ids.mapped("checked")))
+
+        form_view = self.env.ref("ai_vendor_invoice.view_vendor_invoice_statement_form")
+        list_view = self.env.ref("ai_vendor_invoice.view_vendor_invoice_statement_tree")
+        self.assertIn("type", form_view.arch)
+        for field_name in ("checked", "order_no", "order_id", "amount", "tax_amount"):
+            self.assertIn(field_name, form_view.arch)
+        for field_name in (
+            "supplier_id",
+            "subtotal",
+            "total_tax",
+            "total_amount",
+            "overall_tax_rate",
+            "all_checked",
+        ):
+            self.assertIn(field_name, list_view.arch)
+
     def test_statement_confirmation_projects_human_review_result(self):
         admin = self.env.ref("base.user_admin")
         admin.write({
