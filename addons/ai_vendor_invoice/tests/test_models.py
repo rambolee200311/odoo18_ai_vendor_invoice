@@ -103,7 +103,7 @@ class TestImportTaskModel(TransactionCase):
                 "selected_provider_config_id": provider.id,
             })
 
-    def test_cancelled_statement_releases_business_key(self):
+    def test_statement_cancellation_is_not_a_new_lifecycle_transition(self):
         admin = self.env.ref("base.user_admin")
         admin.write({
             "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
@@ -148,12 +148,11 @@ class TestImportTaskModel(TransactionCase):
         with self.assertRaises(ValidationError):
             second.action_create_statement_from_attempt(second_attempt.id, payload)
 
-        first.action_cancel_statement()
-        second_statement = second.action_create_statement_from_attempt(
-            second_attempt.id, payload
-        )
-        self.assertEqual(first_statement.state, "cancelled")
-        self.assertEqual(second_statement.invoice_number, "CC06-001")
+        with self.assertRaises(ValidationError):
+            first.action_cancel_statement()
+        with self.assertRaises(ValidationError):
+            second.action_create_statement_from_attempt(second_attempt.id, payload)
+        self.assertEqual(first_statement.state, "draft")
 
     def test_prefilled_statement_matches_supplier_case_insensitively(self):
         partner = self.env["res.partner"].create({
@@ -341,17 +340,24 @@ class TestImportTaskModel(TransactionCase):
         })
         statement = task.action_create_statement_from_attempt(
             attempt.id,
-            {"invoice_number": "INV-TOTALS", "lines": [{
+            {
+                "invoice_number": "INV-TOTALS",
+                "supplier_id": self.env.ref("base.res_partner_1").id,
+                "currency_id": self.env.company.currency_id.id,
+                "lines": [{
                 "description": "Freight",
                 "amount": 100.0,
                 "tax_rate": 10.0,
-            }]},
+                }],
+            },
         )
         self.assertEqual(statement.subtotal, 100.0)
         self.assertEqual(statement.total_tax, 10.0)
         self.assertEqual(statement.total_amount, 110.0)
         self.assertEqual(statement.overall_tax_rate, 10.0)
-        task.action_cancel_statement()
+        task.state = "parsed"
+        statement.line_ids.write({"checked": True})
+        task.action_confirm_statement()
         with self.assertRaises(ValidationError):
             statement.line_ids.write({"amount": 50.0})
 
@@ -464,6 +470,7 @@ class TestImportTaskModel(TransactionCase):
             }
         )
         task.current_parse_attempt_id = attempt.id
+        task.state = "parsed"
         task.action_confirm_statement({
             "header": {
                 "supplier_id": self.env.ref("base.res_partner_1").id,
@@ -479,10 +486,11 @@ class TestImportTaskModel(TransactionCase):
                 "unit_price": "10.0",
                 "subtotal": "10.0",
                 "tax_ids": [],
+                "checked": True,
                 "line_total_amount": "10.0",
             }],
         })
-        self.assertEqual(task.state, "awaiting_review")
+        self.assertEqual(task.state, "parsed")
         self.assertEqual(task.statement_id.state, "confirmed")
         self.assertEqual(task.human_review_result["header"]["invoice_number"], "INV-002")
         self.assertEqual(task.human_review_result["header"]["supplier_id"],
@@ -514,10 +522,54 @@ class TestImportTaskModel(TransactionCase):
         )
         with self.assertRaises(AccessError):
             statement.write({"state": "confirmed"})
-        task.action_cancel_statement()
-        self.assertEqual(statement.state, "cancelled")
         with self.assertRaises(ValidationError):
-            task.action_cancel_statement()
+            task.action_unconfirm_statement()
+
+    def test_statement_review_checks_confirm_unconfirm_and_invalidation(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = self._make_task().with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": 1,
+            "provider_config_id": task.selected_provider_config_id.id,
+            "status": "success",
+        })
+        task.current_parse_attempt_id = attempt.id
+        task.state = "parsed"
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {
+                "supplier_id": self.env.ref("base.res_partner_1").id,
+                "currency_id": self.env.company.currency_id.id,
+                "invoice_number": "INV-CC09",
+                "lines": [{"description": "Freight", "amount": 10.0}],
+            },
+        )
+        line = statement.line_ids
+        with self.assertRaises(ValidationError):
+            task.action_confirm_statement()
+        line.write({"checked": True})
+        task.action_confirm_statement()
+        self.assertEqual(statement.state, "confirmed")
+        self.assertEqual(task.state, "parsed")
+        line_id = line.id
+        task.action_unconfirm_statement()
+        self.assertEqual(statement.state, "draft")
+        self.assertEqual(statement.line_ids.id, line_id)
+        self.assertTrue(statement.line_ids.checked)
+        line.write({"amount": 11.0})
+        self.assertFalse(statement.line_ids.checked)
+        with self.assertRaises(ValidationError):
+            task.action_confirm_statement()
+
+    def test_parsed_task_cannot_be_cancelled(self):
+        task = self._make_task()
+        task.state = "parsed"
+        with self.assertRaises(ValidationError):
+            task.action_cancel_task()
 
     def test_statement_projection_rejects_inconsistent_result(self):
         admin = self.env.ref("base.user_admin")
@@ -534,6 +586,7 @@ class TestImportTaskModel(TransactionCase):
             }
         )
         task.current_parse_attempt_id = attempt.id
+        task.state = "parsed"
         task.action_confirm_statement({
             "header": {
                 "supplier_id": self.env.ref("base.res_partner_1").id,
@@ -543,7 +596,15 @@ class TestImportTaskModel(TransactionCase):
                 "total_amount": "10.0",
                 "total_tax": "0.0",
             },
-            "lines": [],
+            "lines": [{
+                "description": "Freight",
+                "quantity": "1",
+                "unit_price": "10.0",
+                "subtotal": "10.0",
+                "tax_ids": [],
+                "checked": True,
+                "line_total_amount": "10.0",
+            }],
         })
         from ..services.statement_projection import assert_projection_consistent
 

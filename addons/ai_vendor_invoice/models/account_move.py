@@ -15,6 +15,21 @@ class AccountMove(models.Model):
         copy=False,
     )
 
+    def button_cancel(self):
+        result = super().button_cancel()
+        for move in self:
+            statement = move.vendor_invoice_statement_id
+            if statement and statement.vendor_bill_id == move:
+                statement._aggregate_write({"vendor_bill_id": False})
+                self.env["vendor.invoice.import.log"].create({
+                    "task_id": statement.task_id.id,
+                    "parse_attempt_id": statement.source_parse_attempt_id.id,
+                    "action": "vendor_bill_cancelled",
+                    "snapshot_delta": "Current Vendor Bill %s cancelled."
+                    % move.display_name,
+                })
+        return result
+
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"

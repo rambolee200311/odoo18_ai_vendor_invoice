@@ -161,7 +161,7 @@ def _publish_attempt_running(env, attempt):
 def start_parse(env, task_id, provider_config_id, synchronous=False):
     task = env["wd.lock.service"].lock_task(task_id)
     task.ensure_one()
-    if task.state not in ("to_parse", "awaiting_review", "error"):
+    if task.state not in ("to_parse", "error", "awaiting_review"):
         raise ValueError("Task cannot start an AI parse in its current state.")
     active_attempt = env["vendor.invoice.import.parse.attempt"].search(
         [
@@ -188,7 +188,6 @@ def start_parse(env, task_id, provider_config_id, synchronous=False):
         "current_parse_attempt_id": attempt.id,
         "state": "parsing",
         "enter_parsing_datetime": fields.Datetime.now(),
-        "human_reviewed": False,
     })
     _audit(env, task, attempt, "ai_re_run" if attempt.sequence > 1 else "ai_parse",
            "Queued parse attempt %s" % attempt.sequence)
@@ -328,7 +327,7 @@ def run_parse_attempt(env, task_id, attempt_id):
     if input_mode == "native_pdf":
         task._create_prefilled_statement_from_canonical(attempt, canonical)
     task.write({"state": "error" if canonical.get("is_multi_invoice")
-                else "awaiting_review"})
+                else "parsed"})
     _audit(env, task, attempt, "ai_parse", "AI parse completed successfully.")
     observability_service.finalize_observability(attempt)
     return True

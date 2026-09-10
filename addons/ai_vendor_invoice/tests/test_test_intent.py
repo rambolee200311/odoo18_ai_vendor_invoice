@@ -532,7 +532,7 @@ class TestClosurePipeline(TransactionCase):
         provider_input = adapter.parse_pdf.call_args.args[0]
         self.assertEqual(provider_input["type"], "pages")
         self.assertEqual(len(provider_input["images"]), 2)
-        self.assertEqual(task.state, "awaiting_review")
+        self.assertEqual(task.state, "parsed")
         self.assertFalse(hasattr(task, "page_images"))
         self.assertFalse(hasattr(attempt, "page_images"))
         self.assertTrue(attempt.mapping_result is not None)

@@ -111,35 +111,59 @@ class TestTimeoutService(TransactionCase):
 
 class TestBillCreatorGuards(TransactionCase):
 
-    def test_creates_draft_and_copies_source_attachment(self):
+    def _bill_task(self, source_name):
         product = self.env["product.product"].search([], limit=1)
-        self.assertTrue(product)
         self.env["wd.system.config"].get_config().write({
             "default_product_id": product.id,
         })
-        partner = self.env["res.partner"].create({"name": "Intent-3 supplier"})
         source = self.env["ir.attachment"].create({
-            "name": "source.pdf",
+            "name": source_name,
             "datas": base64.b64encode(b"pdf"),
             "res_model": "vendor.invoice.import.task",
         })
         provider = self.env["wd.ai.provider.config"].create({
-            "name": "Bill provider",
+            "name": "Bill provider %s" % source_name,
             "api_base_url": "https://example.invalid",
             "model_name": "test",
         })
         task = self.env["vendor.invoice.import.task"].create({
             "source_pdf_attachment_id": source.id,
             "selected_provider_config_id": provider.id,
-            "state": "awaiting_review",
-            "human_reviewed": True,
-            "human_review_result": _review(),
-            "statement_required": False,
+            "state": "parsed",
         })
-        review = dict(task.human_review_result)
-        review["header"] = dict(review["header"], supplier_id=partner.id,
-                                currency_id=self.env.company.currency_id.id)
-        task.write({"human_review_result": review})
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
+        })
+        task = task.with_user(admin)
+        attempt = self.env["vendor.invoice.import.parse.attempt"].create({
+            "task_id": task.id,
+            "sequence": 1,
+            "provider_config_id": provider.id,
+            "status": "success",
+        })
+        task.current_parse_attempt_id = attempt.id
+        tax = self.env["account.tax"].search([], limit=1)
+        statement = task.action_create_statement_from_attempt(
+            attempt.id,
+            {
+                "invoice_number": "INV-001",
+                "invoice_date": "2026-08-21",
+                "supplier_id": 1,
+                "currency_id": 1,
+                "lines": [{
+                    "description": "Consulting",
+                    "amount": 10.0,
+                    "tax_ids": [tax.id] if tax else [],
+                }],
+            },
+        )
+        statement.line_ids.write({"checked": True})
+        task.action_confirm_statement()
+        return task, source
+
+    def test_creates_draft_and_copies_source_attachment(self):
+        task, source = self._bill_task("source.pdf")
 
         bill = bill_creator.create_vendor_bill(self.env, task.id)
         copied = self.env["ir.attachment"].search([
@@ -148,7 +172,9 @@ class TestBillCreatorGuards(TransactionCase):
         ])
         self.assertEqual(bill.move_type, "in_invoice")
         self.assertEqual(bill.company_id, task.company_id)
-        self.assertEqual(task.vendor_bill_id, bill)
+        self.assertEqual(task.statement_id.vendor_bill_id, bill)
+        self.assertEqual(task.state, "parsed")
+        self.assertEqual(task.statement_id.state, "confirmed")
         self.assertTrue(copied)
         self.assertEqual(source.res_id, task.id)
         with self.assertRaises(ValidationError):
@@ -159,36 +185,7 @@ class TestBillCreatorGuards(TransactionCase):
         )
 
     def test_bill_and_task_roll_back_when_attachment_copy_fails(self):
-        product = self.env["product.product"].search([], limit=1)
-        self.env["wd.system.config"].get_config().write({
-            "default_product_id": product.id,
-        })
-        partner = self.env["res.partner"].search([], limit=1)
-        source = self.env["ir.attachment"].create({
-            "name": "rollback.pdf",
-            "datas": base64.b64encode(b"pdf"),
-            "res_model": "vendor.invoice.import.task",
-        })
-        provider = self.env["wd.ai.provider.config"].create({
-            "name": "Rollback provider",
-            "api_base_url": "https://example.invalid",
-            "model_name": "test",
-        })
-        task = self.env["vendor.invoice.import.task"].create({
-            "source_pdf_attachment_id": source.id,
-            "selected_provider_config_id": provider.id,
-            "state": "awaiting_review",
-            "human_reviewed": True,
-            "human_review_result": _review(),
-            "statement_required": False,
-        })
-        review = dict(task.human_review_result)
-        review["header"] = dict(
-            review["header"],
-            supplier_id=partner.id,
-            currency_id=self.env.company.currency_id.id,
-        )
-        task.write({"human_review_result": review})
+        task, source = self._bill_task("rollback.pdf")
 
         with patch.object(type(source), "copy", side_effect=RuntimeError("copy failed")):
             with self.assertRaises(RuntimeError):

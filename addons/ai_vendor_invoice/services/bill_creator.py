@@ -86,28 +86,30 @@ def _audit(env, task, action, summary):
 def _create_locked(env, task):
     # The task carries the authoritative company for asynchronous workers.
     env = task.env
-    if task.state != "awaiting_review":
+    if task.state != "parsed":
         raise ValidationError(
-            _("A bill can only be created for a task awaiting review.")
+            _("A bill can only be created for a parsed Task.")
         )
-    if not task.human_reviewed:
-        raise ValidationError(_("The task must be marked as human reviewed."))
     review_result = task.human_review_result
     if not review_result:
         raise ValidationError(_("A non-empty human review result is required."))
-    if task.vendor_bill_id:
-        raise ValidationError(_("A bill has already been generated for this task."))
-
-    if task.statement_required and not task.statement_id:
+    if not task.statement_id:
         raise ValidationError(_("A Statement is required before creating a bill."))
-    if task.statement_id:
-        if task.statement_id.state != "confirmed":
-            raise ValidationError(
-                _("A Statement must be confirmed before creating a bill.")
-            )
-        from .statement_projection import assert_projection_consistent
+    if task.statement_id.state != "confirmed":
+        raise ValidationError(
+            _("A Statement must be confirmed before creating a bill.")
+        )
+    if task.statement_id.vendor_bill_id:
+        raise ValidationError(_("A bill is already linked to this Statement."))
+    if not task.statement_id.line_ids or not all(
+        task.statement_id.line_ids.mapped("checked")
+    ):
+        raise ValidationError(
+            _("Every current Statement Line must be checked before creating a bill.")
+        )
+    from .statement_projection import assert_projection_consistent
 
-        assert_projection_consistent(task.statement_id, review_result)
+    assert_projection_consistent(task.statement_id, review_result)
     validation_service.pre_check_integrity(review_result)
     config = env["wd.system.config"].get_config()
     warnings = validation_service.check_amount_balance(
@@ -128,16 +130,11 @@ def _create_locked(env, task):
         "res_id": bill.id,
         "public": False,
     })
-    task.write({
-        "vendor_bill_id": bill.id,
-        "state": "bill_generated",
-    })
     task.statement_id._aggregate_write({
         "vendor_bill_id": bill.id,
-        "state": "bill_created",
     })
     task._log_statement_change(
-        "statement_bill_created",
+        "vendor_bill_created",
         task.statement_id.source_parse_attempt_id,
         "Draft vendor bill %s linked to Statement." % bill.display_name,
     )
@@ -165,16 +162,15 @@ def confirm_review_and_create_bill(env, task_id, review_payload):
         task = env["wd.lock.service"].lock_task(task_id)
         task.ensure_one()
         task = task.with_company(task.company_id)
-        if task.state != "awaiting_review":
+        if task.state != "parsed":
             raise ValidationError(
-                _("Only an invoice awaiting review can be confirmed.")
+                _("Only a parsed invoice can be confirmed.")
             )
         if task.statement_id:
             task.action_confirm_statement(review_payload)
         else:
             task.write({
                 "human_review_result": review_payload,
-                "human_reviewed": True,
             })
         _audit(env, task, "human_modify", "Human review confirmed.")
         return _create_locked(env, task)

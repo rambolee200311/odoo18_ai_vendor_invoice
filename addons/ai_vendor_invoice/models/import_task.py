@@ -54,6 +54,7 @@ class VendorInvoiceImportTask(models.Model):
         selection=[
             ("to_parse", "To Parse"),
             ("parsing", "Parsing"),
+            ("parsed", "Parsed"),
             ("awaiting_review", "Awaiting Review"),
             ("bill_generated", "Bill Generated"),
             ("error", "Error"),
@@ -175,13 +176,14 @@ class VendorInvoiceImportTask(models.Model):
         default=list,
     )
 
-    # ── bill link ─────────────────────────────────────────────────────────────
-    # T-005: one task → at most one vendor bill; ondelete=restrict prevents re-generation
+    # ── bill link compatibility surface ──────────────────────────────────────
     vendor_bill_id = fields.Many2one(
         "account.move",
         string="Vendor Bill",
+        related="statement_id.vendor_bill_id",
         index=True,
-        ondelete="restrict",
+        readonly=True,
+        store=False,
     )
 
     # ── audit ─────────────────────────────────────────────────────────────────
@@ -241,6 +243,7 @@ class VendorInvoiceImportTask(models.Model):
             else:
                 task.parse_display_status = {
                     "to_parse": "ready",
+                    "parsed": "completed",
                     "awaiting_review": "completed",
                     "error": "error",
                     "bill_generated": "bill_generated",
@@ -387,8 +390,10 @@ class VendorInvoiceImportTask(models.Model):
     def action_cancel_task(self):
         """Cancel the Task and invalidate any in-flight synchronous parse."""
         self.ensure_one()
-        if self.state in ("bill_generated", "cancelled"):
-            raise ValidationError(_("This Task cannot be cancelled in its current state."))
+        if self.state not in ("to_parse", "parsing", "error"):
+            raise ValidationError(
+                _("Only an incomplete Parse Task can be cancelled.")
+            )
         attempt = self.current_parse_attempt_id
         if attempt and attempt.status in ("queued", "running"):
             if attempt.queue_job_id and attempt.queue_job_id.state not in (
@@ -438,8 +443,8 @@ class VendorInvoiceImportTask(models.Model):
         self.ensure_one()
         if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
             raise AccessError(_("Only an invoice reviewer can save review data."))
-        if self.state != "awaiting_review":
-            raise ValidationError(_("Only an invoice awaiting review can be reviewed."))
+        if self.state not in ("parsed", "awaiting_review"):
+            raise ValidationError(_("Only a parsed invoice can be reviewed."))
         if not isinstance(review_result, dict) or not review_result:
             raise ValidationError(_("A non-empty review result is required."))
         old_result = self.human_review_result or {}
@@ -451,7 +456,6 @@ class VendorInvoiceImportTask(models.Model):
         )
         self.write({
             "human_review_result": review_result,
-            "human_reviewed": True,
             "review_warnings": warnings,
         })
         self.env["vendor.invoice.import.log"].create({
@@ -620,9 +624,13 @@ class VendorInvoiceImportTask(models.Model):
                 )
         if not self.statement_id:
             raise ValidationError(_("A human Statement is required."))
-        if self.statement_id.state not in ("draft", "confirmed"):
+        if self.statement_id.state != "draft":
+            raise ValidationError(_("Only a draft Statement can be confirmed."))
+        if not self.statement_id.line_ids or not all(
+            line.checked for line in self.statement_id.line_ids
+        ):
             raise ValidationError(
-                _("Only a draft or confirmed Statement can be confirmed.")
+                _("Every Statement line must be checked before confirmation.")
             )
         from ..services.statement_projection import (
             assert_projection_consistent,
@@ -632,11 +640,7 @@ class VendorInvoiceImportTask(models.Model):
         projection = statement_to_human_review_result(self.statement_id)
         assert_projection_consistent(self.statement_id, projection)
         self.statement_id._aggregate_write({"state": "confirmed"})
-        self.write({
-            "human_review_result": projection,
-            "human_reviewed": True,
-            "state": "awaiting_review",
-        })
+        self.write({"human_review_result": projection})
         self._log_statement_change(
             "statement_confirm",
             self.statement_id.source_parse_attempt_id,
@@ -644,24 +648,32 @@ class VendorInvoiceImportTask(models.Model):
         )
         return True
 
-    def action_cancel_statement(self):
-        """Cancel a Statement without changing the Task import lifecycle."""
+    def action_unconfirm_statement(self):
+        """Reopen a confirmed Statement without rebuilding its lines."""
         self.ensure_one()
         self._check_statement_command_access()
         statement = self.statement_id
-        if not statement:
-            raise ValidationError(_("A human Statement is required."))
-        if statement.state not in ("draft", "confirmed"):
-            raise ValidationError(_("Only a draft or confirmed Statement can be cancelled."))
-        if statement.vendor_bill_id or self.vendor_bill_id:
-            raise ValidationError(_("A Statement linked to a Vendor Bill cannot be cancelled."))
-        statement._aggregate_write({"state": "cancelled"})
+        if not statement or statement.state != "confirmed":
+            raise ValidationError(_("Only a confirmed Statement can be unconfirmed."))
+        if self.state != "parsed":
+            raise ValidationError(_("Only a parsed Task can unconfirm its Statement."))
+        if statement.vendor_bill_id:
+            raise ValidationError(
+                _("A Statement linked to a Vendor Bill cannot be unconfirmed.")
+            )
+        statement._aggregate_write({"state": "draft"})
         self._log_statement_change(
-            "statement_cancel",
+            "statement_unconfirm",
             statement.source_parse_attempt_id,
-            "Human Statement cancelled.",
+            "Human Statement reopened for review.",
         )
         return True
+
+    def action_cancel_statement(self):
+        """Statement cancellation is not part of the new review lifecycle."""
+        raise ValidationError(
+            _("Statement cancellation is not available in the current lifecycle.")
+        )
 
     def _check_statement_command_access(self):
         if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):

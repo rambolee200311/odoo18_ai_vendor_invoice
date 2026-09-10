@@ -267,9 +267,35 @@ class VendorInvoiceStatement(models.Model):
             )
         if any(statement.state != "draft" for statement in self):
             raise ValidationError(_("Only draft Statements can be edited."))
+        critical_headers = {
+            "supplier_id",
+            "supplier_name",
+            "invoice_number",
+            "invoice_date",
+            "currency_id",
+        }
+        def business_value(record, field):
+            current = record[field]
+            return current.id if hasattr(current, "id") else str(current or "")
+
+        changed_critical_header = any(
+            field in vals and any(
+                business_value(statement, field)
+                != (
+                    vals[field]
+                    if field.endswith("_id")
+                    else str(vals[field] or "")
+                )
+                for statement in self
+            )
+            for field in critical_headers
+        )
         for statement in self:
             statement._check_business_duplicate(vals, exclude_ids=(statement.id,))
-        return super().write(vals)
+        result = super().write(vals)
+        if changed_critical_header:
+            self.line_ids.write({"checked": False})
+        return result
 
     def unlink(self):
         if any(statement.state != "draft" for statement in self):
@@ -291,9 +317,19 @@ class VendorInvoiceStatement(models.Model):
     def action_confirm_from_statement(self):
         """Confirm the current Statement through its owning Task aggregate."""
         self.ensure_one()
-        return self.task_id.action_confirm_statement(
-            self.task_id._statement_payload_from_record()
-        )
+        return self.task_id.action_confirm_statement()
+
+    def action_unconfirm_from_statement(self):
+        """Reopen a confirmed Statement through its owning Task aggregate."""
+        self.ensure_one()
+        return self.task_id.action_unconfirm_statement()
+
+    def action_create_vendor_bill_from_statement(self):
+        """Create the current Vendor Bill through the Task aggregate."""
+        self.ensure_one()
+        from ..services.bill_creator import create_vendor_bill
+
+        return create_vendor_bill(self.env, self.task_id.id)
 
     def action_open_import_task(self):
         self.ensure_one()
@@ -344,7 +380,7 @@ class VendorInvoiceStatement(models.Model):
         return super().write(vals)
 
     def _aggregate_unlink(self):
-        return super().unlink()
+        return self.sudo().with_context(statement_aggregate_unlink=True).unlink()
 
     def _attach_source_pdf_to_chatter(self):
         """Expose the existing Task PDF through native Statement Chatter."""
@@ -417,6 +453,7 @@ class VendorInvoiceStatementLine(models.Model):
             )
             if not statement or statement.state != "draft":
                 raise ValidationError(_("Only lines of a draft Statement can be created."))
+            vals["checked"] = False
             vals.update(self._normalize_amount_values(vals, statement=statement))
         return super().create(vals_list)
 
@@ -425,16 +462,46 @@ class VendorInvoiceStatementLine(models.Model):
             raise AccessError(_("Only an invoice reviewer can edit Statement lines."))
         if any(line.statement_id.state != "draft" for line in self):
             raise ValidationError(_("Only lines of a draft Statement can be edited."))
+        review_inputs = {
+            "product_id",
+            "description",
+            "order_no",
+            "order_id",
+            "quantity",
+            "price_unit",
+            "amount",
+            "tax_ids",
+            "tax_rate",
+            "tax_amount",
+            "total_amount",
+            "tax_raw_text",
+            "reconciliation_clue",
+            "charge_details",
+        }
+        materially_changed = any(
+            field in vals and any(
+                line[field] != vals[field]
+                for line in self
+            )
+            for field in review_inputs
+        )
         if {"amount", "tax_rate", "tax_amount", "total_amount"} & set(vals):
             if len(self) != 1:
                 raise ValidationError(_("Amount fields must be edited on one line at a time."))
             vals = dict(vals)
             vals.update(self._normalize_amount_values(vals))
-        return super().write(vals)
+        result = super().write(vals)
+        if materially_changed:
+            super(VendorInvoiceStatementLine, self).write({"checked": False})
+        return result
 
     def unlink(self):
         if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
             raise AccessError(_("Only an invoice reviewer can delete Statement lines."))
+        if not self.env.context.get("statement_aggregate_unlink"):
+            raise AccessError(
+                _("Statement lines must be deleted through a Task aggregate command.")
+            )
         if any(line.statement_id.state != "draft" for line in self):
             raise ValidationError(_("Only lines of a draft Statement can be deleted."))
         return super().unlink()

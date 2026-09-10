@@ -659,7 +659,7 @@ class TestObservabilityFailureIsolation(ObservabilityCase):
 
         self.assertTrue(result)
         self.assertEqual(self.attempt.status, "success")
-        self.assertEqual(self.task.state, "awaiting_review")
+        self.assertEqual(self.task.state, "parsed")
         self.assertEqual(self.attempt.observability_status, "partial")
 
     def test_duplicate_worker_does_not_clobber_terminal_attempt(self):

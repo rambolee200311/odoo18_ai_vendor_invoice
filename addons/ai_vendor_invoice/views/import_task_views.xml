@@ -42,11 +42,14 @@
                     <button name="action_confirm_from_statement" type="object"
                             string="Confirm"
                             class="oe_highlight"
-                            invisible="state not in ('draft', 'confirmed')"/>
-                    <button name="action_cancel_statement" type="object"
-                            string="Cancel"
-                            confirm="Cancel this Statement?"
-                            invisible="state not in ('draft', 'confirmed')"/>
+                            invisible="state != 'draft'"/>
+                    <button name="action_unconfirm_from_statement" type="object"
+                            string="Unconfirm"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_create_vendor_bill_from_statement" type="object"
+                            string="Create Bill"
+                            class="oe_highlight"
+                            invisible="state != 'confirmed' or vendor_bill_id"/>
                     <button name="action_open_import_task" type="object"
                             string="Open Import Task"
                             invisible="not task_id"/>
@@ -57,7 +60,7 @@
                             string="Open Vendor Bill"
                             invisible="not vendor_bill_id"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,confirmed,bill_created,cancelled"/>
+                           statusbar_visible="draft,confirmed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -73,7 +76,7 @@
                             <field name="invoice_date" readonly="state != 'draft'"/>
                         </group>
                         <group>
-                            <field name="currency_id"/>
+                            <field name="currency_id" readonly="state != 'draft'"/>
                             <field name="task_id" readonly="1"/>
                             <field name="source_parse_attempt_id" readonly="1"/>
                             <field name="source_pdf_attachment_id" readonly="1"/>
@@ -224,9 +227,9 @@
                 <header>
                     <button name="action_rerun_ai" type="object" string="Run AI"
                             class="oe_highlight"
-                            invisible="state in ('parsing', 'bill_generated', 'cancelled')"/>
+                            invisible="state not in ('to_parse', 'error')"/>
                     <button name="action_cancel_task" type="object" string="Cancel"
-                            invisible="state in ('bill_generated', 'cancelled')"/>
+                            invisible="state not in ('to_parse', 'parsing', 'error')"/>
                     <button name="action_open_statement" type="object"
                             string="Open Statement"
                             class="oe_highlight"
@@ -235,7 +238,7 @@
                             string="Open Source PDF"
                             invisible="not source_pdf_attachment_id"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="to_parse,parsing,awaiting_review,bill_generated,cancelled"/>
+                           statusbar_visible="to_parse,parsing,parsed,error,cancelled"/>
                 </header>
                 <sheet>
                     <group>

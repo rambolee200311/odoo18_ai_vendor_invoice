@@ -88,7 +88,7 @@ class TestFixIntentParse(FixIntentBase):
         with patch.object(VendorInvoiceImportParseAttempt, "action_enqueue_parse"):
             parse_service.start_parse(self.env, task.id, provider.id)
         self.assertEqual(task.human_review_result, original)
-        self.assertFalse(task.human_reviewed)
+        self.assertTrue(task.human_reviewed)
 
 
 class TestFixIntentAdapter(TransactionCase):
@@ -508,5 +508,5 @@ class TestFixIntentReviewWarnings(FixIntentBase):
             }],
         }
         task.action_save_review(review)
-        self.assertTrue(task.human_reviewed)
+        self.assertFalse(task.human_reviewed)
         self.assertEqual(task.review_warnings[0]["code"], "AMOUNT_MISMATCH")
