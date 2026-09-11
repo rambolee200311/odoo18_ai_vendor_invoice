@@ -349,6 +349,14 @@ class VendorInvoiceImportTask(models.Model):
             raise ValidationError(
                 _("The company of an import task cannot be changed after creation.")
             )
+        if "selected_provider_config_id" in vals:
+            raise ValidationError(
+                _("The AI provider of an import task cannot be changed after creation.")
+            )
+        if "synchronous_parse" in vals:
+            raise ValidationError(
+                _("The execution mode of an import task cannot be changed after creation.")
+            )
         if "statement_required" in vals:
             raise ValidationError(_("Statement requirement cannot be changed."))
         return super().write(vals)

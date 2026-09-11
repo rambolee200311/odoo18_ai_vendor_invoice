@@ -371,7 +371,7 @@ class VendorInvoiceStatement(models.Model):
         return self.task_id.action_cancel_statement()
 
     def action_start_ai(self):
-        """Create the single Task and start its first ParseAttempt."""
+        """Open the pre-launch AI configuration wizard."""
         self.ensure_one()
         if not self.env.user.has_group("ai_vendor_invoice.group_ai_invoice_user"):
             raise AccessError(_("Only an AI Invoice User can start AI parsing."))
@@ -379,28 +379,14 @@ class VendorInvoiceStatement(models.Model):
             raise ValidationError(_("This Statement already has an AI Task."))
         if not self.source_pdf_attachment_id:
             raise ValidationError(_("Upload a supplier invoice PDF before starting AI."))
-        provider = self.env["wd.ai.provider.config"].search(
-            [("active", "=", True)], order="sequence, id", limit=1
-        )
-        if not provider:
-            raise ValidationError(_("Configure an active AI provider before starting AI."))
-        task = self.env["vendor.invoice.import.task"].create({
-            "company_id": self.company_id.id,
-            "source_pdf_attachment_id": self.source_pdf_attachment_id.id,
-            "source_pdf_filename": self.source_pdf_filename,
-            "selected_provider_config_id": provider.id,
-            "statement_id": self.id,
-        })
-        super(VendorInvoiceStatement, self).write({"task_id": task.id})
-        from ..services.parse_service import start_parse
-
-        start_parse(
-            self.env,
-            task.id,
-            provider.id,
-            synchronous=task.synchronous_parse,
-        )
-        return self.action_open_import_task()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Start AI"),
+            "res_model": "vendor.invoice.start.ai.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_statement_id": self.id},
+        }
 
     def _check_statement_command_access(self):
         if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):

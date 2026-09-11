@@ -253,11 +253,12 @@
                     <group>
                         <field name="name" readonly="1"/>
                         <field name="source_pdf_upload"
-                               filename="source_pdf_filename"/>
+                               filename="source_pdf_filename"
+                               readonly="1"/>
                         <field name="source_pdf_filename" invisible="1"/>
-                        <field name="source_pdf_attachment_id"/>
-                        <field name="selected_provider_config_id"/>
-                        <field name="synchronous_parse"/>
+                        <field name="source_pdf_attachment_id" readonly="1"/>
+                        <field name="selected_provider_config_id" readonly="1"/>
+                        <field name="synchronous_parse" readonly="1"/>
                         <field name="statement_id" readonly="1"/>
                         <field name="parse_status" readonly="1"/>
                         <field name="parse_error_badge" widget="badge"
@@ -293,6 +294,26 @@
                         </page>
                     </notebook>
                 </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_start_ai_wizard_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.start.ai.wizard.form</field>
+        <field name="model">vendor.invoice.start.ai.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Start AI">
+                <group>
+                    <field name="statement_id"/>
+                    <field name="provider_config_id"/>
+                    <field name="synchronous_parse"/>
+                    <field name="provider_usable" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_start" type="object"
+                            string="Start" class="oe_highlight"
+                            invisible="not provider_usable"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
             </form>
         </field>
     </record>

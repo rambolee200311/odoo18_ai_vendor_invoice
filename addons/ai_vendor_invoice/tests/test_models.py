@@ -6,6 +6,7 @@ Covers: field definitions, DB constraints, immutability guards, schema
 """
 import base64
 import jsonschema
+import uuid
 from unittest.mock import patch
 from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -81,6 +82,13 @@ class TestImportTaskModel(TransactionCase):
         task = self._make_task()
         self.assertTrue(task.synchronous_parse)
 
+    def test_task_execution_configuration_is_immutable(self):
+        task = self._make_task()
+        with self.assertRaises(ValidationError):
+            task.write({"synchronous_parse": False})
+        with self.assertRaises(ValidationError):
+            task.write({"selected_provider_config_id": self._make_provider().id})
+
     def test_task_name_sequence_generated(self):
         task = self._make_task()
         self.assertTrue(task.name, "Task name should be auto-generated")
@@ -101,6 +109,7 @@ class TestImportTaskModel(TransactionCase):
         admin.write({"company_id": self.env.company.id})
         provider = self._make_provider()
         provider.write({"sequence": 0})
+        provider.write({"api_key": "test-key"})
         statement = self.env["vendor.invoice.statement"].with_user(admin).with_company(
             self.env.company
         ).create({
@@ -109,17 +118,28 @@ class TestImportTaskModel(TransactionCase):
             "source_pdf_filename": "direct.pdf",
         })
         self.assertFalse(statement.task_id)
+        wizard_action = statement.action_start_ai()
+        self.assertEqual(wizard_action["res_model"], "vendor.invoice.start.ai.wizard")
+        self.assertFalse(statement.task_id)
+        wizard = self.env["vendor.invoice.start.ai.wizard"].with_user(admin).with_context(
+            **wizard_action["context"]
+        ).create({
+            "statement_id": statement.id,
+            "provider_config_id": provider.id,
+            "synchronous_parse": False,
+        })
         with patch(
             "odoo.addons.ai_vendor_invoice.services.parse_service.start_parse",
             return_value=True,
         ) as start_parse:
-            statement.action_start_ai()
+            wizard.action_start()
         self.assertEqual(statement.task_id.statement_id, statement)
         self.assertEqual(
             statement.task_id.source_pdf_attachment_id,
             statement.source_pdf_attachment_id,
         )
         self.assertEqual(statement.task_id.selected_provider_config_id, provider)
+        self.assertFalse(statement.task_id.synchronous_parse)
         start_parse.assert_called_once()
 
     def test_duplicate_source_pdf_is_rejected(self):
@@ -747,9 +767,13 @@ class TestImportTaskModel(TransactionCase):
 class TestParseAttemptModel(TransactionCase):
     """Tests for vendor.invoice.import.parse.attempt model."""
 
-    def _make_base(self):
+    def _make_base(self, synchronous=True):
         att = self.env["ir.attachment"].create(
-            {"name": "test.pdf", "datas": b"", "res_model": "vendor.invoice.import.task"}
+            {
+                "name": "test-%s.pdf" % uuid.uuid4().hex,
+                "datas": base64.b64encode(uuid.uuid4().bytes),
+                "res_model": "vendor.invoice.import.task",
+            }
         )
         provider = self.env["wd.ai.provider.config"].create(
             {"name": "P", "api_base_url": "https://x.com", "model_name": "m"}
@@ -758,6 +782,7 @@ class TestParseAttemptModel(TransactionCase):
             {
                 "source_pdf_attachment_id": att.id,
                 "selected_provider_config_id": provider.id,
+                "synchronous_parse": synchronous,
             }
         )
         return task, provider
@@ -821,9 +846,15 @@ class TestParseAttemptModel(TransactionCase):
                 provider.id,
                 synchronous=True,
             )
-            task.synchronous_parse = False
-            task.action_rerun_ai()
-            self.assertFalse(start_parse.call_args.kwargs["synchronous"])
+        async_task, async_provider = self._make_base(synchronous=False)
+        with patch.object(parse_service, "start_parse", return_value=True) as start_parse:
+            async_task.action_rerun_ai()
+            start_parse.assert_called_once_with(
+                self.env,
+                async_task.id,
+                async_provider.id,
+                synchronous=False,
+            )
 
     def test_synchronous_parse_uses_recordset_context(self):
         task, provider = self._make_base()
