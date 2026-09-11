@@ -424,11 +424,18 @@ class VendorInvoiceStatement(models.Model):
         )
 
     def action_cancel_statement(self):
-        """Delegate cancellation to the owning Task aggregate."""
+        """Cancel the business Statement without changing its review history."""
         self.ensure_one()
-        if not self.task_id:
-            raise ValidationError(_("Statement cancellation is not available in the current lifecycle."))
-        return self.task_id.action_cancel_statement()
+        self._check_statement_command_access()
+        if self.state != "draft":
+            raise ValidationError(_("Only a draft Statement can be cancelled."))
+        if self.task_id and self.task_id.state in (
+            "to_parse", "parsing", "error", "awaiting_review"
+        ):
+            self.task_id.action_cancel_task()
+        self._aggregate_write({"state": "cancelled"})
+        self.message_post(body=_("Statement cancelled by the user."))
+        return True
 
     def action_start_ai(self):
         """Launch AI from the Statement AI/Task workspace."""

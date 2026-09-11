@@ -176,7 +176,7 @@ class TestImportTaskModel(TransactionCase):
                 "selected_provider_config_id": provider.id,
             })
 
-    def test_statement_cancellation_is_not_a_new_lifecycle_transition(self):
+    def test_statement_cancellation_changes_business_state(self):
         admin = self.env.ref("base.user_admin")
         admin.write({
             "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_reviewer").id)]
@@ -221,11 +221,15 @@ class TestImportTaskModel(TransactionCase):
         with self.assertRaises(ValidationError):
             second.action_create_statement_from_attempt(second_attempt.id, payload)
 
+        self.assertTrue(first_statement.action_cancel_statement())
+        self.assertEqual(first_statement.state, "cancelled")
+        second_statement = second.action_create_statement_from_attempt(
+            second_attempt.id, payload
+        )
+        second_statement._aggregate_write({"state": "confirmed"})
         with self.assertRaises(ValidationError):
-            first.action_cancel_statement()
-        with self.assertRaises(ValidationError):
-            second.action_create_statement_from_attempt(second_attempt.id, payload)
-        self.assertEqual(first_statement.state, "draft")
+            second_statement.action_cancel_statement()
+        self.assertEqual(first_statement.state, "cancelled")
 
     def test_prefilled_statement_matches_supplier_case_insensitively(self):
         partner = self.env["res.partner"].create({

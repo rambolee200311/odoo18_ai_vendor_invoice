@@ -27,6 +27,9 @@ Statement.ai_launch_synchronous_parse
 - Successful launch returns a client reload action and remains on the Statement
   form. It does not redirect to the standalone Task form.
 - Existing supported reruns reuse the original Task/provider/execution mode.
+- Statement cancellation is available only from Draft. Confirmed Statements
+  cannot be cancelled; cancellation moves a Draft Statement to Cancelled and
+  cancels an incomplete owning Task when present.
 - Repeated autosaves of the uploaded PDF reuse the source attachment instead
   of creating a second copy, preserving the original filename.
 - Unsupported, active, parsed, or cancelled Task states reject duplicate Run AI.

@@ -50,17 +50,14 @@
                             string="Create Bill"
                             class="oe_highlight"
                             invisible="state != 'confirmed' or vendor_bill_id"/>
-                    <button name="action_open_import_task" type="object"
-                            string="Open Import Task"
-                            invisible="not task_id"/>
-                    <button name="action_open_source_pdf" type="object"
-                            string="Open Source PDF"
-                            invisible="not source_pdf_attachment_id"/>
+                    <button name="action_cancel_statement" type="object"
+                            string="Cancel"
+                            invisible="state != 'draft'"/>
                     <button name="action_open_vendor_bill" type="object"
                             string="Open Vendor Bill"
                             invisible="not vendor_bill_id"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,confirmed"/>
+                           statusbar_visible="draft,confirmed,cancelled,bill_created"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -74,23 +71,17 @@
                             <field name="supplier_id" readonly="state != 'draft'"/>
                             <field name="invoice_number" readonly="state != 'draft'"/>
                             <field name="invoice_date" readonly="state != 'draft'"/>
-                        </group>
-                        <group>
-                            <field name="company_id" readonly="1"/>
                             <field name="currency_id" readonly="state != 'draft'"/>
-                            <field name="task_id" readonly="1"/>
-                            <field name="source_parse_attempt_id" readonly="1"/>
-                            <field name="source_pdf_upload"
-                                   filename="source_pdf_filename"
-                                   readonly="task_id or state != 'draft'"/>
-                            <field name="source_pdf_filename"
-                                   readonly="task_id or state != 'draft'"/>
-                            <field name="source_pdf_attachment_id" readonly="1"/>
-                            <field name="vendor_bill_id" readonly="1"/>
                             <field name="subtotal" readonly="1"/>
                             <field name="total_tax" readonly="1"/>
                             <field name="total_amount" readonly="1"/>
                             <field name="overall_tax_rate" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                            <field name="task_id" readonly="1"/>
+                            <field name="source_parse_attempt_id" readonly="1"/>
+                            <field name="vendor_bill_id" readonly="1"/>
                             <field name="all_checked" readonly="state != 'draft'"/>
                         </group>
                     </group>
