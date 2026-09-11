@@ -346,7 +346,7 @@ class VendorInvoiceStatement(models.Model):
             raw = base64.b64decode(upload)
             if not raw:
                 raise ValidationError(_("The supplier invoice PDF cannot be empty."))
-            filename = vals.get("source_pdf_filename") or "vendor_invoice.pdf"
+            filename = vals.get("source_pdf_filename")
         if any(
             field in vals
             for field in ("task_id", "company_id", "source_parse_attempt_id")
@@ -380,16 +380,30 @@ class VendorInvoiceStatement(models.Model):
         result = super().write(vals)
         if upload:
             for statement in self:
-                attachment = self.env["ir.attachment"].create({
-                    "name": filename,
-                    "datas": upload,
-                    "mimetype": "application/pdf",
-                    "res_model": statement._name,
-                    "res_id": statement.id,
-                })
+                filename_for_statement = (
+                    filename
+                    or statement.source_pdf_filename
+                    or statement.source_pdf_attachment_id.name
+                    or "vendor_invoice.pdf"
+                )
+                current_attachment = statement.source_pdf_attachment_id
+                if current_attachment and current_attachment.raw == raw:
+                    attachment = current_attachment
+                else:
+                    attachment = self.env["ir.attachment"].create({
+                        "name": filename_for_statement,
+                        "datas": upload,
+                        "mimetype": "application/pdf",
+                        "res_model": statement._name,
+                        "res_id": statement.id,
+                    })
+                    super(VendorInvoiceStatement, statement).write({
+                        "source_pdf_attachment_id": attachment.id,
+                    })
+                    if current_attachment:
+                        current_attachment.unlink()
                 super(VendorInvoiceStatement, statement).write({
-                    "source_pdf_attachment_id": attachment.id,
-                    "source_pdf_filename": filename,
+                    "source_pdf_filename": filename_for_statement,
                 })
         if changed_critical_header:
             self.line_ids.write({"checked": False})

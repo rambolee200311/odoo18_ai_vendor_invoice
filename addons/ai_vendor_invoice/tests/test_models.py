@@ -138,6 +138,25 @@ class TestImportTaskModel(TransactionCase):
         self.assertEqual(action, {"type": "ir.actions.client", "tag": "reload"})
         start_parse.assert_called_once()
 
+    def test_statement_pdf_resave_reuses_attachment_and_filename(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_ai_invoice_user").id)]
+        })
+        payload = base64.b64encode(b"%PDF-1.4 stable source")
+        statement = self.env["vendor.invoice.statement"].with_user(admin).create({
+            "source_pdf_upload": payload,
+            "source_pdf_filename": "supplier-original.pdf",
+        })
+        statement.with_user(admin).write({"source_pdf_upload": payload})
+        attachments = self.env["ir.attachment"].sudo().search([
+            ("res_model", "=", "vendor.invoice.statement"),
+            ("res_id", "=", statement.id),
+        ])
+        self.assertEqual(attachments.ids, statement.source_pdf_attachment_id.ids)
+        self.assertEqual(statement.source_pdf_filename, "supplier-original.pdf")
+        self.assertEqual(statement.source_pdf_attachment_id.name, "supplier-original.pdf")
+
     def test_duplicate_source_pdf_is_rejected(self):
         source = self.env["ir.attachment"].create({
             "name": "duplicate.pdf",

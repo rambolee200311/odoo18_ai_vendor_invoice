@@ -169,7 +169,7 @@
                             <button name="action_start_ai" type="object"
                                     string="Run AI"
                                     class="oe_highlight"
-                                    invisible="not id or not source_pdf_attachment_id or task_id or state != 'draft'"/>
+                                    invisible="not id or not source_pdf_attachment_id or state != 'draft' or (task_id and ai_task_state not in ['to_parse', 'error', 'awaiting_review'])"/>
                             <button name="action_open_import_task" type="object"
                                     string="Technical Details"
                                     invisible="not task_id"/>
@@ -182,7 +182,7 @@
                             <button name="action_apply_ai_candidate_from_statement"
                                     type="object"
                                     string="Apply AI Candidate"
-                                    invisible="not task_id or task_id.state != 'parsed'"/>
+                                    invisible="not task_id or ai_task_state != 'parsed'"/>
                         </page>
                         <page string="Additional Information">
                             <group col="2">

@@ -27,6 +27,8 @@ Statement.ai_launch_synchronous_parse
 - Successful launch returns a client reload action and remains on the Statement
   form. It does not redirect to the standalone Task form.
 - Existing supported reruns reuse the original Task/provider/execution mode.
+- Repeated autosaves of the uploaded PDF reuse the source attachment instead
+  of creating a second copy, preserving the original filename.
 - Unsupported, active, parsed, or cancelled Task states reject duplicate Run AI.
 - Task execution provider and mode are read-only after creation.
 - Inline Statement workspace shows business-friendly execution state, current
@@ -49,6 +51,10 @@ CC-10 and CC-11 authority remains unchanged:
 
 The existing Task technical form remains available only through explicit
 technical navigation. It is not the normal first-launch workbench.
+
+The Apply AI Candidate action is visible for parsed Tasks from the embedded
+workspace; this keeps successful synchronous and asynchronous parses usable
+without requiring navigation to the technical Task form.
 
 ## Migration and rollback
 
