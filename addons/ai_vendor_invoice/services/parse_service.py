@@ -328,6 +328,8 @@ def run_parse_attempt(env, task_id, attempt_id):
         task._create_prefilled_statement_from_canonical(attempt, canonical)
     task.write({"state": "error" if canonical.get("is_multi_invoice")
                 else "parsed"})
+    if task.statement_id and not canonical.get("is_multi_invoice"):
+        task.action_apply_ai_candidate_from_statement()
     _audit(env, task, attempt, "ai_parse", "AI parse completed successfully.")
     observability_service.finalize_observability(attempt)
     return True
