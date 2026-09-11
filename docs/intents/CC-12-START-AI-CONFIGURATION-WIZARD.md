@@ -3,14 +3,29 @@
 ## 1. Status
 
 ```text
-APPROVED FOR FREEZE AND IMPLEMENTATION
-IMPLEMENTATION_AUTHORIZED = YES
+SUPERSEDED - CANCELLED AFTER MANUAL UAT
+IMPLEMENTATION_AUTHORIZED = NO
 ```
 
-The Open Questions in Section 9 (OQ-12.1 through OQ-12.7) have been frozen by
-the user. This contract authorizes implementation only within the scope and
-decisions defined below. It does not authorize unrelated coding, schema,
-migration, test, or UI changes.
+CC-12 is cancelled after manual UAT. Its Wizard interaction model is no longer
+the product direction and MUST NOT receive further implementation work. The
+replacement interaction contract is CC-13.
+
+The implementation that was previously committed under CC-12 remains historical
+code until CC-13 defines its disposition. No new CC-12 changes are authorized.
+
+## 1.1 Manual UAT disposition
+
+```text
+UAT-01  Uploaded PDF filename is incorrect.
+         Disposition: CC-11 defect; fix separately.
+
+UAT-02  Unsaved Statement does not expose Run AI.
+         Disposition: accepted Odoo lifecycle; save before AI execution.
+
+UAT-03  Wizard launch redirects to standalone Task form.
+         Disposition: rejected UX; replace with Statement AI Task Workspace.
+```
 
 ## 2. Context
 

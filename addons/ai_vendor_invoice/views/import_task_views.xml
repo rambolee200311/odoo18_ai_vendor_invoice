@@ -50,10 +50,6 @@
                             string="Create Bill"
                             class="oe_highlight"
                             invisible="state != 'confirmed' or vendor_bill_id"/>
-                    <button name="action_start_ai" type="object"
-                            string="Start AI"
-                            class="oe_highlight"
-                            invisible="task_id or not source_pdf_attachment_id"/>
                     <button name="action_open_import_task" type="object"
                             string="Open Import Task"
                             invisible="not task_id"/>
@@ -158,6 +154,35 @@
                                     </group>
                                 </form>
                             </field>
+                        </page>
+                        <page string="AI / Task">
+                            <group>
+                                <field name="source_pdf_attachment_id" readonly="1"/>
+                                <field name="source_pdf_filename" readonly="1"/>
+                                <field name="ai_launch_provider_config_id"
+                                       readonly="task_id or state != 'draft'"/>
+                                <field name="ai_launch_synchronous_parse"
+                                       readonly="task_id or state != 'draft'"/>
+                                <field name="task_id" readonly="1"/>
+                                <field name="source_parse_attempt_id" readonly="1"/>
+                            </group>
+                            <button name="action_start_ai" type="object"
+                                    string="Run AI"
+                                    class="oe_highlight"
+                                    invisible="not id or not source_pdf_attachment_id or task_id or state != 'draft'"/>
+                            <button name="action_open_import_task" type="object"
+                                    string="Technical Details"
+                                    invisible="not task_id"/>
+                            <group invisible="not task_id">
+                                <field name="ai_task_state" readonly="1"/>
+                                <field name="ai_task_parse_status" readonly="1"/>
+                                <field name="ai_task_error_summary" readonly="1"/>
+                                <field name="ai_task_attempt_id" readonly="1"/>
+                            </group>
+                            <button name="action_apply_ai_candidate_from_statement"
+                                    type="object"
+                                    string="Apply AI Candidate"
+                                    invisible="not task_id or task_id.state != 'parsed'"/>
                         </page>
                         <page string="Additional Information">
                             <group col="2">
@@ -294,26 +319,6 @@
                         </page>
                     </notebook>
                 </sheet>
-            </form>
-        </field>
-    </record>
-    <record id="view_vendor_invoice_start_ai_wizard_form" model="ir.ui.view">
-        <field name="name">vendor.invoice.start.ai.wizard.form</field>
-        <field name="model">vendor.invoice.start.ai.wizard</field>
-        <field name="arch" type="xml">
-            <form string="Start AI">
-                <group>
-                    <field name="statement_id"/>
-                    <field name="provider_config_id"/>
-                    <field name="synchronous_parse"/>
-                    <field name="provider_usable" invisible="1"/>
-                </group>
-                <footer>
-                    <button name="action_start" type="object"
-                            string="Start" class="oe_highlight"
-                            invisible="not provider_usable"/>
-                    <button string="Cancel" special="cancel"/>
-                </footer>
             </form>
         </field>
     </record>

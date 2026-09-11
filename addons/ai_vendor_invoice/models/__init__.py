@@ -15,5 +15,4 @@ from . import (
     lock_service,
     statement,
     account_move,
-    start_ai_wizard,
 )

@@ -71,6 +71,45 @@ class VendorInvoiceStatement(models.Model):
         string="Upload PDF",
         help="Upload the supplier invoice PDF before starting AI.",
     )
+    ai_launch_provider_config_id = fields.Many2one(
+        "wd.ai.provider.config",
+        string="AI Provider",
+        domain="[('active', '=', True)]",
+        help="Provider used for the next AI execution before a Task exists.",
+    )
+    ai_launch_synchronous_parse = fields.Boolean(
+        string="Synchronous Parse",
+        default=False,
+        help="Run the next AI execution in this request instead of using the queue.",
+    )
+    ai_task_state = fields.Selection(
+        related="task_id.state",
+        string="AI State",
+        readonly=True,
+    )
+    ai_task_parse_status = fields.Selection(
+        selection=[
+            ("not_submitted", "Not Submitted"),
+            ("queued", "Queued"),
+            ("running", "Running"),
+            ("completed", "Completed"),
+            ("failed", "Failed"),
+            ("superseded", "Superseded"),
+        ],
+        related="task_id.parse_status",
+        string="AI Status",
+        readonly=True,
+    )
+    ai_task_error_summary = fields.Char(
+        related="task_id.parse_error_summary",
+        string="AI Error",
+        readonly=True,
+    )
+    ai_task_attempt_id = fields.Many2one(
+        related="task_id.current_parse_attempt_id",
+        string="Current Attempt",
+        readonly=True,
+    )
     review_warnings = fields.Json(
         string="Review Warnings",
         default=list,
@@ -371,22 +410,41 @@ class VendorInvoiceStatement(models.Model):
         return self.task_id.action_cancel_statement()
 
     def action_start_ai(self):
-        """Open the pre-launch AI configuration wizard."""
+        """Launch AI from the Statement AI/Task workspace."""
         self.ensure_one()
         if not self.env.user.has_group("ai_vendor_invoice.group_ai_invoice_user"):
             raise AccessError(_("Only an AI Invoice User can start AI parsing."))
-        if self.task_id:
-            raise ValidationError(_("This Statement already has an AI Task."))
-        if not self.source_pdf_attachment_id:
+        statement = self.env["wd.lock.service"].lock_statement(self.id)
+        statement.ensure_one()
+        if statement.task_id:
+            if statement.task_id.state in ("to_parse", "error", "awaiting_review"):
+                statement.task_id.action_rerun_ai()
+                return {"type": "ir.actions.client", "tag": "reload"}
+            raise ValidationError(
+                _("AI cannot be started again from the current Task state.")
+            )
+        if not statement.source_pdf_attachment_id:
             raise ValidationError(_("Upload a supplier invoice PDF before starting AI."))
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Start AI"),
-            "res_model": "vendor.invoice.start.ai.wizard",
-            "view_mode": "form",
-            "target": "new",
-            "context": {"default_statement_id": self.id},
-        }
+        if not statement.ai_launch_provider_config_id:
+            raise ValidationError(_("Select an AI provider before running AI."))
+        task = self.env["vendor.invoice.import.task"].create({
+            "company_id": statement.company_id.id,
+            "source_pdf_attachment_id": statement.source_pdf_attachment_id.id,
+            "source_pdf_filename": statement.source_pdf_filename,
+            "selected_provider_config_id": statement.ai_launch_provider_config_id.id,
+            "synchronous_parse": statement.ai_launch_synchronous_parse,
+            "statement_id": statement.id,
+        })
+        statement._aggregate_write({"task_id": task.id})
+        from ..services.parse_service import start_parse
+
+        start_parse(
+            self.env,
+            task.id,
+            task.selected_provider_config_id.id,
+            synchronous=task.synchronous_parse,
+        )
+        return {"type": "ir.actions.client", "tag": "reload"}
 
     def _check_statement_command_access(self):
         if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):

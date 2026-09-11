@@ -118,21 +118,16 @@ class TestImportTaskModel(TransactionCase):
             "source_pdf_filename": "direct.pdf",
         })
         self.assertFalse(statement.task_id)
-        wizard_action = statement.action_start_ai()
-        self.assertEqual(wizard_action["res_model"], "vendor.invoice.start.ai.wizard")
-        self.assertFalse(statement.task_id)
-        wizard = self.env["vendor.invoice.start.ai.wizard"].with_user(admin).with_context(
-            **wizard_action["context"]
-        ).create({
-            "statement_id": statement.id,
-            "provider_config_id": provider.id,
-            "synchronous_parse": False,
+        self.assertEqual(statement.source_pdf_filename, "direct.pdf")
+        statement.with_user(admin).write({
+            "ai_launch_provider_config_id": provider.id,
+            "ai_launch_synchronous_parse": False,
         })
         with patch(
             "odoo.addons.ai_vendor_invoice.services.parse_service.start_parse",
             return_value=True,
         ) as start_parse:
-            wizard.action_start()
+            action = statement.with_user(admin).action_start_ai()
         self.assertEqual(statement.task_id.statement_id, statement)
         self.assertEqual(
             statement.task_id.source_pdf_attachment_id,
@@ -140,6 +135,7 @@ class TestImportTaskModel(TransactionCase):
         )
         self.assertEqual(statement.task_id.selected_provider_config_id, provider)
         self.assertFalse(statement.task_id.synchronous_parse)
+        self.assertEqual(action, {"type": "ir.actions.client", "tag": "reload"})
         start_parse.assert_called_once()
 
     def test_duplicate_source_pdf_is_rejected(self):
