@@ -275,7 +275,8 @@ class VendorInvoiceImportTask(models.Model):
         uploads = []
         for vals in vals_list:
             upload = vals.pop("source_pdf_upload", None)
-            filename = vals.pop("source_pdf_filename", None) or "vendor_invoice.pdf"
+            requested_filename = vals.pop("source_pdf_filename", None)
+            filename = requested_filename or "vendor_invoice.pdf"
             uploads.append((upload, filename))
             if upload and vals.get("source_pdf_attachment_id"):
                 raise ValidationError(
@@ -289,7 +290,8 @@ class VendorInvoiceImportTask(models.Model):
                 else self.env["ir.attachment"]
             )
             vals["source_pdf_filename"] = (
-                filename if upload else attachment.name or filename
+                filename if upload
+                else requested_filename or attachment.name or "vendor_invoice.pdf"
             )
             vals["source_pdf_checksum"] = self._checksum_for_source(upload, attachment)
             company = self.env["res.company"].browse(
@@ -675,7 +677,11 @@ class VendorInvoiceImportTask(models.Model):
             "company_id": self.company_id.id,
             "source_parse_attempt_id": attempt.id,
             "source_pdf_attachment_id": self.source_pdf_attachment_id.id,
-            "source_pdf_filename": self.source_pdf_filename,
+            "source_pdf_filename": (
+                self.statement_id.source_pdf_filename
+                if self.statement_id
+                else self.source_pdf_filename
+            ),
             "invoice_number": payload["invoice_number"],
             "invoice_date": payload.get("invoice_date"),
             "supplier_id": payload.get("supplier_id"),
