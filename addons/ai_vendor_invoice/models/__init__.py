@@ -14,5 +14,7 @@ from . import (
     system_config,
     lock_service,
     statement,
+    batch,
+    batch_import_wizard,
     account_move,
 )

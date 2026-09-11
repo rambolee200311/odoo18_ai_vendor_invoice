@@ -59,6 +59,34 @@ class VendorInvoiceStatement(models.Model):
         ondelete="restrict",
         index=True,
     )
+    batch_id = fields.Many2one(
+        "vendor.invoice.batch",
+        string="Batch",
+        ondelete="restrict",
+        index=True,
+        copy=False,
+        help=(
+            "CC-14 Batch this Statement was created from. Set only when the "
+            "Statement is created as a Batch member; immutable afterwards."
+        ),
+    )
+    batch_ai_status = fields.Selection(
+        selection=[
+            ("pending", "Pending"),
+            ("processing", "Processing"),
+            ("success", "Success"),
+            ("failed", "Failed"),
+        ],
+        string="Batch AI Status",
+        compute="_compute_batch_ai_status",
+        store=True,
+        index=True,
+        help=(
+            "Simplified current-status projection for Batch progress and "
+            "the failed-Statement filter (CC-14 §9). Derived only from the "
+            "current Task state, never from historical ParseAttempts."
+        ),
+    )
     source_pdf_attachment_id = fields.Many2one(
         "ir.attachment",
         string="Source PDF",
@@ -208,6 +236,29 @@ class VendorInvoiceStatement(models.Model):
             """
         )
 
+    @api.depends("task_id", "task_id.state")
+    def _compute_batch_ai_status(self):
+        """CC-14 §9 current AI status projection: pending/processing/success/failed.
+
+        Derived only from the current Task state (never from historical
+        ParseAttempts), so a later success does not leave a Statement stuck
+        counted as failed.
+        """
+        success_states = {"parsed", "awaiting_review", "bill_generated"}
+        failed_states = {"error", "cancelled"}
+        for statement in self:
+            task = statement.task_id
+            if not task or task.state == "to_parse":
+                statement.batch_ai_status = "pending"
+            elif task.state == "parsing":
+                statement.batch_ai_status = "processing"
+            elif task.state in success_states:
+                statement.batch_ai_status = "success"
+            elif task.state in failed_states:
+                statement.batch_ai_status = "failed"
+            else:
+                statement.batch_ai_status = "pending"
+
     @api.depends("invoice_number", "supplier_id", "supplier_name")
     def _compute_business_identity(self):
         for statement in self:
@@ -356,7 +407,9 @@ class VendorInvoiceStatement(models.Model):
                 filename = None
         if any(
             field in vals
-            for field in ("task_id", "company_id", "source_parse_attempt_id")
+            for field in (
+                "task_id", "company_id", "source_parse_attempt_id", "batch_id",
+            )
         ):
             raise AccessError(_("Statement execution relations are managed by commands."))
         critical_headers = {
@@ -438,40 +491,43 @@ class VendorInvoiceStatement(models.Model):
         return True
 
     def action_start_ai(self):
-        """Launch AI from the Statement AI/Task workspace."""
-        self.ensure_one()
-        if not self.env.user.has_group("ai_vendor_invoice.group_ai_invoice_user"):
-            raise AccessError(_("Only an AI Invoice User can start AI parsing."))
-        statement = self.env["wd.lock.service"].lock_statement(self.id)
-        statement.ensure_one()
-        if statement.task_id:
-            if statement.task_id.state in ("to_parse", "error", "awaiting_review"):
-                statement.task_id.action_rerun_ai()
-                return {"type": "ir.actions.client", "tag": "reload"}
-            raise ValidationError(
-                _("AI cannot be started again from the current Task state.")
-            )
-        if not statement.source_pdf_attachment_id:
-            raise ValidationError(_("Upload a supplier invoice PDF before starting AI."))
-        if not statement.ai_launch_provider_config_id:
-            raise ValidationError(_("Select an AI provider before running AI."))
-        task = self.env["vendor.invoice.import.task"].create({
-            "company_id": statement.company_id.id,
-            "source_pdf_attachment_id": statement.source_pdf_attachment_id.id,
-            "source_pdf_filename": statement.source_pdf_filename,
-            "selected_provider_config_id": statement.ai_launch_provider_config_id.id,
-            "synchronous_parse": statement.ai_launch_synchronous_parse,
-            "statement_id": statement.id,
-        })
-        statement._aggregate_write({"task_id": task.id})
-        from ..services.parse_service import start_parse
+        """Launch AI from the Statement AI/Task workspace.
 
-        start_parse(
-            self.env,
-            task.id,
-            task.selected_provider_config_id.id,
-            synchronous=task.synchronous_parse,
-        )
+        Delegates to the shared single-Statement launch boundary (CC-14 §13)
+        that is also used by the Batch orchestrator, so both entry points
+        create/reuse the Task and start the ParseAttempt identically.
+        """
+        self.ensure_one()
+        from ..services.statement_launch_service import launch_statement_ai
+
+        launch_statement_ai(self.env, self.id)
+        return {"type": "ir.actions.client", "tag": "reload"}
+
+    def action_retry_selected(self):
+        """CC-14 §18 Retry Selected entry point for a multi-record selection.
+
+        Available from the Statement list view action menu (see the bound
+        `ir.actions.server`). Statements are grouped by their own Batch so
+        Retry Selected only ever retries Statements against the Batch they
+        already belong to (CC-14 §18: "only processes selected Statements
+        that belong to that Batch"). Statements with no Batch are reported
+        as a per-item rejection instead of raising for the whole selection.
+        """
+        from ..services.batch_service import retry_selected
+
+        results = []
+        by_batch = {}
+        for statement in self:
+            if not statement.batch_id:
+                results.append({
+                    "statement_id": statement.id,
+                    "status": "rejected",
+                    "message": _("This Statement is not part of a Batch."),
+                })
+                continue
+            by_batch.setdefault(statement.batch_id.id, []).append(statement.id)
+        for batch_id, statement_ids in by_batch.items():
+            results.extend(retry_selected(self.env, batch_id, statement_ids))
         return {"type": "ir.actions.client", "tag": "reload"}
 
     def _check_statement_command_access(self):

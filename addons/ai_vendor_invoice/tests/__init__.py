@@ -4,3 +4,4 @@ from . import test_intent3_services
 from . import test_fix_intent
 from . import test_test_intent
 from . import test_observability
+from . import test_cc14_batch_import

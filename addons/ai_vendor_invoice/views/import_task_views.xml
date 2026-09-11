@@ -21,6 +21,8 @@
                 <field name="name"/>
                 <field name="source_pdf_filename" string="File Name"/>
                 <field name="state"/>
+                <field name="batch_id"/>
+                <field name="batch_ai_status"/>
                 <field name="invoice_number"/>
                 <field name="invoice_date"/>
                 <field name="supplier_id"/>
@@ -31,6 +33,30 @@
                 <field name="overall_tax_rate"/>
                 <field name="all_checked"/>
             </list>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_statement_search" model="ir.ui.view">
+        <field name="name">vendor.invoice.statement.search</field>
+        <field name="model">vendor.invoice.statement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="source_pdf_filename"/>
+                <field name="invoice_number"/>
+                <field name="supplier_id"/>
+                <field name="batch_id"/>
+                <filter string="Failed" name="filter_batch_failed"
+                        domain="[('batch_ai_status', '=', 'failed')]"/>
+                <filter string="Pending" name="filter_batch_pending"
+                        domain="[('batch_ai_status', '=', 'pending')]"/>
+                <filter string="Processing" name="filter_batch_processing"
+                        domain="[('batch_ai_status', '=', 'processing')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Batch" name="groupby_batch" context="{'group_by': 'batch_id'}"/>
+                    <filter string="Batch AI Status" name="groupby_batch_ai_status"
+                            context="{'group_by': 'batch_ai_status'}"/>
+                </group>
+            </search>
         </field>
     </record>
     <record id="view_vendor_invoice_statement_form" model="ir.ui.view">
@@ -80,6 +106,7 @@
                         <group>
                             <field name="company_id" readonly="1"/>
                             <field name="task_id" readonly="1"/>
+                            <field name="batch_id" readonly="1"/>
                             <field name="source_parse_attempt_id" readonly="1"/>
                             <field name="vendor_bill_id" readonly="1"/>
                             <field name="all_checked" readonly="state != 'draft'"/>

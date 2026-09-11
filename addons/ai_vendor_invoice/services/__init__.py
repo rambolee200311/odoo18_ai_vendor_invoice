@@ -9,6 +9,8 @@ from . import (
     validation_service,
     statement_projection,
     native_document_projection,
+    statement_launch_service,
+    batch_service,
 )
 
 __all__ = [
@@ -19,4 +21,6 @@ __all__ = [
     "pdf_preprocessor",
     "timeout_service",
     "validation_service",
+    "statement_launch_service",
+    "batch_service",
 ]

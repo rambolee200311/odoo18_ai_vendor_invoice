@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- © 2024 Wukong Digital. License LGPL-3. -->
+<!-- CC-14 Multi-PDF Batch Import and Selected Retry views. -->
+<odoo>
+    <record id="view_vendor_invoice_batch_tree" model="ir.ui.view">
+        <field name="name">vendor.invoice.batch.tree</field>
+        <field name="model">vendor.invoice.batch</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="provider_config_id"/>
+                <field name="status"/>
+                <field name="total_count"/>
+                <field name="pending_count"/>
+                <field name="processing_count"/>
+                <field name="success_count"/>
+                <field name="failed_count"/>
+                <field name="started_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_invoice_batch_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.batch.form</field>
+        <field name="model">vendor.invoice.batch</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Invoice Batch">
+                <header>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="draft,processing,completed,completed_with_errors"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Batch"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group col="2">
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                            <field name="provider_config_id" readonly="1"/>
+                            <field name="started_at" readonly="1"/>
+                        </group>
+                        <group string="Current Progress">
+                            <field name="total_count" readonly="1"/>
+                            <field name="pending_count" readonly="1"/>
+                            <field name="processing_count" readonly="1"/>
+                            <field name="success_count" readonly="1"/>
+                            <field name="failed_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <button name="action_open_statements" type="object"
+                            string="Open Statements" class="oe_highlight"/>
+                    <button name="action_open_failed_statements" type="object"
+                            string="Open Failed Statements"
+                            invisible="not failed_count"/>
+                    <notebook>
+                        <page string="Statements">
+                            <field name="statement_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="source_pdf_filename" string="File Name"/>
+                                    <field name="state"/>
+                                    <field name="batch_ai_status"/>
+                                    <field name="ai_task_error_summary"/>
+                                    <field name="task_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vendor_invoice_batch_search" model="ir.ui.view">
+        <field name="name">vendor.invoice.batch.search</field>
+        <field name="model">vendor.invoice.batch</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="provider_config_id"/>
+                <filter string="Processing" name="filter_processing"
+                        domain="[('status', '=', 'processing')]"/>
+                <filter string="Completed with Errors" name="filter_completed_with_errors"
+                        domain="[('status', '=', 'completed_with_errors')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="groupby_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_vendor_invoice_batch" model="ir.actions.act_window">
+        <field name="name">Vendor Invoice Batches</field>
+        <field name="res_model">vendor.invoice.batch</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_vendor_invoice_batch_import_wizard_line_tree" model="ir.ui.view">
+        <field name="name">vendor.invoice.batch.import.wizard.line.tree</field>
+        <field name="model">vendor.invoice.batch.import.wizard.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="pdf_upload" filename="pdf_filename"/>
+                <field name="pdf_filename"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_invoice_batch_import_wizard_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.batch.import.wizard.form</field>
+        <field name="model">vendor.invoice.batch.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Start Batch Import">
+                <group>
+                    <field name="company_id" invisible="1"/>
+                    <field name="provider_config_id"/>
+                </group>
+                <field name="line_ids"/>
+                <footer>
+                    <button name="action_start_batch" type="object"
+                            string="Start Batch" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vendor_invoice_batch_import_wizard" model="ir.actions.act_window">
+        <field name="name">Start Batch Import</field>
+        <field name="res_model">vendor.invoice.batch.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- CC-14 §25: Retry Selected is available from the Statement list view
+         action menu for any selected (failed) Statements. -->
+    <record id="action_server_statement_retry_selected" model="ir.actions.server">
+        <field name="name">Retry Selected</field>
+        <field name="model_id" ref="model_vendor_invoice_statement"/>
+        <field name="binding_model_id" ref="model_vendor_invoice_statement"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_retry_selected()</field>
+    </record>
+
+    <menuitem id="menu_vendor_invoice_batch"
+              name="Batches"
+              parent="menu_ai_vendor_invoice_root"
+              action="action_vendor_invoice_batch"
+              sequence="5"/>
+    <menuitem id="menu_vendor_invoice_batch_import_wizard"
+              name="Start Batch Import"
+              parent="menu_ai_vendor_invoice_root"
+              action="action_vendor_invoice_batch_import_wizard"
+              sequence="1"/>
+</odoo>
