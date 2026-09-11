@@ -1,4 +1,5 @@
 # © 2024 Wukong Digital. License LGPL-3.
+import base64
 import re
 
 from odoo import _, api, fields, models
@@ -39,40 +40,42 @@ class VendorInvoiceStatement(models.Model):
     task_id = fields.Many2one(
         "vendor.invoice.import.task",
         string="Import Task",
-        required=True,
+        required=False,
         ondelete="cascade",
         index=True,
     )
     company_id = fields.Many2one(
-        related="task_id.company_id",
+        "res.company",
+        string="Company",
+        required=True,
+        default=lambda self: self.env.company,
         store=True,
         index=True,
-        readonly=True,
     )
     source_parse_attempt_id = fields.Many2one(
         "vendor.invoice.import.parse.attempt",
         string="Source Parse Attempt",
-        required=True,
+        required=False,
         ondelete="restrict",
         index=True,
     )
     source_pdf_attachment_id = fields.Many2one(
         "ir.attachment",
-        related="task_id.source_pdf_attachment_id",
         string="Source PDF",
-        readonly=True,
+        ondelete="restrict",
     )
     source_pdf_filename = fields.Char(
-        related="task_id.source_pdf_filename",
         string="File Name",
-        readonly=True,
+    )
+    source_pdf_upload = fields.Binary(
+        string="Upload PDF",
+        help="Upload the supplier invoice PDF before starting AI.",
     )
     review_warnings = fields.Json(
-        related="task_id.review_warnings",
         string="Review Warnings",
-        readonly=True,
+        default=list,
     )
-    invoice_number = fields.Char(string="Invoice Number", required=True)
+    invoice_number = fields.Char(string="Invoice Number")
     invoice_number_normalized = fields.Char(
         string="Normalized Invoice Number",
         compute="_compute_business_identity",
@@ -254,19 +257,62 @@ class VendorInvoiceStatement(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        raise AccessError(
-            _("Statement records must be created through a Task aggregate command.")
-        )
+        if not self.env.user.has_group("ai_vendor_invoice.group_ai_invoice_user"):
+            raise AccessError(_("Only an AI Invoice User can create a Statement."))
+        uploads = []
+        for vals in vals_list:
+            upload = vals.pop("source_pdf_upload", None)
+            filename = vals.get("source_pdf_filename") or "vendor_invoice.pdf"
+            if upload and vals.get("source_pdf_attachment_id"):
+                raise ValidationError(
+                    _("Provide either an uploaded PDF or an existing source attachment, not both.")
+                )
+            if upload:
+                raw = base64.b64decode(upload)
+                if not raw:
+                    raise ValidationError(_("The supplier invoice PDF cannot be empty."))
+                vals["source_pdf_filename"] = filename
+            vals.setdefault("company_id", self.env.company.id)
+            uploads.append((upload, filename))
+        statements = super().create(vals_list)
+        for statement, (upload, filename) in zip(statements, uploads):
+            if upload:
+                attachment = self.env["ir.attachment"].create({
+                    "name": filename,
+                    "datas": upload,
+                    "mimetype": "application/pdf",
+                    "res_model": statement._name,
+                    "res_id": statement.id,
+                })
+                super(VendorInvoiceStatement, statement).write({
+                    "source_pdf_attachment_id": attachment.id,
+                })
+        return statements
 
     def write(self, vals):
         if "state" in vals:
             raise AccessError(_("Statement state must be changed through a transition command."))
-        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+        if not self.env.user.has_group("ai_vendor_invoice.group_ai_invoice_user"):
             raise AccessError(
-                _("Statement records must be changed through a Task aggregate command.")
+                _("Only an AI Invoice User can edit a Statement.")
             )
         if any(statement.state != "draft" for statement in self):
             raise ValidationError(_("Only draft Statements can be edited."))
+        upload = vals.pop("source_pdf_upload", None)
+        if upload:
+            if any(statement.task_id for statement in self):
+                raise ValidationError(
+                    _("The PDF cannot be replaced after an AI Task has been created.")
+                )
+            raw = base64.b64decode(upload)
+            if not raw:
+                raise ValidationError(_("The supplier invoice PDF cannot be empty."))
+            filename = vals.get("source_pdf_filename") or "vendor_invoice.pdf"
+        if any(
+            field in vals
+            for field in ("task_id", "company_id", "source_parse_attempt_id")
+        ):
+            raise AccessError(_("Statement execution relations are managed by commands."))
         critical_headers = {
             "supplier_id",
             "supplier_name",
@@ -293,6 +339,19 @@ class VendorInvoiceStatement(models.Model):
         for statement in self:
             statement._check_business_duplicate(vals, exclude_ids=(statement.id,))
         result = super().write(vals)
+        if upload:
+            for statement in self:
+                attachment = self.env["ir.attachment"].create({
+                    "name": filename,
+                    "datas": upload,
+                    "mimetype": "application/pdf",
+                    "res_model": statement._name,
+                    "res_id": statement.id,
+                })
+                super(VendorInvoiceStatement, statement).write({
+                    "source_pdf_attachment_id": attachment.id,
+                    "source_pdf_filename": filename,
+                })
         if changed_critical_header:
             self.line_ids.write({"checked": False})
         return result
@@ -307,29 +366,109 @@ class VendorInvoiceStatement(models.Model):
     def action_cancel_statement(self):
         """Delegate cancellation to the owning Task aggregate."""
         self.ensure_one()
+        if not self.task_id:
+            raise ValidationError(_("Statement cancellation is not available in the current lifecycle."))
         return self.task_id.action_cancel_statement()
+
+    def action_start_ai(self):
+        """Create the single Task and start its first ParseAttempt."""
+        self.ensure_one()
+        if not self.env.user.has_group("ai_vendor_invoice.group_ai_invoice_user"):
+            raise AccessError(_("Only an AI Invoice User can start AI parsing."))
+        if self.task_id:
+            raise ValidationError(_("This Statement already has an AI Task."))
+        if not self.source_pdf_attachment_id:
+            raise ValidationError(_("Upload a supplier invoice PDF before starting AI."))
+        provider = self.env["wd.ai.provider.config"].search(
+            [("active", "=", True)], order="sequence, id", limit=1
+        )
+        if not provider:
+            raise ValidationError(_("Configure an active AI provider before starting AI."))
+        task = self.env["vendor.invoice.import.task"].create({
+            "company_id": self.company_id.id,
+            "source_pdf_attachment_id": self.source_pdf_attachment_id.id,
+            "source_pdf_filename": self.source_pdf_filename,
+            "selected_provider_config_id": provider.id,
+            "statement_id": self.id,
+        })
+        super(VendorInvoiceStatement, self).write({"task_id": task.id})
+        from ..services.parse_service import start_parse
+
+        start_parse(
+            self.env,
+            task.id,
+            provider.id,
+            synchronous=task.synchronous_parse,
+        )
+        return self.action_open_import_task()
+
+    def _check_statement_command_access(self):
+        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            raise AccessError(_("Only an invoice reviewer can modify a human Statement."))
 
     def action_apply_ai_candidate_from_statement(self):
         """Apply the current ParseAttempt candidate from the business form."""
         self.ensure_one()
+        if not self.task_id:
+            raise ValidationError(_("This Statement has no AI Task."))
         return self.task_id.action_apply_ai_candidate_from_statement()
 
     def action_confirm_from_statement(self):
-        """Confirm the current Statement through its owning Task aggregate."""
+        """Confirm the current Statement without consulting Task lifecycle."""
         self.ensure_one()
-        return self.task_id.action_confirm_statement()
+        self._check_statement_command_access()
+        if self.state != "draft":
+            raise ValidationError(_("Only a draft Statement can be confirmed."))
+        if not self.line_ids or not all(line.checked for line in self.line_ids):
+            raise ValidationError(
+                _("Every Statement line must be checked before confirmation.")
+            )
+        from ..services.statement_projection import (
+            assert_projection_consistent,
+            statement_to_human_review_result,
+        )
+
+        projection = statement_to_human_review_result(self)
+        assert_projection_consistent(self, projection)
+        self._aggregate_write({"state": "confirmed"})
+        if self.task_id:
+            self.task_id.write({"human_review_result": projection})
+            self.task_id._log_statement_change(
+                "statement_confirm",
+                self.source_parse_attempt_id,
+                "Human Statement confirmed.",
+            )
+        else:
+            self.message_post(body="Human Statement confirmed.")
+        return True
 
     def action_unconfirm_from_statement(self):
-        """Reopen a confirmed Statement through its owning Task aggregate."""
+        """Reopen a confirmed Statement without consulting Task lifecycle."""
         self.ensure_one()
-        return self.task_id.action_unconfirm_statement()
+        self._check_statement_command_access()
+        if self.state != "confirmed":
+            raise ValidationError(_("Only a confirmed Statement can be unconfirmed."))
+        if self.vendor_bill_id:
+            raise ValidationError(
+                _("A Statement linked to a Vendor Bill cannot be unconfirmed.")
+            )
+        self._aggregate_write({"state": "draft"})
+        if self.task_id:
+            self.task_id._log_statement_change(
+                "statement_unconfirm",
+                self.source_parse_attempt_id,
+                "Human Statement reopened for review.",
+            )
+        else:
+            self.message_post(body="Human Statement reopened for review.")
+        return True
 
     def action_create_vendor_bill_from_statement(self):
-        """Create the current Vendor Bill through the Task aggregate."""
+        """Create the current Vendor Bill from Statement business data."""
         self.ensure_one()
-        from ..services.bill_creator import create_vendor_bill
+        from ..services.bill_creator import create_vendor_bill_for_statement
 
-        return create_vendor_bill(self.env, self.task_id.id)
+        return create_vendor_bill_for_statement(self.env, self.id)
 
     def action_open_import_task(self):
         self.ensure_one()
@@ -385,7 +524,9 @@ class VendorInvoiceStatement(models.Model):
     def _attach_source_pdf_to_chatter(self):
         """Expose the existing Task PDF through native Statement Chatter."""
         self.ensure_one()
-        attachment = self.task_id.source_pdf_attachment_id
+        attachment = self.source_pdf_attachment_id or (
+            self.task_id.source_pdf_attachment_id if self.task_id else False
+        )
         if not attachment or not attachment.exists():
             raise ValidationError(_("The source supplier invoice PDF is missing."))
         if attachment.mimetype != "application/pdf":

@@ -50,6 +50,10 @@
                             string="Create Bill"
                             class="oe_highlight"
                             invisible="state != 'confirmed' or vendor_bill_id"/>
+                    <button name="action_start_ai" type="object"
+                            string="Start AI"
+                            class="oe_highlight"
+                            invisible="task_id or not source_pdf_attachment_id"/>
                     <button name="action_open_import_task" type="object"
                             string="Open Import Task"
                             invisible="not task_id"/>
@@ -76,9 +80,14 @@
                             <field name="invoice_date" readonly="state != 'draft'"/>
                         </group>
                         <group>
+                            <field name="company_id" readonly="1"/>
                             <field name="currency_id" readonly="state != 'draft'"/>
                             <field name="task_id" readonly="1"/>
                             <field name="source_parse_attempt_id" readonly="1"/>
+                            <field name="source_pdf_upload"
+                                   filename="source_pdf_filename"
+                                   readonly="task_id or state != 'draft'"/>
+                            <field name="source_pdf_filename" readonly="1"/>
                             <field name="source_pdf_attachment_id" readonly="1"/>
                             <field name="vendor_bill_id" readonly="1"/>
                             <field name="subtotal" readonly="1"/>

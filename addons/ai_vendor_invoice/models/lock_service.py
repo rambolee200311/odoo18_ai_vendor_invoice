@@ -1,6 +1,6 @@
 # © 2024 Wukong Digital. License LGPL-3.
 # Dedicated lock utilities wrapping SELECT FOR UPDATE.
-# Design constraint: only two named functions (lock_task / lock_attempt) to
+# Design constraint: only named, parameterised row-lock functions to
 # eliminate dynamic SQL identifier injection risk (see TDD §13 risk table).
 from odoo import models
 
@@ -41,3 +41,11 @@ class WdLockService(models.AbstractModel):
             (attempt_id,),
         )
         return self.env["vendor.invoice.import.parse.attempt"].browse(attempt_id)
+
+    def lock_statement(self, statement_id: int):
+        """Acquire an exclusive row-lock on a vendor invoice Statement."""
+        self.env.cr.execute(
+            "SELECT id FROM vendor_invoice_statement WHERE id = %s FOR UPDATE",
+            (statement_id,),
+        )
+        return self.env["vendor.invoice.statement"].browse(statement_id)

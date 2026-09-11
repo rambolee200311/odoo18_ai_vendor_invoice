@@ -64,6 +64,11 @@ class VendorInvoiceImportTask(models.Model):
         required=True,
         index=True,
         default="to_parse",
+        help=(
+            "AI execution lifecycle. The legacy awaiting_review and "
+            "bill_generated values are retained for compatibility only; "
+            "business review and billing decisions belong to Statement."
+        ),
     )
 
     # ── AI provider & attempt tracking ────────────────────────────────────────
@@ -169,6 +174,10 @@ class VendorInvoiceImportTask(models.Model):
     human_reviewed = fields.Boolean(
         string="Human Reviewed",
         default=False,
+        help=(
+            "Deprecated compatibility field. New Statement review and billing "
+            "commands must not read or write this field."
+        ),
     )
 
     review_warnings = fields.Json(
@@ -184,6 +193,10 @@ class VendorInvoiceImportTask(models.Model):
         index=True,
         readonly=True,
         store=False,
+        help=(
+            "Deprecated compatibility surface. Statement.vendor_bill_id is "
+            "the sole writable Vendor Bill authority."
+        ),
     )
 
     # ── audit ─────────────────────────────────────────────────────────────────
@@ -310,7 +323,10 @@ class VendorInvoiceImportTask(models.Model):
                 task.source_pdf_attachment_id = attachment.id
             else:
                 attachment = task.source_pdf_attachment_id
-            if attachment.res_model != task._name or attachment.res_id != task.id:
+            if (
+                attachment.res_model != "vendor.invoice.statement"
+                and (attachment.res_model != task._name or attachment.res_id != task.id)
+            ):
                 attachment.write({
                     "res_model": task._name,
                     "res_id": task.id,
@@ -611,10 +627,10 @@ class VendorInvoiceImportTask(models.Model):
         return self.action_apply_ai_candidate(attempt.id, payload)
 
     def action_confirm_statement(self, statement_payload=None):
-        """Persist the review, projection, and aggregate confirmation atomically."""
+        """Legacy wrapper for the Statement-facing confirmation command."""
         self.ensure_one()
-        self._check_statement_command_access()
         if statement_payload is not None:
+            self._check_statement_command_access()
             payload = self._statement_payload_from_review(statement_payload)
             if self.statement_id:
                 self.action_apply_statement_changes(payload)
@@ -624,50 +640,14 @@ class VendorInvoiceImportTask(models.Model):
                 )
         if not self.statement_id:
             raise ValidationError(_("A human Statement is required."))
-        if self.statement_id.state != "draft":
-            raise ValidationError(_("Only a draft Statement can be confirmed."))
-        if not self.statement_id.line_ids or not all(
-            line.checked for line in self.statement_id.line_ids
-        ):
-            raise ValidationError(
-                _("Every Statement line must be checked before confirmation.")
-            )
-        from ..services.statement_projection import (
-            assert_projection_consistent,
-            statement_to_human_review_result,
-        )
-
-        projection = statement_to_human_review_result(self.statement_id)
-        assert_projection_consistent(self.statement_id, projection)
-        self.statement_id._aggregate_write({"state": "confirmed"})
-        self.write({"human_review_result": projection})
-        self._log_statement_change(
-            "statement_confirm",
-            self.statement_id.source_parse_attempt_id,
-            "Human Statement confirmed.",
-        )
-        return True
+        return self.statement_id.action_confirm_from_statement()
 
     def action_unconfirm_statement(self):
-        """Reopen a confirmed Statement without rebuilding its lines."""
+        """Legacy wrapper for the Statement-facing unconfirm command."""
         self.ensure_one()
-        self._check_statement_command_access()
-        statement = self.statement_id
-        if not statement or statement.state != "confirmed":
-            raise ValidationError(_("Only a confirmed Statement can be unconfirmed."))
-        if self.state != "parsed":
-            raise ValidationError(_("Only a parsed Task can unconfirm its Statement."))
-        if statement.vendor_bill_id:
-            raise ValidationError(
-                _("A Statement linked to a Vendor Bill cannot be unconfirmed.")
-            )
-        statement._aggregate_write({"state": "draft"})
-        self._log_statement_change(
-            "statement_unconfirm",
-            statement.source_parse_attempt_id,
-            "Human Statement reopened for review.",
-        )
-        return True
+        if not self.statement_id:
+            raise ValidationError(_("A human Statement is required."))
+        return self.statement_id.action_unconfirm_from_statement()
 
     def action_cancel_statement(self):
         """Statement cancellation is not part of the new review lifecycle."""
@@ -682,7 +662,10 @@ class VendorInvoiceImportTask(models.Model):
     def _statement_values(self, payload, attempt):
         return {
             "task_id": self.id,
+            "company_id": self.company_id.id,
             "source_parse_attempt_id": attempt.id,
+            "source_pdf_attachment_id": self.source_pdf_attachment_id.id,
+            "source_pdf_filename": self.source_pdf_filename,
             "invoice_number": payload["invoice_number"],
             "invoice_date": payload.get("invoice_date"),
             "supplier_id": payload.get("supplier_id"),

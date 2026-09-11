@@ -71,6 +71,12 @@ class TestImportTaskModel(TransactionCase):
         task = self._make_task()
         self.assertEqual(task.state, "to_parse")
 
+    def test_legacy_task_states_remain_readable(self):
+        task = self._make_task()
+        for state in ("awaiting_review", "bill_generated"):
+            task.write({"state": state})
+            self.assertEqual(task.state, state)
+
     def test_task_defaults_to_synchronous_parse(self):
         task = self._make_task()
         self.assertTrue(task.synchronous_parse)
@@ -86,6 +92,35 @@ class TestImportTaskModel(TransactionCase):
 
     def test_new_task_requires_statement(self):
         self.assertTrue(self._make_task().statement_required)
+
+    def test_statement_can_start_single_task_from_owned_pdf(self):
+        admin = self.env.ref("base.user_admin")
+        admin.write({
+            "groups_id": [(4, self.env.ref("ai_vendor_invoice.group_ai_invoice_user").id)]
+        })
+        admin.write({"company_id": self.env.company.id})
+        provider = self._make_provider()
+        provider.write({"sequence": 0})
+        statement = self.env["vendor.invoice.statement"].with_user(admin).with_company(
+            self.env.company
+        ).create({
+            "company_id": self.env.company.id,
+            "source_pdf_upload": base64.b64encode(b"%PDF-1.4 test"),
+            "source_pdf_filename": "direct.pdf",
+        })
+        self.assertFalse(statement.task_id)
+        with patch(
+            "odoo.addons.ai_vendor_invoice.services.parse_service.start_parse",
+            return_value=True,
+        ) as start_parse:
+            statement.action_start_ai()
+        self.assertEqual(statement.task_id.statement_id, statement)
+        self.assertEqual(
+            statement.task_id.source_pdf_attachment_id,
+            statement.source_pdf_attachment_id,
+        )
+        self.assertEqual(statement.task_id.selected_provider_config_id, provider)
+        start_parse.assert_called_once()
 
     def test_duplicate_source_pdf_is_rejected(self):
         source = self.env["ir.attachment"].create({
@@ -355,7 +390,7 @@ class TestImportTaskModel(TransactionCase):
         self.assertEqual(statement.total_tax, 10.0)
         self.assertEqual(statement.total_amount, 110.0)
         self.assertEqual(statement.overall_tax_rate, 10.0)
-        task.state = "parsed"
+        task.state = "error"
         statement.line_ids.write({"checked": True})
         task.action_confirm_statement()
         with self.assertRaises(ValidationError):
@@ -538,7 +573,8 @@ class TestImportTaskModel(TransactionCase):
             "status": "success",
         })
         task.current_parse_attempt_id = attempt.id
-        task.state = "parsed"
+        task.state = "error"
+        task.human_reviewed = True
         statement = task.action_create_statement_from_attempt(
             attempt.id,
             {
@@ -554,7 +590,7 @@ class TestImportTaskModel(TransactionCase):
         line.write({"checked": True})
         task.action_confirm_statement()
         self.assertEqual(statement.state, "confirmed")
-        self.assertEqual(task.state, "parsed")
+        self.assertEqual(task.state, "error")
         line_id = line.id
         task.action_unconfirm_statement()
         self.assertEqual(statement.state, "draft")

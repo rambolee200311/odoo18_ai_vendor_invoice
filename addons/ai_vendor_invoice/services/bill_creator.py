@@ -83,72 +83,84 @@ def _audit(env, task, action, summary):
     })
 
 
-def _create_locked(env, task):
-    # The task carries the authoritative company for asynchronous workers.
-    env = task.env
-    if task.state != "parsed":
-        raise ValidationError(
-            _("A bill can only be created for a parsed Task.")
-        )
-    review_result = task.human_review_result
-    if not review_result:
-        raise ValidationError(_("A non-empty human review result is required."))
-    if not task.statement_id:
-        raise ValidationError(_("A Statement is required before creating a bill."))
-    if task.statement_id.state != "confirmed":
+def _create_locked(env, statement):
+    """Create a bill from the current Statement projection."""
+    if statement._name == "vendor.invoice.import.task":
+        statement = statement.statement_id
+    statement.ensure_one()
+    task = statement.task_id
+    env = statement.env
+    company = statement.company_id
+    if statement.state != "confirmed":
         raise ValidationError(
             _("A Statement must be confirmed before creating a bill.")
         )
-    if task.statement_id.vendor_bill_id:
+    if statement.vendor_bill_id:
         raise ValidationError(_("A bill is already linked to this Statement."))
-    if not task.statement_id.line_ids or not all(
-        task.statement_id.line_ids.mapped("checked")
-    ):
+    if not statement.line_ids or not all(statement.line_ids.mapped("checked")):
         raise ValidationError(
             _("Every current Statement Line must be checked before creating a bill.")
         )
-    from .statement_projection import assert_projection_consistent
+    from .statement_projection import statement_to_human_review_result
 
-    assert_projection_consistent(task.statement_id, review_result)
+    review_result = statement_to_human_review_result(statement)
     validation_service.pre_check_integrity(review_result)
     config = env["wd.system.config"].get_config()
     warnings = validation_service.check_amount_balance(
-        review_result, task.company_id, config.amount_tolerance
+        review_result, company, config.amount_tolerance
     )
-    task.write({"review_warnings": warnings})
+    statement._aggregate_write({"review_warnings": warnings})
 
     move_vals = _convert_review_to_move_vals(
         review_result, config.default_product_id
     )
-    # Keep this explicit even though the task environment has been switched to
-    # the task company: asynchronous jobs do not inherit the request company.
-    move_vals["company_id"] = task.company_id.id
+    move_vals["company_id"] = company.id
     bill = env["account.move"].create(move_vals)
 
-    task.source_pdf_attachment_id.copy({
-        "res_model": "account.move",
-        "res_id": bill.id,
-        "public": False,
-    })
-    task.statement_id._aggregate_write({
+    if statement.source_pdf_attachment_id:
+        statement.source_pdf_attachment_id.copy({
+            "res_model": "account.move",
+            "res_id": bill.id,
+            "public": False,
+        })
+    statement._aggregate_write({
         "vendor_bill_id": bill.id,
     })
-    task._log_statement_change(
-        "vendor_bill_created",
-        task.statement_id.source_parse_attempt_id,
-        "Draft vendor bill %s linked to Statement." % bill.display_name,
-    )
-    _audit(env, task, "bill_create", "Draft vendor bill %s created." % bill.display_name)
+    summary = "Draft vendor bill %s linked to Statement." % bill.display_name
+    if task:
+        task._log_statement_change(
+            "vendor_bill_created",
+            statement.source_parse_attempt_id,
+            summary,
+        )
+        _audit(env, task, "bill_create", "Draft vendor bill %s created." % bill.display_name)
+    else:
+        statement.message_post(body=summary)
     return bill
 
 
-def create_vendor_bill(env, task_id):
-    """Create one draft bill in the caller's transaction."""
+def create_vendor_bill_for_statement(env, statement_id):
+    """Create one draft bill from a Statement in the caller's transaction."""
     with env.cr.savepoint():
-        task = env["wd.lock.service"].lock_task(task_id)
-        task.ensure_one()
-        task = task.with_company(task.company_id)
-        return _create_locked(env, task)
+        statement = env["vendor.invoice.statement"].browse(statement_id).exists()
+        statement.ensure_one()
+        if statement.task_id:
+            task = env["wd.lock.service"].lock_task(statement.task_id.id)
+            task.ensure_one()
+            statement = statement.with_company(statement.company_id)
+        else:
+            statement = env["wd.lock.service"].lock_statement(statement.id)
+            statement = statement.with_company(statement.company_id)
+        return _create_locked(env, statement)
+
+
+def create_vendor_bill(env, task_id):
+    """Legacy Task-facing wrapper; business input remains the Statement."""
+    task = env["vendor.invoice.import.task"].browse(task_id).exists()
+    task.ensure_one()
+    if not task.statement_id:
+        raise ValidationError(_("A Statement is required before creating a bill."))
+    return create_vendor_bill_for_statement(env, task.statement_id.id)
 
 
 def confirm_review_and_create_bill(env, task_id, review_payload):
@@ -162,10 +174,6 @@ def confirm_review_and_create_bill(env, task_id, review_payload):
         task = env["wd.lock.service"].lock_task(task_id)
         task.ensure_one()
         task = task.with_company(task.company_id)
-        if task.state != "parsed":
-            raise ValidationError(
-                _("Only a parsed invoice can be confirmed.")
-            )
         if task.statement_id:
             task.action_confirm_statement(review_payload)
         else:
@@ -173,4 +181,4 @@ def confirm_review_and_create_bill(env, task_id, review_payload):
                 "human_review_result": review_payload,
             })
         _audit(env, task, "human_modify", "Human review confirmed.")
-        return _create_locked(env, task)
+        return _create_locked(env, task.statement_id)

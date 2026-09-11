@@ -129,7 +129,8 @@ class TestBillCreatorGuards(TransactionCase):
         task = self.env["vendor.invoice.import.task"].create({
             "source_pdf_attachment_id": source.id,
             "selected_provider_config_id": provider.id,
-            "state": "parsed",
+            "state": "error",
+            "human_reviewed": True,
         })
         admin = self.env.ref("base.user_admin")
         admin.write({
@@ -173,7 +174,7 @@ class TestBillCreatorGuards(TransactionCase):
         self.assertEqual(bill.move_type, "in_invoice")
         self.assertEqual(bill.company_id, task.company_id)
         self.assertEqual(task.statement_id.vendor_bill_id, bill)
-        self.assertEqual(task.state, "parsed")
+        self.assertEqual(task.state, "error")
         self.assertEqual(task.statement_id.state, "confirmed")
         self.assertTrue(copied)
         self.assertEqual(source.res_id, task.id)
