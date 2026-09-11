@@ -347,6 +347,13 @@ class VendorInvoiceStatement(models.Model):
             if not raw:
                 raise ValidationError(_("The supplier invoice PDF cannot be empty."))
             filename = vals.get("source_pdf_filename")
+            if all(
+                statement.source_pdf_attachment_id
+                and statement.source_pdf_attachment_id.raw == raw
+                for statement in self
+            ):
+                vals.pop("source_pdf_filename", None)
+                filename = None
         if any(
             field in vals
             for field in ("task_id", "company_id", "source_parse_attempt_id")

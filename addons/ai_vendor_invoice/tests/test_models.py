@@ -148,7 +148,10 @@ class TestImportTaskModel(TransactionCase):
             "source_pdf_upload": payload,
             "source_pdf_filename": "supplier-original.pdf",
         })
-        statement.with_user(admin).write({"source_pdf_upload": payload})
+        statement.with_user(admin).write({
+            "source_pdf_upload": payload,
+            "source_pdf_filename": "vendor_invoice.pdf",
+        })
         attachments = self.env["ir.attachment"].sudo().search([
             ("res_model", "=", "vendor.invoice.statement"),
             ("res_id", "=", statement.id),
