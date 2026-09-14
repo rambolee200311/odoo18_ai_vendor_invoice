@@ -178,10 +178,10 @@
                             <group>
                                 <field name="source_pdf_upload"
                                        filename="source_pdf_filename"
-                                       readonly="task_id or state != 'draft'"/>
+                                       readonly="task_id"/>
                                 <field name="source_pdf_attachment_id" readonly="1"/>
                                 <field name="source_pdf_filename"
-                                       readonly="task_id or state != 'draft'"/>
+                                       readonly="task_id"/>
                                 <field name="ai_launch_provider_config_id"
                                        readonly="task_id or state != 'draft'"/>
                                 <field name="ai_launch_synchronous_parse"
