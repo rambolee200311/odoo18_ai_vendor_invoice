@@ -38,14 +38,14 @@ class ProviderInput:
             or self.document_bytes is not None
         ):
             raise ValueError("Markdown input requires markdown text only.")
-        else:
-            raise ValueError("Unsupported document input mode.")
         if not self.source.get("mime_type"):
             raise ValueError("Provider input source MIME type is required.")
 
     def __getitem__(self, key):
         if key == "type":
-            return "pages" if self.mode == "rendered_images" else "document"
+            if self.mode == "rendered_images":
+                return "pages"
+            return self.mode
         if key == "mode":
             return self.mode
         if key == "source":
