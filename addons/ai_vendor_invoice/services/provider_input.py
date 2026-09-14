@@ -4,7 +4,7 @@
 from dataclasses import dataclass, field
 
 
-DOCUMENT_INPUT_MODES = ("rendered_images", "native_pdf")
+DOCUMENT_INPUT_MODES = ("rendered_images", "native_pdf", "markdown")
 
 
 @dataclass
@@ -15,6 +15,7 @@ class ProviderInput:
     source: dict
     images: tuple = ()
     document_bytes: bytes = None
+    markdown_text: str = None
     page_artifacts: tuple = field(default_factory=tuple, repr=False)
 
     def __post_init__(self):
@@ -23,12 +24,22 @@ class ProviderInput:
         if not isinstance(self.source, dict):
             raise ValueError("Provider input source metadata is required.")
         if self.mode == "rendered_images":
-            if not self.images or self.document_bytes is not None:
+            if not self.images or self.document_bytes is not None or self.markdown_text is not None:
                 raise ValueError("Rendered-image input requires images only.")
             if self.source.get("page_count") != len(self.images):
                 raise ValueError("Rendered-image page count does not match images.")
-        elif self.document_bytes is None or self.images:
-            raise ValueError("Native-PDF input requires document bytes only.")
+        elif self.mode == "native_pdf":
+            if self.document_bytes is None or self.images or self.markdown_text is not None:
+                raise ValueError("Native-PDF input requires document bytes only.")
+        elif (
+            not isinstance(self.markdown_text, str)
+            or not self.markdown_text.strip()
+            or self.images
+            or self.document_bytes is not None
+        ):
+            raise ValueError("Markdown input requires markdown text only.")
+        else:
+            raise ValueError("Unsupported document input mode.")
         if not self.source.get("mime_type"):
             raise ValueError("Provider input source MIME type is required.")
 
@@ -43,6 +54,8 @@ class ProviderInput:
             return list(self.images) if self.images else None
         if key == "document_bytes":
             return self.document_bytes
+        if key == "markdown_text":
+            return self.markdown_text
         if key == "page_artifacts":
             return list(self.page_artifacts)
         raise KeyError(key)

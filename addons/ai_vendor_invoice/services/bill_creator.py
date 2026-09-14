@@ -83,67 +83,95 @@ def _audit(env, task, action, summary):
     })
 
 
-def _create_locked(env, task):
-    # The task carries the authoritative company for asynchronous workers.
-    env = task.env
-    if task.state != "parsed":
-        raise ValidationError(
-            _("A bill can only be created for a parsed Task.")
-        )
-    review_result = task.human_review_result
-    if not review_result:
-        raise ValidationError(_("A non-empty human review result is required."))
-    if not task.statement_id:
-        raise ValidationError(_("A Statement is required before creating a bill."))
-    if task.statement_id.state != "confirmed":
+def _create_bill_for_statement(env, statement, task=None):
+    """Create one draft bill from the current Statement business data.
+
+    CC-10: the Statement is the sole business input for Vendor Bill creation.
+    Task existence and `Task.state` (including the legacy/deprecated
+    `parsed`, `awaiting_review`, `bill_generated` values) are NOT read as a
+    precondition here. `task`, when available, is used only to keep the
+    legacy Task-facing audit trail and diagnostic `review_warnings` field in
+    sync; it is never a business gate for bill creation.
+    """
+    statement.ensure_one()
+    if statement.state != "confirmed":
         raise ValidationError(
             _("A Statement must be confirmed before creating a bill.")
         )
-    if task.statement_id.vendor_bill_id:
+    if statement.vendor_bill_id:
         raise ValidationError(_("A bill is already linked to this Statement."))
-    if not task.statement_id.line_ids or not all(
-        task.statement_id.line_ids.mapped("checked")
-    ):
+    if not statement.line_ids or not all(statement.line_ids.mapped("checked")):
         raise ValidationError(
             _("Every current Statement Line must be checked before creating a bill.")
         )
-    from .statement_projection import assert_projection_consistent
+    from .statement_projection import statement_to_human_review_result
 
-    assert_projection_consistent(task.statement_id, review_result)
+    review_result = statement_to_human_review_result(statement)
     validation_service.pre_check_integrity(review_result)
+    company = statement.company_id
     config = env["wd.system.config"].get_config()
     warnings = validation_service.check_amount_balance(
-        review_result, task.company_id, config.amount_tolerance
+        review_result, company, config.amount_tolerance
     )
-    task.write({"review_warnings": warnings})
+    if task:
+        # Legacy compatibility surface only; not a business precondition.
+        task.write({"review_warnings": warnings})
 
     move_vals = _convert_review_to_move_vals(
         review_result, config.default_product_id
     )
-    # Keep this explicit even though the task environment has been switched to
-    # the task company: asynchronous jobs do not inherit the request company.
-    move_vals["company_id"] = task.company_id.id
+    # Keep this explicit even though the environment may have been switched to
+    # the Statement's company: asynchronous jobs do not inherit the request
+    # company.
+    move_vals["company_id"] = company.id
     bill = env["account.move"].create(move_vals)
 
-    task.source_pdf_attachment_id.copy({
-        "res_model": "account.move",
-        "res_id": bill.id,
-        "public": False,
-    })
-    task.statement_id._aggregate_write({
+    source_attachment = statement.source_pdf_attachment_id
+    if source_attachment:
+        source_attachment.copy({
+            "res_model": "account.move",
+            "res_id": bill.id,
+            "public": False,
+        })
+    # Statement.vendor_bill_id is the sole writable Bill authority (CC-10
+    # 2.1.7); Task.vendor_bill_id is a related, read-only compatibility field
+    # and is never written independently.
+    statement._aggregate_write({
         "vendor_bill_id": bill.id,
     })
-    task._log_statement_change(
-        "vendor_bill_created",
-        task.statement_id.source_parse_attempt_id,
-        "Draft vendor bill %s linked to Statement." % bill.display_name,
-    )
-    _audit(env, task, "bill_create", "Draft vendor bill %s created." % bill.display_name)
+    if task:
+        task._log_statement_change(
+            "vendor_bill_created",
+            statement.source_parse_attempt_id,
+            "Draft vendor bill %s linked to Statement." % bill.display_name,
+        )
+        _audit(env, task, "bill_create", "Draft vendor bill %s created." % bill.display_name)
     return bill
 
 
+def _create_locked(env, task):
+    """Legacy Task-facing entry point retained for existing direct callers.
+
+    CC-10: `Task.state` is no longer read as a precondition. A Statement is
+    still required here because, in this contract, a Task owns exactly one
+    Statement; the actual business input and preconditions are resolved from
+    that Statement, not from the Task.
+    """
+    # The task carries the authoritative company for asynchronous workers.
+    env = task.env
+    if not task.statement_id:
+        raise ValidationError(_("A Statement is required before creating a bill."))
+    return _create_bill_for_statement(env, task.statement_id, task=task)
+
+
 def create_vendor_bill(env, task_id):
-    """Create one draft bill in the caller's transaction."""
+    """Legacy Task-facing compatibility entry point.
+
+    CC-10: business authority for bill creation now lives on the Statement
+    (see `create_vendor_bill_for_statement`). This wrapper is kept only for
+    existing Task-facing callers and resolves the Task's Statement before
+    delegating; it does not gate on `Task.state`.
+    """
     with env.cr.savepoint():
         task = env["wd.lock.service"].lock_task(task_id)
         task.ensure_one()
@@ -151,8 +179,37 @@ def create_vendor_bill(env, task_id):
         return _create_locked(env, task)
 
 
+def create_vendor_bill_for_statement(env, statement_id):
+    """Statement-facing Bill Creator entry point (CC-10).
+
+    Accepts a Statement as its business input and does not require a Task or
+    a particular `Task.state`. Vendor Bill input is read only from the
+    current Statement data, and only `Statement.vendor_bill_id` is written as
+    the Bill authority.
+    """
+    with env.cr.savepoint():
+        statement = env["vendor.invoice.statement"].browse(statement_id)
+        if not statement.exists():
+            raise ValidationError(_("The Statement no longer exists."))
+        task = statement.task_id
+        # The existing Task/Statement compatibility relationship is used only
+        # to keep the current row-locking behavior; it is not a business
+        # precondition (CC-10 2.1.2).
+        if task:
+            env["wd.lock.service"].lock_task(task.id)
+            task = task.with_company(task.company_id)
+            statement = task.statement_id
+        return _create_bill_for_statement(statement.env, statement, task=task)
+
+
 def confirm_review_and_create_bill(env, task_id, review_payload):
-    """Persist review data and create the bill as one atomic operation."""
+    """Persist review data and create the bill as one atomic operation.
+
+    CC-10: this legacy Task-owned combo command no longer reads `Task.state`
+    (including the legacy/deprecated values) as a Confirm or Create Bill
+    precondition; confirmability and bill eligibility are decided by the
+    Statement-facing commands it delegates to.
+    """
     if not env.user.has_group("ai_vendor_invoice.group_reviewer"):
         raise AccessError(_("Only an invoice reviewer can confirm a bill."))
     if not isinstance(review_payload, dict) or not review_payload:
@@ -162,10 +219,6 @@ def confirm_review_and_create_bill(env, task_id, review_payload):
         task = env["wd.lock.service"].lock_task(task_id)
         task.ensure_one()
         task = task.with_company(task.company_id)
-        if task.state != "parsed":
-            raise ValidationError(
-                _("Only a parsed invoice can be confirmed.")
-            )
         if task.statement_id:
             task.action_confirm_statement(review_payload)
         else:

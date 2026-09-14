@@ -25,12 +25,12 @@ class WdAiProviderConfig(models.Model):
 
     document_input_mode = fields.Selection(
         [
-            ("rendered_images", "Rendered Images"),
             ("native_pdf", "Native PDF"),
+            ("markdown", "Markdown"),
         ],
         string="Document Input Mode",
         required=True,
-        default="rendered_images",
+        default="native_pdf",
         help="Transport representation sent to the configured AI provider.",
     )
 

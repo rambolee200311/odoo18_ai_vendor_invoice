@@ -314,22 +314,88 @@ class VendorInvoiceStatement(models.Model):
         self.ensure_one()
         return self.task_id.action_apply_ai_candidate_from_statement()
 
-    def action_confirm_from_statement(self):
-        """Confirm the current Statement through its owning Task aggregate."""
+    def action_confirm(self):
+        """Confirm the current Statement (CC-10 Statement-facing command).
+
+        Confirm is decided entirely from current Statement business data. It
+        MUST NOT read `Task.state` (including the legacy/deprecated
+        `awaiting_review`/`bill_generated` values or the technical `parsed`
+        success state), `Task.human_reviewed`, or ParseAttempt status as a
+        business precondition. `Task.action_confirm_statement()` remains only
+        as a legacy compatibility entry point that delegates here.
+        """
         self.ensure_one()
-        return self.task_id.action_confirm_statement()
+        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            raise AccessError(_("Only an invoice reviewer can confirm a Statement."))
+        if self.state != "draft":
+            raise ValidationError(_("Only a draft Statement can be confirmed."))
+        if not self.line_ids or not all(self.line_ids.mapped("checked")):
+            raise ValidationError(
+                _("Every Statement line must be checked before confirmation.")
+            )
+        from ..services.statement_projection import (
+            assert_projection_consistent,
+            statement_to_human_review_result,
+        )
+
+        projection = statement_to_human_review_result(self)
+        assert_projection_consistent(self, projection)
+        self._aggregate_write({"state": "confirmed"})
+        if self.task_id:
+            # Legacy compatibility surface only: keeps Task.human_review_result
+            # and the Task audit trail in sync. The Task itself is not a
+            # business gate for this command.
+            self.task_id.write({"human_review_result": projection})
+            self.task_id._log_statement_change(
+                "statement_confirm",
+                self.source_parse_attempt_id,
+                "Human Statement confirmed.",
+            )
+        return True
+
+    def action_unconfirm(self):
+        """Reopen a confirmed Statement (CC-10 Statement-facing command).
+
+        Unconfirm is decided entirely from current Statement business data.
+        It MUST NOT read `Task.state`, including the legacy `parsed` value,
+        as a business precondition. `Task.action_unconfirm_statement()`
+        remains only as a legacy compatibility entry point that delegates
+        here.
+        """
+        self.ensure_one()
+        if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
+            raise AccessError(_("Only an invoice reviewer can unconfirm a Statement."))
+        if self.state != "confirmed":
+            raise ValidationError(_("Only a confirmed Statement can be unconfirmed."))
+        if self.vendor_bill_id:
+            raise ValidationError(
+                _("A Statement linked to a Vendor Bill cannot be unconfirmed.")
+            )
+        self._aggregate_write({"state": "draft"})
+        if self.task_id:
+            self.task_id._log_statement_change(
+                "statement_unconfirm",
+                self.source_parse_attempt_id,
+                "Human Statement reopened for review.",
+            )
+        return True
+
+    def action_confirm_from_statement(self):
+        """Confirm the current Statement through the Statement-facing command."""
+        self.ensure_one()
+        return self.action_confirm()
 
     def action_unconfirm_from_statement(self):
-        """Reopen a confirmed Statement through its owning Task aggregate."""
+        """Reopen a confirmed Statement through the Statement-facing command."""
         self.ensure_one()
-        return self.task_id.action_unconfirm_statement()
+        return self.action_unconfirm()
 
     def action_create_vendor_bill_from_statement(self):
-        """Create the current Vendor Bill through the Task aggregate."""
+        """Create the current Vendor Bill through the Statement-facing service."""
         self.ensure_one()
-        from ..services.bill_creator import create_vendor_bill
+        from ..services.bill_creator import create_vendor_bill_for_statement
 
-        return create_vendor_bill(self.env, self.task_id.id)
+        return create_vendor_bill_for_statement(self.env, self.id)
 
     def action_open_import_task(self):
         self.ensure_one()
