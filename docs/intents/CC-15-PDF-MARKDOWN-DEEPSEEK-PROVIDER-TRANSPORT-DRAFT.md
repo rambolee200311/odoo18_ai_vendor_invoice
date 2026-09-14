@@ -88,6 +88,15 @@ markdown
 
 ### 4.2 Capability matrix
 
+Provider/model 与文件输入模式是两个独立配置维度：
+
+- Provider/model 决定使用哪个 adapter、API endpoint 和模型调用协议；
+- `document_input_mode` 决定 PDF 如何转换为 Provider input，以及该 input
+  使用哪一类 Prompt；
+- adapter 在执行前校验这两个维度的组合是否支持；
+- 不允许因为某个 mode 自动改写 Provider/model，也不允许因为 Provider
+  名称自动改写 mode。
+
 | Provider | `native_pdf` | `markdown` | `rendered_images` |
 |---|---:|---:|---:|
 | GPT/OpenAI | Supported | Out of scope | Legacy backend only |
@@ -103,10 +112,10 @@ Prompt 选择必须由 `document_input_mode` 决定：
 
 ```text
 native_pdf
-→ OpenAI native-PDF instructions
+→ native-PDF Prompt
 
 markdown
-→ DeepSeek V4 Markdown Prompt
+→ Markdown Prompt（当前 DeepSeek adapter 使用 V4）
 
 rendered_images
 → legacy Vision Prompt，仅供后端兼容路径
@@ -115,9 +124,12 @@ rendered_images
 禁止：
 
 - 根据 Provider 名称无条件覆盖 `document_input_mode`；
+- 根据 `document_input_mode` 自动切换 Provider/model；
 - 将 Markdown 拼接到旧 Vision Prompt 后继续发送图片；
 - DeepSeek Markdown 路径发送 PNG image payload；
-- OpenAI native PDF 路径改用 DeepSeek Prompt。
+- OpenAI native PDF 路径改用 DeepSeek Prompt；
+- 把“当前支持的 GPT/native_pdf 和 DeepSeek/markdown 组合”写成
+  “mode 决定 model”。
 
 ### 5.1 V4 Prompt invariants
 
