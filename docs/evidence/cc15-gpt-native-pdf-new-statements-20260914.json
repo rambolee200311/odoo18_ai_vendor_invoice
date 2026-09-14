@@ -1,0 +1,70 @@
+{
+  "provider": "OpenAI GPT-5.6 Luna",
+  "model": "gpt-5.6-luna",
+  "input_mode": "native_pdf",
+  "created": [
+    {
+      "old_statement_id": 1063,
+      "new_statement_id": 1692,
+      "task_id": 8903,
+      "attempt_id": 6191,
+      "source_attachment_id": 18182
+    },
+    {
+      "old_statement_id": 1144,
+      "new_statement_id": 1693,
+      "task_id": 8904,
+      "attempt_id": 6192,
+      "source_attachment_id": 18184
+    },
+    {
+      "old_statement_id": 1145,
+      "new_statement_id": 1694,
+      "task_id": 8905,
+      "attempt_id": 6193,
+      "source_attachment_id": 18186
+    },
+    {
+      "old_statement_id": 1174,
+      "new_statement_id": 1695,
+      "task_id": 8906,
+      "attempt_id": 6194,
+      "source_attachment_id": 18188
+    },
+    {
+      "old_statement_id": 1221,
+      "new_statement_id": 1696,
+      "task_id": 8907,
+      "attempt_id": 6195,
+      "source_attachment_id": 18190
+    },
+    {
+      "old_statement_id": 1254,
+      "new_statement_id": 1697,
+      "task_id": 8908,
+      "attempt_id": 6196,
+      "source_attachment_id": 18192
+    },
+    {
+      "old_statement_id": 1315,
+      "new_statement_id": 1698,
+      "task_id": 8909,
+      "attempt_id": 6197,
+      "source_attachment_id": 18194
+    },
+    {
+      "old_statement_id": 1332,
+      "new_statement_id": 1699,
+      "task_id": 8910,
+      "attempt_id": 6198,
+      "source_attachment_id": 18196
+    },
+    {
+      "old_statement_id": 1349,
+      "new_statement_id": 1700,
+      "task_id": 8911,
+      "attempt_id": 6199,
+      "source_attachment_id": 18198
+    }
+  ]
+}

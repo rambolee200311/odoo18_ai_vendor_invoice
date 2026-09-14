@@ -125,3 +125,34 @@ seven Statements with preserved historical GPT native-PDF results. Statements
 1063 and 1145 now have independent GPT native-PDF replay baselines; their
 outputs must be compared with the corresponding DeepSeek results rather than
 with their historical rendered-image attempts.
+
+## New GPT-derived Statements
+
+To validate the business-document path itself, the nine replay results were
+materialized as new independent Statement aggregates. They use new Tasks,
+successful ParseAttempts, copied source-PDF attachments, and raw-response
+attachments. The new Statements remain `draft`; the nine historical Statements
+remain `cancelled`.
+
+| Historical Statement | New GPT Statement | Task | ParseAttempt | Business field match |
+|---:|---:|---:|---:|---:|
+| 1063 | 1692 | 8903 | 6191 | 2/8 |
+| 1144 | 1693 | 8904 | 6192 | 1/8 |
+| 1145 | 1694 | 8905 | 6193 | 1/8 |
+| 1174 | 1695 | 8906 | 6194 | 8/8 |
+| 1221 | 1696 | 8907 | 6195 | 8/8 |
+| 1254 | 1697 | 8908 | 6196 | 8/8 |
+| 1315 | 1698 | 8909 | 6197 | 8/8 |
+| 1332 | 1699 | 8910 | 6198 | 8/8 |
+| 1349 | 1700 | 8911 | 6199 | 6/8 |
+
+The comparison covers supplier, invoice number, invoice date, currency,
+subtotal, total tax, total amount, and line count. The aggregate result is
+**50/72 (69.44%)**, but this raw percentage is not a reliable GPT accuracy
+rate: historical Statements 1063, 1144, and 1145 have mostly empty business
+fields, while their historical ParseAttempts contain extraction data. The
+1349 difference is specifically the historical tax/total projection versus
+the new GPT projection. Full record-level data is preserved in
+[cc15-gpt-new-statement-business-comparison-20260914.json](./cc15-gpt-new-statement-business-comparison-20260914.json),
+and the new Statement IDs are recorded in
+[cc15-gpt-native-pdf-new-statements-20260914.json](./cc15-gpt-native-pdf-new-statements-20260914.json).

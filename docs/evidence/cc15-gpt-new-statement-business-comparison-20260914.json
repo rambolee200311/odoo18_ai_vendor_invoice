@@ -1,0 +1,374 @@
+{
+  "fields": [
+    "supplier",
+    "invoice_number",
+    "invoice_date",
+    "currency",
+    "subtotal",
+    "total_tax",
+    "total_amount",
+    "line_count"
+  ],
+  "comparisons": [
+    {
+      "old": {
+        "id": 1063,
+        "name": "vendor/stm/20260885",
+        "state": "cancelled",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "",
+        "invoice_date": "",
+        "currency": "",
+        "subtotal": "0.00",
+        "total_tax": "0.00",
+        "total_amount": "0.00",
+        "line_count": 0
+      },
+      "new": {
+        "id": 1692,
+        "name": "vendor/stm/20261523",
+        "state": "draft",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26022366",
+        "invoice_date": "2026-07-06",
+        "currency": "EUR",
+        "subtotal": "4221.24",
+        "total_tax": "0.00",
+        "total_amount": "4221.24",
+        "line_count": 12
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": false,
+        "invoice_date": false,
+        "currency": false,
+        "subtotal": false,
+        "total_tax": true,
+        "total_amount": false,
+        "line_count": false
+      },
+      "match_count": 2,
+      "field_count": 8
+    },
+    {
+      "old": {
+        "id": 1144,
+        "name": "vendor/stm/20260967",
+        "state": "cancelled",
+        "supplier": "",
+        "invoice_number": "",
+        "invoice_date": "",
+        "currency": "",
+        "subtotal": "0.00",
+        "total_tax": "0.00",
+        "total_amount": "0.00",
+        "line_count": 0
+      },
+      "new": {
+        "id": 1693,
+        "name": "vendor/stm/20261524",
+        "state": "draft",
+        "supplier": "feelogic b.v.",
+        "invoice_number": "35138",
+        "invoice_date": "2025-12-19",
+        "currency": "EUR",
+        "subtotal": "3820.00",
+        "total_tax": "0.00",
+        "total_amount": "3820.00",
+        "line_count": 1
+      },
+      "matches": {
+        "supplier": false,
+        "invoice_number": false,
+        "invoice_date": false,
+        "currency": false,
+        "subtotal": false,
+        "total_tax": true,
+        "total_amount": false,
+        "line_count": false
+      },
+      "match_count": 1,
+      "field_count": 8
+    },
+    {
+      "old": {
+        "id": 1145,
+        "name": "vendor/stm/20260969",
+        "state": "cancelled",
+        "supplier": "",
+        "invoice_number": "",
+        "invoice_date": "",
+        "currency": "",
+        "subtotal": "0.00",
+        "total_tax": "0.00",
+        "total_amount": "0.00",
+        "line_count": 0
+      },
+      "new": {
+        "id": 1694,
+        "name": "vendor/stm/20261525",
+        "state": "draft",
+        "supplier": "mainfreight forwarding netherlands b.v.",
+        "invoice_number": "1727001370",
+        "invoice_date": "2026-06-03",
+        "currency": "EUR",
+        "subtotal": "975.73",
+        "total_tax": "0.00",
+        "total_amount": "975.73",
+        "line_count": 5
+      },
+      "matches": {
+        "supplier": false,
+        "invoice_number": false,
+        "invoice_date": false,
+        "currency": false,
+        "subtotal": false,
+        "total_tax": true,
+        "total_amount": false,
+        "line_count": false
+      },
+      "match_count": 1,
+      "field_count": 8
+    },
+    {
+      "old": {
+        "id": 1174,
+        "name": "vendor/stm/20261000",
+        "state": "cancelled",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26028337",
+        "invoice_date": "2026-08-24",
+        "currency": "EUR",
+        "subtotal": "961.70",
+        "total_tax": "0.00",
+        "total_amount": "961.70",
+        "line_count": 1
+      },
+      "new": {
+        "id": 1695,
+        "name": "vendor/stm/20261526",
+        "state": "draft",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26028337",
+        "invoice_date": "2026-08-24",
+        "currency": "EUR",
+        "subtotal": "961.70",
+        "total_tax": "0.00",
+        "total_amount": "961.70",
+        "line_count": 1
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "total_tax": true,
+        "total_amount": true,
+        "line_count": true
+      },
+      "match_count": 8,
+      "field_count": 8
+    },
+    {
+      "old": {
+        "id": 1221,
+        "name": "vendor/stm/20261048",
+        "state": "cancelled",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027997",
+        "invoice_date": "2026-08-19",
+        "currency": "EUR",
+        "subtotal": "1075.89",
+        "total_tax": "0.00",
+        "total_amount": "1075.89",
+        "line_count": 2
+      },
+      "new": {
+        "id": 1696,
+        "name": "vendor/stm/20261527",
+        "state": "draft",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027997",
+        "invoice_date": "2026-08-19",
+        "currency": "EUR",
+        "subtotal": "1075.89",
+        "total_tax": "0.00",
+        "total_amount": "1075.89",
+        "line_count": 2
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "total_tax": true,
+        "total_amount": true,
+        "line_count": true
+      },
+      "match_count": 8,
+      "field_count": 8
+    },
+    {
+      "old": {
+        "id": 1254,
+        "name": "vendor/stm/20261082",
+        "state": "cancelled",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027851",
+        "invoice_date": "2026-08-18",
+        "currency": "EUR",
+        "subtotal": "7460.64",
+        "total_tax": "0.00",
+        "total_amount": "7460.64",
+        "line_count": 11
+      },
+      "new": {
+        "id": 1697,
+        "name": "vendor/stm/20261528",
+        "state": "draft",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027851",
+        "invoice_date": "2026-08-18",
+        "currency": "EUR",
+        "subtotal": "7460.64",
+        "total_tax": "0.00",
+        "total_amount": "7460.64",
+        "line_count": 11
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "total_tax": true,
+        "total_amount": true,
+        "line_count": true
+      },
+      "match_count": 8,
+      "field_count": 8
+    },
+    {
+      "old": {
+        "id": 1315,
+        "name": "vendor/stm/20261144",
+        "state": "cancelled",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027255",
+        "invoice_date": "2026-08-13",
+        "currency": "EUR",
+        "subtotal": "559.05",
+        "total_tax": "0.00",
+        "total_amount": "559.05",
+        "line_count": 1
+      },
+      "new": {
+        "id": 1698,
+        "name": "vendor/stm/20261529",
+        "state": "draft",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027255",
+        "invoice_date": "2026-08-13",
+        "currency": "EUR",
+        "subtotal": "559.05",
+        "total_tax": "0.00",
+        "total_amount": "559.05",
+        "line_count": 1
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "total_tax": true,
+        "total_amount": true,
+        "line_count": true
+      },
+      "match_count": 8,
+      "field_count": 8
+    },
+    {
+      "old": {
+        "id": 1332,
+        "name": "vendor/stm/20261162",
+        "state": "cancelled",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027170",
+        "invoice_date": "2026-08-12",
+        "currency": "EUR",
+        "subtotal": "7967.14",
+        "total_tax": "0.00",
+        "total_amount": "7967.14",
+        "line_count": 14
+      },
+      "new": {
+        "id": 1699,
+        "name": "vendor/stm/20261530",
+        "state": "draft",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027170",
+        "invoice_date": "2026-08-12",
+        "currency": "EUR",
+        "subtotal": "7967.14",
+        "total_tax": "0.00",
+        "total_amount": "7967.14",
+        "line_count": 14
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "total_tax": true,
+        "total_amount": true,
+        "line_count": true
+      },
+      "match_count": 8,
+      "field_count": 8
+    },
+    {
+      "old": {
+        "id": 1349,
+        "name": "vendor/stm/20261180",
+        "state": "cancelled",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027167",
+        "invoice_date": "2026-08-12",
+        "currency": "EUR",
+        "subtotal": "2869.66",
+        "total_tax": "602.62",
+        "total_amount": "3472.28",
+        "line_count": 6
+      },
+      "new": {
+        "id": 1700,
+        "name": "vendor/stm/20261531",
+        "state": "draft",
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027167",
+        "invoice_date": "2026-08-12",
+        "currency": "EUR",
+        "subtotal": "2869.66",
+        "total_tax": "0.00",
+        "total_amount": "2869.66",
+        "line_count": 6
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "total_tax": false,
+        "total_amount": false,
+        "line_count": true
+      },
+      "match_count": 6,
+      "field_count": 8
+    }
+  ]
+}
