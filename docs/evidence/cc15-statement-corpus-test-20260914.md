@@ -94,3 +94,34 @@ PASS ON GPT TUNING CORPUS — 100.00%
 The mixed 9-sample number is diagnostic only. Statements 1063 and 1145 must be
 replayed through GPT native PDF or replaced with GPT-baseline samples before
 using all 9 as an apples-to-apples production decision corpus.
+
+## Isolated GPT native-PDF replay
+
+After the corpus Statements were cancelled through the ORM state-machine
+command, all nine source PDFs were replayed with the preserved
+`OpenAI GPT-5.6 Luna` provider configuration and `native_pdf` input mode.
+The replay called the provider adapter directly and did not create or update
+Statements, Tasks, or ParseAttempts. All nine requests succeeded.
+
+Detailed raw responses and canonical outputs are preserved separately in
+[cc15-gpt-native-pdf-replay-20260914.json](./cc15-gpt-native-pdf-replay-20260914.json).
+The field-level comparison is preserved in
+[cc15-gpt-native-pdf-replay-comparison-20260914.json](./cc15-gpt-native-pdf-replay-comparison-20260914.json).
+
+| Statement | Replay status | Historical GPT baseline | Matches |
+|---:|---|---|---:|
+| 1063 | success | none; new GPT baseline | n/a |
+| 1144 | success | GPT native PDF | 6/6 |
+| 1145 | success | none; new GPT baseline | n/a |
+| 1174 | success | GPT native PDF | 6/6 |
+| 1221 | success | GPT native PDF | 6/6 |
+| 1254 | success | GPT native PDF | 6/6 |
+| 1315 | success | GPT native PDF | 6/6 |
+| 1332 | success | GPT native PDF | 6/6 |
+| 1349 | success | GPT native PDF | 6/6 |
+
+The apples-to-apples reproduction result remains **42/42 (100.00%)** on the
+seven Statements with preserved historical GPT native-PDF results. Statements
+1063 and 1145 now have independent GPT native-PDF replay baselines; their
+outputs must be compared with the corresponding DeepSeek results rather than
+with their historical rendered-image attempts.

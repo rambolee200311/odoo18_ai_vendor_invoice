@@ -1,0 +1,293 @@
+{
+  "prompt_version": "native-pdf-extraction-v1",
+  "prompt_sha256": "ba77d4a92598a9de2cafd01cb3936ec494c96ce862e1dbe4e0e7a4518661f1bf",
+  "comparison_fields": [
+    "supplier",
+    "invoice_number",
+    "invoice_date",
+    "currency",
+    "subtotal",
+    "line_count"
+  ],
+  "comparisons": [
+    {
+      "statement_id": 1063,
+      "replay_status": "success",
+      "historical_attempt_id": 4960,
+      "replay": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26022366",
+        "invoice_date": "2026-07-06",
+        "currency": "EUR",
+        "subtotal": "4221.24",
+        "line_count": 12
+      },
+      "historical": {
+        "supplier": "",
+        "invoice_number": "26022366",
+        "invoice_date": "6-7-26",
+        "currency": "",
+        "subtotal": "",
+        "line_count": 24
+      },
+      "matches": {
+        "supplier": false,
+        "invoice_number": true,
+        "invoice_date": false,
+        "currency": false,
+        "subtotal": false,
+        "line_count": false
+      },
+      "match_count": 1,
+      "field_count": 6
+    },
+    {
+      "statement_id": 1144,
+      "replay_status": "success",
+      "historical_attempt_id": 4961,
+      "replay": {
+        "supplier": "feelogic b.v.",
+        "invoice_number": "35138",
+        "invoice_date": "2025-12-19",
+        "currency": "EUR",
+        "subtotal": "3820.00",
+        "line_count": 1
+      },
+      "historical": {
+        "supplier": "feelogic b.v.",
+        "invoice_number": "35138",
+        "invoice_date": "2025-12-19",
+        "currency": "EUR",
+        "subtotal": "3820.00",
+        "line_count": 1
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "line_count": true
+      },
+      "match_count": 6,
+      "field_count": 6
+    },
+    {
+      "statement_id": 1145,
+      "replay_status": "success",
+      "historical_attempt_id": 5045,
+      "replay": {
+        "supplier": "mainfreight forwarding netherlands b.v.",
+        "invoice_number": "1727001370",
+        "invoice_date": "2026-06-03",
+        "currency": "EUR",
+        "subtotal": "975.73",
+        "line_count": 5
+      },
+      "historical": {
+        "supplier": "",
+        "invoice_number": "1727001370",
+        "invoice_date": "",
+        "currency": "",
+        "subtotal": "",
+        "line_count": 22
+      },
+      "matches": {
+        "supplier": false,
+        "invoice_number": true,
+        "invoice_date": false,
+        "currency": false,
+        "subtotal": false,
+        "line_count": false
+      },
+      "match_count": 1,
+      "field_count": 6
+    },
+    {
+      "statement_id": 1174,
+      "replay_status": "success",
+      "historical_attempt_id": 5046,
+      "replay": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26028337",
+        "invoice_date": "2026-08-24",
+        "currency": "EUR",
+        "subtotal": "961.70",
+        "line_count": 1
+      },
+      "historical": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26028337",
+        "invoice_date": "2026-08-24",
+        "currency": "EUR",
+        "subtotal": "961.70",
+        "line_count": 1
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "line_count": true
+      },
+      "match_count": 6,
+      "field_count": 6
+    },
+    {
+      "statement_id": 1221,
+      "replay_status": "success",
+      "historical_attempt_id": 5195,
+      "replay": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027997",
+        "invoice_date": "2026-08-19",
+        "currency": "EUR",
+        "subtotal": "1075.89",
+        "line_count": 2
+      },
+      "historical": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027997",
+        "invoice_date": "2026-08-19",
+        "currency": "EUR",
+        "subtotal": "1075.89",
+        "line_count": 2
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "line_count": true
+      },
+      "match_count": 6,
+      "field_count": 6
+    },
+    {
+      "statement_id": 1254,
+      "replay_status": "success",
+      "historical_attempt_id": 5329,
+      "replay": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027851",
+        "invoice_date": "2026-08-18",
+        "currency": "EUR",
+        "subtotal": "7460.64",
+        "line_count": 11
+      },
+      "historical": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027851",
+        "invoice_date": "2026-08-18",
+        "currency": "EUR",
+        "subtotal": "7460.64",
+        "line_count": 11
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "line_count": true
+      },
+      "match_count": 6,
+      "field_count": 6
+    },
+    {
+      "statement_id": 1315,
+      "replay_status": "success",
+      "historical_attempt_id": 5494,
+      "replay": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027255",
+        "invoice_date": "2026-08-13",
+        "currency": "EUR",
+        "subtotal": "559.05",
+        "line_count": 1
+      },
+      "historical": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027255",
+        "invoice_date": "2026-08-13",
+        "currency": "EUR",
+        "subtotal": "559.05",
+        "line_count": 1
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "line_count": true
+      },
+      "match_count": 6,
+      "field_count": 6
+    },
+    {
+      "statement_id": 1332,
+      "replay_status": "success",
+      "historical_attempt_id": 5561,
+      "replay": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027170",
+        "invoice_date": "2026-08-12",
+        "currency": "EUR",
+        "subtotal": "7967.14",
+        "line_count": 14
+      },
+      "historical": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027170",
+        "invoice_date": "2026-08-12",
+        "currency": "EUR",
+        "subtotal": "7967.14",
+        "line_count": 14
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "line_count": true
+      },
+      "match_count": 6,
+      "field_count": 6
+    },
+    {
+      "statement_id": 1349,
+      "replay_status": "success",
+      "historical_attempt_id": 5628,
+      "replay": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027167",
+        "invoice_date": "2026-08-12",
+        "currency": "EUR",
+        "subtotal": "2869.66",
+        "line_count": 6
+      },
+      "historical": {
+        "supplier": "bring cargo b.v.",
+        "invoice_number": "26027167",
+        "invoice_date": "2026-08-12",
+        "currency": "EUR",
+        "subtotal": "2869.66",
+        "line_count": 6
+      },
+      "matches": {
+        "supplier": true,
+        "invoice_number": true,
+        "invoice_date": true,
+        "currency": true,
+        "subtotal": true,
+        "line_count": true
+      },
+      "match_count": 6,
+      "field_count": 6
+    }
+  ]
+}

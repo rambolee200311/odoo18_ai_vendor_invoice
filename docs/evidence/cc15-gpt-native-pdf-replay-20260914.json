@@ -1,0 +1,2222 @@
+{
+  "prompt_version": "native-pdf-extraction-v1",
+  "prompt_sha256": "ba77d4a92598a9de2cafd01cb3936ec494c96ce862e1dbe4e0e7a4518661f1bf",
+  "results": [
+    {
+      "statement_id": 1063,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 15147,
+      "source_checksum": "c38befd793dcffb7c24d753e352cfe5d909c742f6dbb674a368606bc2db9ae78",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "26022366",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2026-07-06",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "Bring Cargo B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "5107.7",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "886.46",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "4221.24",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-25\nUnloading Date: 2026-07-03\nOur Reference: WDHOYOS20260217\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Orava-yhtiot Oy, FI 13720, Parola\nCargo: Pallet ADR\nWeight: 100\nVolume Weight: 740\nVolume: 0.4\nReference: 14/96099143",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "381.01",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "ETS toeslag: 6.81\nDieselolietoeslag: 32.6\nIMO toeslag: 170\nTransportkosten ex Douane: 171.6",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "14/96099143"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOYOS20260217"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-29\nUnloading Date: 2026-06-30\nOur Reference: WDHOY20260178\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Pierik elektro B.V, NL 7609RM, Almelo\nCargo: Pllts ADR\nWeight: 1600\nVolume Weight: 2464\nVolume: 1.33\nReference: 6/90105959",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "259.94",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 173.68\nDieselolietoeslag: 31.26\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105959"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260178"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-29\nUnloading Date: 2026-06-30\nOur Reference: WDOUXI20260041\nLoading Address: WD, NL 3208LA, Spijkenisse\nUnloading Address: n.safi, NL 2136LJ, Zwaanshoek\nCargo: Pllts ADR UN3481\nWeight: 1620\nVolume Weight: 6475\nVolume: 3.5\nReference: 6/90105960",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "342.16",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 243.36\nDieselolietoeslag: 43.8\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105960"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDOUXI20260041"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-29\nUnloading Date: 2026-06-30\nOur Reference: WDOUXI20260043\nLoading Address: WD, NL 3208LA, Spijkenisse\nUnloading Address: Fatbikeskopen, NL 7324AL, Apeldoorn\nCargo: Pllts ADR\nWeight: 2880\nVolume Weight: 10360\nVolume: 5.6\nReference: 6/90105965",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "459.98",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 343.2\nDieselolietoeslag: 61.78\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105965"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDOUXI20260043"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-29\nUnloading Date: 2026-06-30\nOur Reference: WDIBS20260021\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Apex Magazijn, NL 2685LP, Poeldijk\nCargo: Pllts ADR\nWeight: 9430\nVolume Weight: 15170\nVolume: 8.2\nReference: 6/90105967",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "398.43",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 291.04\nDieselolietoeslag: 52.39\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105967"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDIBS20260021"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-29\nUnloading Date: 2026-06-30\nOur Reference: WDIBS20260022\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Kinomi BV (SVT-Trinova), NL 1435ER, Rijsenhout\nCargo: Pllts ADR\nWeight: 6266\nVolume Weight: 6068\nVolume: 3.28\nReference: 6/90105968",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "321.3",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 225.68\nDieselolietoeslag: 40.62\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105968"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDIBS20260022"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-29\nUnloading Date: 2026-06-30\nOur Reference: WDOUXI20260045\nLoading Address: WD, NL 3208LA, Spijkenisse\nUnloading Address: Dunya bikes, NL 1093GG, Amsterdam\nCargo: Pllts ADR\nWeight: 2520\nVolume Weight: 9065\nVolume: 4.9\nReference: 6/90105970",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "353.21",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 252.72\nDieselolietoeslag: 45.49\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105970"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDOUXI20260045"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-29\nUnloading Date: 2026-06-30\nOur Reference: WDOUXI20260044\nLoading Address: WD, NL 3208LA, Spijkenisse\nUnloading Address: Volt Trading, NL 4661TX, Halsteren\nCargo: Pllts ADR\nWeight: 3600\nVolume Weight: 12950\nVolume: 7\nReference: 6/90105972",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "381.44",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 276.64\nDieselolietoeslag: 49.8\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105972"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDOUXI20260044"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-30\nUnloading Date: 2026-07-01\nOur Reference: WDElecnova20260126\nLoading Address: AWL ENGERY, NL 3199MA, Maasvlakte Rotterdam\nUnloading Address: MTS, NL 9481TB, Vries\nCargo: Pallet Energy Storage Cabin\nWeight: 1700\nVolume Weight: 1062\nVolume: 0.57\nReference: 6/90105876",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "252.58",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 167.44\nDieselolietoeslag: 30.14\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105876"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDElecnova20260126"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-30\nUnloading Date: 2026-07-01\nOur Reference: WDOUXI20260042\nLoading Address: Bring Cargo B.V., NL 3334 KB, Zwijndrecht\nUnloading Address: Titanbikes, NL 2235SE, Valkenburg\nCargo: Pllts ADR\nWeight: 720\nVolume Weight: 2590\nVolume: 1.4\nReference: 6/90105962",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "212.08",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 133.12\nDieselolietoeslag: 23.96\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105962"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDOUXI20260042"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-30\nUnloading Date: 2026-07-02\nOur Reference: WDOUXI20260046\nLoading Address: WD, NL 3208LA, Spijkenisse\nUnloading Address: powermotion, NL 1948PA, Beverwijk\nCargo: Pllts ADR\nWeight: 2520\nVolume Weight: 9065\nVolume: 4.9\nReference: 6/90105974",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "353.21",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 252.72\nDieselolietoeslag: 45.49\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90105974"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDOUXI20260046"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-06-30\nUnloading Date: 2026-07-03\nOur Reference: WDHOY20260181\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Pierik elektro B.V, NL 7325AC, Apeldoorn\nCargo: Pllts ADR\nWeight: 15980\nVolume Weight: 12580\nVolume: 6.8\nReference: 6/90106001",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "505.9",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 382.12\nDieselolietoeslag: 68.78\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90106001"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260181"
+              }
+            ]
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_055f0f408ba4c7cb006aa7be91b99487d0b9029ea6d02b0f42\",\"created_at\":1789378194.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_055f0f408ba4c7cb006aa7be9387f087d0abe17ac069f0ce73\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp76hSI9dx7LeNFIOG2_NKzuEjY1LS3IubDNtWeX9Wqh9BuVZIDVqqGd3JeEnZik2O3RvHRQNWURb1_iwthsCiRoWzm2S7vqd0eEUZvtW3ndnJ87pF4PbrbvghEET8J2Qwl9RLe9L3nH_2uNXHEUaLlVW8Vd9KCbOewG93EHu7ufEOA4wo71vxP6IPqArliFqu5-QIg86UppXGZqbbDqCVGA0LgAa0CRF4mpLP2WY9WiYHZhO58Tt4uAI-GfghGTmmMnR7PsYTLcihlKshJPsznaZb593fJXf0ObtuSrByikMp9bCJiemlXUrqFb2v2p4QMbAtm8DNnE65rjaLswPvUfkXLD6dBhsHEj39IcmkgydImroLYhal9aWtnrGtIQIdUCt20mZ-C9bHB_pEGWsrvZODCWpxcHJU1xfzoa0r38GS32CSXDDc-B-WQ1EgifvTot7ijaF3UuCILiVY_jVQY69I4F0L6TXqxC0k_gRzMb38XmX0aqDmRIj_Av7W1GJVu0g-z9UHqBLoDAo3zPCeKT7rEkz2LVzri0ENS3EX2eph2UXvFPggBzcLXOB465S-BMWGJJqw00rMtTeZXf7H6WO_O1TZeR_M2mk9z6mmiFgBPQaAsjX0C6fav02VT2ZJ7Ih9kbStsr2X8RNqtJe5-ZYpyJrS11fTm45bd3jpAquPHvMY5nMJpV5ICNce3ofxZeBKiXBN26H_R_hV2jD9K1kbk3PgTM4YN5mz1mS0Tm3vzL2ew5X8UDmwWYzgoxyQBw6jMJv1HwdvKC_hjsl23dWfVUVUobqpUb4p93oC5_A_ps4ptOegA0RPL4d9cmyM8jCMrR226Li8qPFVfMiGWrgoC1iQoqWcVyWW-84JO1HlEvBSvzywRvVUTxLfzdqrLy3m5zkGb3tVbB4ovqcm-P3NJH17AGNSWQpUD428J3g-4mXEWtQc7HB9CXYJTrEGPqPLLI6V968McbYA03WHD13IB6UScMEs8t-q080KcQmmj1iUzOkEpsbJAk9IdlzIukXZJcr4LYtFY1GjFJiMf35Rv_sPVi-Jf8YdCR5s2f01Oijy2Bs1_cWY_m58xwQvslzqBtdogppfMHckrJATIrDkXk-DlomS88ySmnyKrDHQQH81TP0axbxa0OLMmuRVIr4EJxVci-yarnRHG3YeuKVGRpTL9f0caJ556_IOBXBp1k9_oIju8QI8c8LPTOcqDzn1hdn3VkutjYyY1Ds-Hz5TC5uInNwsF1fkpuYFlYfkiJwaYLWeHFvwdEHb977iaX7btiA494LBiC9V2UGVqi0W9xIaM8EsJRI0BSyJ_yQE1EHx8DECdoLcQE71LL7pHgdb7tn-XuuNNebuNwZlTXyrCRf5V6YQ9ct-0_aOwqQXqVR_IXdf7e6T3oy_CB_C-p46br9bAsLMiVZSxyOoYYAvDu2wkVm41bLr_fDSmKzPjq06bzxAN1GuY9lE_mrhd0FHwh0SFm-L9kkPGoyUoIGX5-AbZ8gEJG7dD7U9IgImqKWQDEpHA6--K0wtdEfZF5FCWT1gSWKXE9HIJqAVojBh-wlOl2tCN_p0uvKkz1I9a7GWxYvy2erQkZey5zway-gfX6vyz5TCybsa4vDkvNPKH1k7wR5casz6cLnDEhMeHMTiCaWBgmIQm2H-iYgerveOPypWOKsNnm4b2aX-UmBhzpeDTH6aEynwqVuDz3ITCTUDDUF49-Fr3myQ53VccZjL_Q9DHx_gRSLH0gq8lnlS9nb81D6SJlbcdc7ZtZ27Qvi9-STAgx0CDjDU66j6ePZRXfACIXOgIQi0wTINpQs5cdgiV3YSP184jyVfAzNZXzS_aWs-xMlFvwYF5aiBG0QlnV4aM-72ThPfGhOkwTrwheqr9rzJowT8cHwzcWBz7bsnFfg5O158s4-W-Ci87nAWJfq38uN1Nu6XggCEsTdb14U2AqerpOqrjuk4tEg3APiGWa_vtTktpLXzqAOeD7_WytejBrUxdSvnLyY9zGZ3P9UO9GeD9_8s7ww0WIni-iYp7iSbMjJy45oVZDeVZ1tjaD-h1xsbYfxviK0W0Y-yNsHHYtf1RLGRegIVr2tG-vuV2oaoOOATvWX4FljJfJIQtMYtiHlwN8rx8RvgN-ZH35QWvnrSBUsAbPvQ2NmAdeMRXb9zQr5iuy6LK9omVpzxaENBSaHfxJtu3YWqdZGj0JK7ZW_Y8PN_EP-059mwFqMBEulHvGwIzsVVbZ6xbN7WkNqTDN8h2H1lPDcvqgK3g0rCbfTyoZ7pTRdsNj2WXiNbl1d3cbVwCT4R6Z2ENbEm94lwTgJRdiBQKpHak1ItgjKjf6LhoMgq63_xqf4kuIDlphClKbeeT4tGzUKU1__f0WUzrTGhnfALzYoLh9c7_eDYc_NUJYaHjCBQ_02xtC_8R1UH0oHYf6QfdWv5TNHGtf8DkDNU6Xw2UJeMFHInyge81RbiE9BL1qkiM8JAzXh-DdRCtgFNb6cioEbq_GAjtmIQ92bki9YdQnnUbbSrgJ6ti3LO-Q1Rb18a9TASjc=\",\"status\":null},{\"id\":\"msg_055f0f408ba4c7cb006aa7be96123c87d0ba5702efaa627d77\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"26022366\\\",\\\"invoice_date\\\":\\\"2026-07-06\\\",\\\"due_date\\\":\\\"2026-07-06\\\",\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"Bring Cargo B.V.\\\",\\\"address\\\":\\\"Griendwerkersstraat 10, 3334 KB Zwijndrecht, NEDERLAND\\\",\\\"vat_number\\\":\\\"NL008225497B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"World Depot B.V.\\\",\\\"address\\\":\\\"Shannonweg 39, 3197 LG Botlek Rotterdam, NEDERLAND\\\"},\\\"lines\\\":[{\\\"reference\\\":\\\"14/96099143\\\",\\\"our_reference\\\":\\\"WDHOYOS20260217\\\",\\\"loading_date\\\":\\\"2026-06-25\\\",\\\"unloading_date\\\":\\\"2026-07-03\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Orava-yhtiot Oy, FI 13720, Parola\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR\\\",\\\"gross_weight\\\":100,\\\"volume_weight\\\":740,\\\"volume\\\":0.4,\\\"charge_components\\\":[{\\\"description\\\":\\\"ETS toeslag\\\",\\\"amount\\\":6.81},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":32.6},{\\\"description\\\":\\\"IMO toeslag\\\",\\\"amount\\\":170},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":171.6}],\\\"amount\\\":381.01},{\\\"reference\\\":\\\"6/90105959\\\",\\\"our_reference\\\":\\\"WDHOY20260178\\\",\\\"loading_date\\\":\\\"2026-06-29\\\",\\\"unloading_date\\\":\\\"2026-06-30\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Pierik elektro B.V, NL 7609RM, Almelo\\\",\\\"quantity\\\":4,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":1600,\\\"volume_weight\\\":2464,\\\"volume\\\":1.33,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":173.68},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":31.26},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":259.94},{\\\"reference\\\":\\\"6/90105960\\\",\\\"our_reference\\\":\\\"WDOUXI20260041\\\",\\\"loading_date\\\":\\\"2026-06-29\\\",\\\"unloading_date\\\":\\\"2026-06-30\\\",\\\"loading_address\\\":\\\"WD, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"n.safi, NL 2136LJ, Zwaanshoek\\\",\\\"quantity\\\":5,\\\"unit_description\\\":\\\"Pllts ADR UN3481\\\",\\\"gross_weight\\\":1620,\\\"volume_weight\\\":6475,\\\"volume\\\":3.5,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":243.36},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":43.8},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":342.16},{\\\"reference\\\":\\\"6/90105965\\\",\\\"our_reference\\\":\\\"WDOUXI20260043\\\",\\\"loading_date\\\":\\\"2026-06-29\\\",\\\"unloading_date\\\":\\\"2026-06-30\\\",\\\"loading_address\\\":\\\"WD, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Fatbikeskopen, NL 7324AL, Apeldoorn\\\",\\\"quantity\\\":8,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":2880,\\\"volume_weight\\\":10360,\\\"volume\\\":5.6,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":343.2},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":61.78},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":459.98},{\\\"reference\\\":\\\"6/90105967\\\",\\\"our_reference\\\":\\\"WDIBS20260021\\\",\\\"loading_date\\\":\\\"2026-06-29\\\",\\\"unloading_date\\\":\\\"2026-06-30\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Apex Magazijn, NL 2685LP, Poeldijk\\\",\\\"quantity\\\":20,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":9430,\\\"volume_weight\\\":15170,\\\"volume\\\":8.2,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":291.04},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":52.39},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":398.43},{\\\"reference\\\":\\\"6/90105968\\\",\\\"our_reference\\\":\\\"WDIBS20260022\\\",\\\"loading_date\\\":\\\"2026-06-29\\\",\\\"unloading_date\\\":\\\"2026-06-30\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Kinomi BV (SVT-Trinova), NL 1435ER, Rijsenhout\\\",\\\"quantity\\\":8,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":6266,\\\"volume_weight\\\":6068,\\\"volume\\\":3.28,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":225.68},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":40.62},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":321.3},{\\\"reference\\\":\\\"6/90105970\\\",\\\"our_reference\\\":\\\"WDOUXI20260045\\\",\\\"loading_date\\\":\\\"2026-06-29\\\",\\\"unloading_date\\\":\\\"2026-06-30\\\",\\\"loading_address\\\":\\\"WD, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Dunya bikes, NL 1093GG, Amsterdam\\\",\\\"quantity\\\":7,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":2520,\\\"volume_weight\\\":9065,\\\"volume\\\":4.9,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":252.72},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":45.49},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":353.21},{\\\"reference\\\":\\\"6/90105972\\\",\\\"our_reference\\\":\\\"WDOUXI20260044\\\",\\\"loading_date\\\":\\\"2026-06-29\\\",\\\"unloading_date\\\":\\\"2026-06-30\\\",\\\"loading_address\\\":\\\"WD, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Volt Trading, NL 4661TX, Halsteren\\\",\\\"quantity\\\":10,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":3600,\\\"volume_weight\\\":12950,\\\"volume\\\":7,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":276.64},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":49.8},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":381.44},{\\\"reference\\\":\\\"6/90105876\\\",\\\"our_reference\\\":\\\"WDElecnova20260126\\\",\\\"loading_date\\\":\\\"2026-06-30\\\",\\\"unloading_date\\\":\\\"2026-07-01\\\",\\\"loading_address\\\":\\\"AWL ENGERY, NL 3199MA, Maasvlakte Rotterdam\\\",\\\"unloading_address\\\":\\\"MTS, NL 9481TB, Vries\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet Energy Storage Cabin\\\",\\\"gross_weight\\\":1700,\\\"volume_weight\\\":1062,\\\"volume\\\":0.57,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":167.44},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":30.14},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":252.58},{\\\"reference\\\":\\\"6/90105962\\\",\\\"our_reference\\\":\\\"WDOUXI20260042\\\",\\\"loading_date\\\":\\\"2026-06-30\\\",\\\"unloading_date\\\":\\\"2026-07-01\\\",\\\"loading_address\\\":\\\"Bring Cargo B.V., NL 3334 KB, Zwijndrecht\\\",\\\"unloading_address\\\":\\\"Titanbikes, NL 2235SE, Valkenburg\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":720,\\\"volume_weight\\\":2590,\\\"volume\\\":1.4,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":133.12},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":23.96},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":212.08},{\\\"reference\\\":\\\"6/90105974\\\",\\\"our_reference\\\":\\\"WDOUXI20260046\\\",\\\"loading_date\\\":\\\"2026-06-30\\\",\\\"unloading_date\\\":\\\"2026-07-02\\\",\\\"loading_address\\\":\\\"WD, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"powermotion, NL 1948PA, Beverwijk\\\",\\\"quantity\\\":7,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":2520,\\\"volume_weight\\\":9065,\\\"volume\\\":4.9,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":252.72},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":45.49},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":353.21},{\\\"reference\\\":\\\"6/90106001\\\",\\\"our_reference\\\":\\\"WDHOY20260181\\\",\\\"loading_date\\\":\\\"2026-06-30\\\",\\\"unloading_date\\\":\\\"2026-07-03\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Pierik elektro B.V, NL 7325AC, Apeldoorn\\\",\\\"quantity\\\":17,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":15980,\\\"volume_weight\\\":12580,\\\"volume\\\":6.8,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":382.12},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":68.78},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":505.9}],\\\"subtotal\\\":4221.24,\\\"total_tax\\\":886.46,\\\"total_amount\\\":5107.7}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378209.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":14243,\"input_tokens_details\":{\"cache_write_tokens\":14240,\"cached_tokens\":0},\"output_tokens\":2235,\"output_tokens_details\":{\"reasoning_tokens\":215},\"total_tokens\":16478},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    },
+    {
+      "statement_id": 1144,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 15556,
+      "source_checksum": "e605a1101d4b0f2b94f7937902a86f1fab9a1cb28455f4be230243c86fca3a8f",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "35138",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2025-12-19",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "Feelogic B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "3820",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "0",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "3820",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 2025-12-17\nLoading Address: Spijkenisse\nUnloading Address: Sierre (CH)\nCargo: Collo\nWeight: 19318\nVolume: 0",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "3820",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "TRANSPORTKOSTEN: 3695\nADR TOESLAG: 125",
+            "reconciliation_clues": []
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_0167a15c9acfa494006aa7bea4042487d0ad3ac3791e360b4d\",\"created_at\":1789378213.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_0167a15c9acfa494006aa7bea6f32887d09f8c00471fc17491\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp76rJ6LfovqXY5_ESm77A4FA0g4jxHlpwfGpcCPRfUpt7gNVuT_2Uxvmm50KIzPE9CHd6cyJdxpMfleFueqhzbC6rBJ48JA7ZonhuQuuOkvnMFGRnK3Hvdjei4CLgXCg7CnVanUzRgoGsMOnp5kcGA43BW65JEZzH78YpjRx5hd1nAXzDjBvlWmw1pITXNFzCGtednIKTu3MbfI-WuwLlyH5r3do1s1WWa1dHAnHRpTuPoqC_K8ZlylwJ9qgN9Ue-jD8EceyNcQXDwP1XXPS9RyVAfrIZ50V4H_byG4cywhstNPNJzzQZS09ph4_O-Ak00kCBaDnqt6IUhdRGrkzlV_VWCNI3iBMwg--CdZQjN6VoFPKOsVb2XIbLzwwua5fA4Py8gzeecMpHZZu9CYICGxZD8T9PN24teu0e2jQFwRke0w4DB6q6WkH1l_HMGilzm89V24MKS2XZBnbrqHeJGJ83waGret2Mqpz3JiGipOgSu5P1H333vURT51Ye9FyUKGAd3WnmYZgqCB54804jjzBDsiTd8c5GdV_4tdEraiR-dv7R2_K-Ivk5dU0Q2bKU1aw8JR8yHmMnjwHERVqltGWapp3pHxTKWAX72G2ugelTvBIC2qsmHK2YNI7NJus-gE9PVZAwnnYLy09pTf5tAOyTG5ucQlrh8cWWJHSrMWjZWBSFbd5PNPPtC7Nj8LN3JNpYi-9F_iIy6L6wfqTkxHA6yc3YK2q-KigTc-AAveOAMPPG17fV3a-jsAOgPXbaegfTkAIl3Hs9GGSfqBpIezJF9Bw4BWptCS516RLxwY-zbwid1jMxap8UrSujtzKNqPL971Xtnhdc92plw14ziBGa5JnjSZvX56_zGpXTForjHYVPWjjcsPE4vbk_Zh4S2P97XRPRTFsWkjVnoNtm5S98nA4xWcQgQGKQ97CgTM2Es9iX_cw4hYyBvi9itDayFo0uMaY6M21jc7Lrw37bhaoS1nPJZ38aLX5zb9F8ycYuMIX0YEr9-GnRiJ54GxCpjqZUgWeByrQ-TCynOdCzFhbq5O4s2TN3O0nmeNb-VSreFBTaxf5J0cQlRIZ503XlSxqdh8RshIiK2wKMlt3u-2xcBwmnWsxS6KA_IUsYs4PLMmIwhgt7lGHfUW6QR8nMfEUJU9aXtbX5iWsi7PelFBmR6eksseVFxi6ymPCA8gBzCYvTR6kezxBzlHLaY40lvalCy-mPzicCCzHT9ILFsqkYYMWy7LwRQLXxcLZxpJfomXWNYAU1YxGX-bk_PqdERn7vm1AZuIkE9_GNb0I5a0PdBSGyDQhZ7f_PO7zwqiBwZCvI0FkTuoOV9MstMXnCwFqlVBNh94AkZyiKf3n7yW268ACzEUePV8X0zDvlF62yxpLnhOU_uIRxV2sW-0cidrYVws34DV7rVETf9gMqospZZnoyshwCAfAUu677wgchIcRZPszol1vmvW8taCnBqb5QJ4SVI_jd4QS-0vEREFbVI-X_jrBR5og5sgV9I0pOWexd5gbHlZ1t3OpOszHPax-14PNn-pZEpKxUtgDaWudgEZCJZjXerCGW6j8runam14k61N8YFOnEjahOY1z8c5m1Gxi0kxT3RJOulV8PyvRSQjiBVEM9-1r84rZAeyYIsEkg5in4fuG2kBLzjOn4FLwETMoO_XKvhZwJnoGpBMHUCHEWfnhYXeCeEc0JNlip5BNMNvShmjbNb_6Vov6EdIa7M9wqlAMO6UyGcCOa2Ldo0F5jS-v8VtIyjSKutB4l1LPmNoqpDa2ZgCvFHgBJhAtTykByh-SwDiRu4ul_Kq9lim2cjGTguHmqn_XUgtUk5XwPMgb3KkerdnylLiFFCSKnZArVZpgokeHQAIKm2CfFnwYeLKDBeXnUxbe963moMQGIU3q_mMkagFtcYlW_hWXaad3-eBcOerczARb6MGwgp73eaonTUql75Af90zQQdkY-n0QOwHbjMf2U0Tc6I8NLnh4R1tf3wxJnqrtfLKmdh50qn3Ze2iHF3Op7M6hNdj6DM3a-pWskvVXPOvH2D9lM8vW0dNkQrgU8jgLj_kslg6rrAzRvYn0ODSIQhlmqsc48n1-2YD4n6BGyyViwURpgDf_76_j1MfvTbkSd8-Wl5F7Li4twA6LbKFU-sNcw5ggFc3hZ89qi8hmOb0HGMhxfl_re8NSGjxFtuFn2Hu6wD7ZNVmM0oeZWmdVf3bCHofGF_nQ9qM2395nuCy46dNINoKjKg49ARgLWU30iYdeehcOwvt_aDYPB-2ZLCGMqOTcpzlsZ5eqUlLtEpCq991soDwBBmH7SAho7cDfbWCVGVkyEx7m_qktY0BWjb1magMLAjXS47yTLwC-HJOT844PFN64ehyt6O3uUuKnoim7uwsiZJEz9TpnxKHiIyOR99PrF7HAuq6Ugi5tXz2ZNjLFcpU2TcRKWvqBr6A47LZDPw==\",\"status\":null},{\"id\":\"msg_0167a15c9acfa494006aa7bea942a087d0aafe7be37db16943\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"35138\\\",\\\"invoice_date\\\":\\\"2025-12-19\\\",\\\"due_date\\\":null,\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"Feelogic B.V.\\\",\\\"address\\\":\\\"Vareseweg 111, 3047 AT Rotterdam, NEDERLAND\\\",\\\"vat_number\\\":\\\"NL858071605B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"WD Europe B.V.\\\",\\\"address\\\":\\\"Malledijk 3h, 3208 LA Spijkenisse\\\"},\\\"lines\\\":[{\\\"reference\\\":null,\\\"our_reference\\\":null,\\\"loading_date\\\":\\\"2025-12-17\\\",\\\"unloading_date\\\":null,\\\"loading_address\\\":\\\"Spijkenisse\\\",\\\"unloading_address\\\":\\\"Sierre (CH)\\\",\\\"quantity\\\":20,\\\"unit_description\\\":\\\"Collo\\\",\\\"gross_weight\\\":19318,\\\"volume_weight\\\":null,\\\"volume\\\":0,\\\"charge_components\\\":[{\\\"description\\\":\\\"TRANSPORTKOSTEN\\\",\\\"amount\\\":3695},{\\\"description\\\":\\\"ADR TOESLAG\\\",\\\"amount\\\":125}],\\\"amount\\\":3820}],\\\"subtotal\\\":3820,\\\"total_tax\\\":0,\\\"total_amount\\\":3820}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378218.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":3780,\"input_tokens_details\":{\"cache_write_tokens\":3777,\"cached_tokens\":0},\"output_tokens\":438,\"output_tokens_details\":{\"reasoning_tokens\":211},\"total_tokens\":4218},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    },
+    {
+      "statement_id": 1145,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 15559,
+      "source_checksum": "71fa68ef08580d89e39f4bf5ef19087efb4834e7f56dd81cbd26b3276be063c1",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "1727001370",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2026-06-03",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "MAINFREIGHT FORWARDING NETHERLANDS B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "1180.63",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "204.9",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "975.73",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 2026-05-08\nUnloading Date: 2026-05-11\nOur Reference: WDROSIWIT20260021, SCEU_006254_20260508_172728_73\nLoading Address: WD Europe B.V., 3208 LA, SPIJKENISSE, NL\nUnloading Address: Mainfreight Waddinxveen, 2742 RH, Waddinxveen, NL\nCargo: one-way pallet ADR 3480\nWeight: 585.0\nVolume Weight: 2019.5\nVolume: 4.523\nReference: 17110205918",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "-605.25",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "1100 Freight charges: 418.0\n1211 ADR/IMDG surcharge: 62.7\n1275 Safe & Secure allowance: 1.24\n1901 Fuel surcharge: 123.31",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "17110205918"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDROSIWIT20260021, SCEU_006254_20260508_172728_73"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-05-08\nUnloading Date: 2026-05-11\nOur Reference: WDROSIWIT20260022, SCEU_006254_20260511_090546_33\nLoading Address: WD Europe B.V., 3208 LA, SPIJKENISSE, NL\nUnloading Address: Mainfreight Waddinxveen, 2742 RH, Waddinxveen, NL\nCargo: one-way pallet ADR UN3480 / ADR\nWeight: 268.0\nVolume Weight: 1050.0\nVolume: 1.757\nReference: 17110205980",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "-384.17",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "1100 Freight charges: 265.0\n1211 ADR/IMDG surcharge: 39.75\n1275 Safe & Secure allowance: 1.24\n1901 Fuel surcharge: 78.18",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "17110205980"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDROSIWIT20260022, SCEU_006254_20260511_090546_33"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-05-11\nUnloading Date: 2026-05-12\nOur Reference: WDElecnova20260085, SCEU_006254_20260511_152836_60\nLoading Address: WD Europe B.V., 3199 MA, Maasvlakte Rotterdam, NL\nUnloading Address: BEQUEREL ENERGY SRL, 307377, Covaci, RO\nCargo: one-way pallet ADR\nWeight: 1401.5\nVolume Weight: 1930.25\nVolume: 5.16\nReference: 17110206118",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "12.5",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "1206 Delivery/Pick-up appointm. fee: 12.5",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "17110206118"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDElecnova20260085, SCEU_006254_20260511_152836_60"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-05-20\nUnloading Date: 2026-05-27\nOur Reference: WDvilion2026029, SCEU_006254_20260520_182321_19\nLoading Address: World Deprt B.V., 3197 LG, Botlek, NL\nUnloading Address: Kroop & Co. Transport + Logistik, 21629, Neu Wulmstorf, DE\nCargo: one-way pallet ADR UN3480 BATTERIES\nWeight: 5300.0\nVolume Weight: 5300.0\nVolume: 12.072\nReference: 17110207386",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "628.34",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "1100 Freight charges: 437.0\n1211 ADR/IMDG surcharge: 65.55\n1275 Safe & Secure allowance: 1.24\n1901 Fuel surcharge: 124.55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "17110207386"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDvilion2026029, SCEU_006254_20260520_182321_19"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-05-20\nUnloading Date: 2026-05-27\nOur Reference: WDOUXI20260027, SCEU_006254_20260520_114630_18\nLoading Address: WD Europe B.V., 3208 LA, SPIJKENISSE, NL\nUnloading Address: Amtoimport Electronic Commerce GmbH, 93152, Nittendorf, DE\nCargo: one-way pallet E-BIKE\nWeight: 2000.0\nVolume Weight: 10150.0\nVolume: 20.832\nReference: 17110207456",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "1324.31",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "1100 Freight charges: 922.0\n1211 ADR/IMDG surcharge: 138.3\n1275 Safe & Secure allowance: 1.24\n1901 Fuel surcharge: 262.77",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "17110207456"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDOUXI20260027, SCEU_006254_20260520_114630_18"
+              }
+            ]
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_0b5efadb37a77272006aa7beacdbfc87d0a0b1e3dfbfae9076\",\"created_at\":1789378221.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_0b5efadb37a77272006aa7beaeb75087d09add206ac2a1ec7a\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp762jnag7OEx1D9p91QT860_6P9u0LidDmxkqD3vrn7LD70CDYmjxHlQwwPMJ_cEMPwC36IteV-ZqKSnD7pT31WEstFW9uzvdvPI4aHIGhpgy58nezBSepi1jxRuaZjp9FkRvQA26YSFzMC1lQe7fPinGzfTNnvcXbjdM4X2NKRQLphpg9uBZMsRy39SBahj-bENZP5dPJLtWGZjCU-Gl-utqIgnVSSgtHrIDVix7-ZRWiqBLzQADWjY77X18HnsFU0CopR3wtYJY-JwJvqfyZw120Kb1FaNJmHD4lPGyTrCyJgf2hgDh--cB567jkXUQ1ouavTI24sZkFL5xgtoN3fpPLW0A5ZCQT_ZM07k2Nwnkoo3EQEOS4RRuExoCzE9TytHeBwFywPLQ86eRqumG4BNhvYjW_7EmnY0Sii2JnqQItdsVVDCSH5M54n3xLW5hzWFwJzua4jI8XQaGYw2y1NQA2AE-Jbo7UabWfILRVlP5WB1qK_VGVg2jMn6cM78yt9HpCv6et_yaA0pt0pBPR2DTF4XC6ymTOJeVWG5VbKZ8mvQGeka6lGb_UnJw98lJANr4JEtfo9ng2PIbqLjE4F6T2WNGkYeHlBSUG87fyBhsw8FOCBcMUdSvwtNX9evF1_kj3ihmgDG81LT2H1A8M_DFzztnNRkHMDMcLB2Lz1rdbK-WAMaPBawxo1eZtggEKk8HwRS0fLfyvLyza2tHYoOgL3RcgdKFcvc2RfIC1w5D7bzCjZhnW26ITWm2fI32oMv1bQmKM28vk_G4eYOdIQeJW6Tzc8UCKh_rd3Cj10T5LepyLYRMMQ0oljsSozS8CiPQ2jLCYgutTmt5G--VivSbGcb4865pX05uyCAXpyHHiWcJayeeZMv4KcGa1YK8CnY-SfVp2X2zX2Twrhqcwoyny5AEOZOYVLFG50Lzhkssf_MouDx16Ppfj8Ht-PSCT1GNdCMhBm5zwfHsDAbz1KXfKVB5ClbtcElWtGKh06vyx3liBM9ZqE9sOO3cmggsvFCKDSKk-_UVarpNqOlgJ4GCekwcWODKNgSerYMHfvzORfORkTIYeFUZR7eCzxNyBxC0TbBwNmh-87wb0cecRyxTWOT7Ob7eiBvaVxzlb_JxxQxdnif1BDScE21I5bz8nN5bAig653W450R4CePKsqhhlmtgoAzEvgySvUvDvwPCN1N9pDqGL7_PA3TQr8Q3bbK5fdqI3zRFVzfAq-G068vvEufcyWtmRYb-JTy8o3EQ4tEE0kVEjzvuYNzk_9WTBNbpP1pv9En3MvfdWvdRruDADhikvLQq4nioLujkw6o2iXrMmrzYQVa6QxgI7FKGnXdy-czswKFWHJgpOrjXBscXJwdw3wL53-F2vxFy8Cl9gf7MkKkdjDSfnGrbATKfXHndM9AVuBFhgUrrUmycZVrmVrTzPyxNHRMI7f88bv48h8wLwrJmTZXP86dE0zAbwRDSae5940Y1K3r_EDJvJk8j31uwD98CqDrRwFOjNyvMxJefsdA2fxhRTUPVayAHpp5F6s1e3-TjsIK_HUzj7VIJU3hNz2cDHi-cFUXrn9d6rTEHl62qsA4KS1iKdD8UegGSMoC6DjWE2HC8MTaYcYoTjhrguvUwTVkF-afQUogxXzftxcv4ZGvFr39KnJeMM4r1hxiv5Urh0KqIDmnxJKYNZxsIWleneGXgnOr-cdTXZtz1q51mAt1LQb2-Q24kU1TE4RMYTwAAxerTe4PpehPPjPGxp0Vk_Nv7ClvxWCdZFr2N_80uL_he8f9_0aHk-ZynnG405ohBC6RmIHBpTksK3CmzPCiCH3EgTlV_8E9ZuLx33QsL-0w6_a7g6DQvLVnSACPszlZLwpLUevC_r_2IJi8KxCK8aeYeXJJXFhv-mfG31EuYCff1MfSZD22MQCvyK6OvvjuYb5mKF4zvaRil9IVz8GEgVF2kOgxVQs2drc9rdpAuQgCW6LQ41CB6gbN9lKK6jOW9kpr0vVB_oizrmV7mD8OeyQoFRdF0xaq-HICM_Nmoj-ERFNcXhZ1eQLeoJu0rLGA2FIdRMmMuhat0GY1xLCtTlMCEi0Qr9fA2BQp7L1EwoIoYsOmYs00jQmY_okPk5ltCHS-ZnCWHRarFmdQLa_kF27Ffgzq0VnSinavOeO7SERMMl7Bq_UBVK524rTw13LHWl7CJnjzvkWe4ROQ5xWcazUURJWw5cfudbBvgJAus7H0bXRJTAdUdub5R9RLIfCiJhKWoxljZu30fMOMB-5IuotUiemrW2YGyUAYRlFOaaoFAYy7f8bbaDOrsMZ2fERp404eL0eecIDwqttLjnUUkQpZit8VHsOhAUlqJrUSM8SjufsecpnoyMdwcXRBDhhxB_Eq42NLLJ4z1kU8grglzEg3gV3_S01iinqkfmjp_qe5kgRWicaSv7kpK5qwyKSflzzDUpfmyZf9C2BkUyEum6N16OuUNRmZ_v7AiSpd4fZxqCgBfwD5zYZNUyxJGc0DOFCMhQKBwnqY0CGO-QC_GRyWZxhrAF_-EwVLg4bTVXl1pw5_SUKiAE0Bcd0GjzX6W0CQ68QYPdVbSe36ZmDiQys6rTqftIM2bXHwHdZ81uCUHNfnyf1HQAUFYkuic4fng-Ej4lCeR-1ouJMUX0Fu1a0GrxPitojCd2nDh-ZoMeaVS78E6K1bHcKPs1VQvnmMOM_E_5Vjd5aiSCSmv5qehJR7uG3akmV0u1O0Kw08VSZ9tHoDC5UYr989RQ_kw4vOar0QltA6oNCCb6VFVU2zX_4h3bBuW2VH1M6ZFjAhsU4xNTBRuy1JQsuZoIeD6UhkidGg0wnX9bl8RAEwUqkeYz2_NKrZDBFvK6inqCso50aQ5qrFxXyxE4ENoN7jeXQsBc7EmKAZmV-SbR7aq4ADk2YX4iiZW9KPkFm8o-FraKPkbhEm3yQbl4gMkjZJUvaY5NAaKATtepN1Fvkd1odYs2lCgP2poGu3dmv7_sf8xoZE8nryTuH_dNeaRcfALKcQuEuncsm3V2ZJ6uQePuI2no8Z6tvFfKkIGws=\",\"status\":null},{\"id\":\"msg_0b5efadb37a77272006aa7beb14fc887d09575fae63de93fc0\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"1727001370\\\",\\\"invoice_date\\\":\\\"2026-06-03\\\",\\\"due_date\\\":\\\"2026-06-17\\\",\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"MAINFREIGHT FORWARDING NETHERLANDS B.V.\\\",\\\"address\\\":\\\"TRANSPORTWEG 15, 2742 RH WADDINXVEEN, NETHERLANDS\\\",\\\"vat_number\\\":\\\"NL0042.01.991.B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"WORLD DEPOT B.V.\\\",\\\"address\\\":\\\"SHANNONWEG 39, 3197 LG ROTTERDAM-BOTLEK, NETHERLANDS\\\"},\\\"lines\\\":[{\\\"reference\\\":\\\"17110205918\\\",\\\"our_reference\\\":\\\"WDROSIWIT20260021, SCEU_006254_20260508_172728_73\\\",\\\"loading_date\\\":\\\"2026-05-08\\\",\\\"unloading_date\\\":\\\"2026-05-11\\\",\\\"loading_address\\\":\\\"WD Europe B.V., 3208 LA, SPIJKENISSE, NL\\\",\\\"unloading_address\\\":\\\"Mainfreight Waddinxveen, 2742 RH, Waddinxveen, NL\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"one-way pallet ADR 3480\\\",\\\"gross_weight\\\":585.0,\\\"volume_weight\\\":2019.5,\\\"volume\\\":4.523,\\\"charge_components\\\":[{\\\"description\\\":\\\"1100 Freight charges\\\",\\\"amount\\\":418.0},{\\\"description\\\":\\\"1211 ADR/IMDG surcharge\\\",\\\"amount\\\":62.7},{\\\"description\\\":\\\"1275 Safe & Secure allowance\\\",\\\"amount\\\":1.24},{\\\"description\\\":\\\"1901 Fuel surcharge\\\",\\\"amount\\\":123.31}],\\\"amount\\\":-605.25},{\\\"reference\\\":\\\"17110205980\\\",\\\"our_reference\\\":\\\"WDROSIWIT20260022, SCEU_006254_20260511_090546_33\\\",\\\"loading_date\\\":\\\"2026-05-08\\\",\\\"unloading_date\\\":\\\"2026-05-11\\\",\\\"loading_address\\\":\\\"WD Europe B.V., 3208 LA, SPIJKENISSE, NL\\\",\\\"unloading_address\\\":\\\"Mainfreight Waddinxveen, 2742 RH, Waddinxveen, NL\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"one-way pallet ADR UN3480 / ADR\\\",\\\"gross_weight\\\":268.0,\\\"volume_weight\\\":1050.0,\\\"volume\\\":1.757,\\\"charge_components\\\":[{\\\"description\\\":\\\"1100 Freight charges\\\",\\\"amount\\\":265.0},{\\\"description\\\":\\\"1211 ADR/IMDG surcharge\\\",\\\"amount\\\":39.75},{\\\"description\\\":\\\"1275 Safe & Secure allowance\\\",\\\"amount\\\":1.24},{\\\"description\\\":\\\"1901 Fuel surcharge\\\",\\\"amount\\\":78.18}],\\\"amount\\\":-384.17},{\\\"reference\\\":\\\"17110206118\\\",\\\"our_reference\\\":\\\"WDElecnova20260085, SCEU_006254_20260511_152836_60\\\",\\\"loading_date\\\":\\\"2026-05-11\\\",\\\"unloading_date\\\":\\\"2026-05-12\\\",\\\"loading_address\\\":\\\"WD Europe B.V., 3199 MA, Maasvlakte Rotterdam, NL\\\",\\\"unloading_address\\\":\\\"BEQUEREL ENERGY SRL, 307377, Covaci, RO\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"one-way pallet ADR\\\",\\\"gross_weight\\\":1401.5,\\\"volume_weight\\\":1930.25,\\\"volume\\\":5.16,\\\"charge_components\\\":[{\\\"description\\\":\\\"1206 Delivery/Pick-up appointm. fee\\\",\\\"amount\\\":12.5}],\\\"amount\\\":12.5},{\\\"reference\\\":\\\"17110207386\\\",\\\"our_reference\\\":\\\"WDvilion2026029, SCEU_006254_20260520_182321_19\\\",\\\"loading_date\\\":\\\"2026-05-20\\\",\\\"unloading_date\\\":\\\"2026-05-27\\\",\\\"loading_address\\\":\\\"World Deprt B.V., 3197 LG, Botlek, NL\\\",\\\"unloading_address\\\":\\\"Kroop & Co. Transport + Logistik, 21629, Neu Wulmstorf, DE\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"one-way pallet ADR UN3480 BATTERIES\\\",\\\"gross_weight\\\":5300.0,\\\"volume_weight\\\":5300.0,\\\"volume\\\":12.072,\\\"charge_components\\\":[{\\\"description\\\":\\\"1100 Freight charges\\\",\\\"amount\\\":437.0},{\\\"description\\\":\\\"1211 ADR/IMDG surcharge\\\",\\\"amount\\\":65.55},{\\\"description\\\":\\\"1275 Safe & Secure allowance\\\",\\\"amount\\\":1.24},{\\\"description\\\":\\\"1901 Fuel surcharge\\\",\\\"amount\\\":124.55}],\\\"amount\\\":628.34},{\\\"reference\\\":\\\"17110207456\\\",\\\"our_reference\\\":\\\"WDOUXI20260027, SCEU_006254_20260520_114630_18\\\",\\\"loading_date\\\":\\\"2026-05-20\\\",\\\"unloading_date\\\":\\\"2026-05-27\\\",\\\"loading_address\\\":\\\"WD Europe B.V., 3208 LA, SPIJKENISSE, NL\\\",\\\"unloading_address\\\":\\\"Amtoimport Electronic Commerce GmbH, 93152, Nittendorf, DE\\\",\\\"quantity\\\":7,\\\"unit_description\\\":\\\"one-way pallet E-BIKE\\\",\\\"gross_weight\\\":2000.0,\\\"volume_weight\\\":10150.0,\\\"volume\\\":20.832,\\\"charge_components\\\":[{\\\"description\\\":\\\"1100 Freight charges\\\",\\\"amount\\\":922.0},{\\\"description\\\":\\\"1211 ADR/IMDG surcharge\\\",\\\"amount\\\":138.3},{\\\"description\\\":\\\"1275 Safe & Secure allowance\\\",\\\"amount\\\":1.24},{\\\"description\\\":\\\"1901 Fuel surcharge\\\",\\\"amount\\\":262.77}],\\\"amount\\\":1324.31}],\\\"subtotal\\\":975.73,\\\"total_tax\\\":204.9,\\\"total_amount\\\":1180.63}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378230.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":7865,\"input_tokens_details\":{\"cache_write_tokens\":7862,\"cached_tokens\":0},\"output_tokens\":1473,\"output_tokens_details\":{\"reasoning_tokens\":323},\"total_tokens\":9338},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    },
+    {
+      "statement_id": 1174,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 15757,
+      "source_checksum": "fabe2c4cead869aa1592c5a73b1ac8c8a9dccaec7ed4a20a5bd2eba4b7d1749d",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "26028337",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2026-08-24",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "Bring Cargo B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "1163.66",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "201.96",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "961.7",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-05\nUnloading Date: 2026-08-11\nOur Reference: WDELECNOVA20260166\nLoading Address: AWL ENGERY, NL 3199MA, Maasvlakte Rotterdam\nUnloading Address: Nordic Energy Supply AB, SE 44145, Alingsas\nCargo: Pllts UN3480\nWeight: 5700\nVolume Weight: 4625\nVolume: 2.5\nReference: 12/35253117",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "961.7",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "ETS toeslag: 19.49\nDieselolietoeslag: 166.57\nIMO toeslag: 135.0\nTransportkosten ex Douane: 640.64",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "12/35253117"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDELECNOVA20260166"
+              }
+            ]
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_0ef87ece41b5103d006aa7beb8ec9887d09dcabd72916a20d2\",\"created_at\":1789378233.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_0ef87ece41b5103d006aa7beba8d9887d085bdcfecf4380e2e\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp769uhCzQuR821sfvy1tljbclrKkLYkuB4NYZ3TGLHhZo8W2uFuWy3fVbeFlwIfbZl36hXBI7LkHQxDnDHSVuwvLrUHPptk32wIRRfmQFTtkNomGFYa41SBQDtGpOzDE6E5dlqqksEuWitUWcCKOH0Zn5Pb-dM6wWXomfn1dZ625lPmvoOmAV4A-wyZkfNL1g-9gx4q44iIsFGFF5uQRNkAXZ1Hd-MdJwBF1bFQEBJVdXiSyovfZXUKGntS47WqgIDTV0jIMd6KGWrGNi8vlUq6j0ZXB9ItGZmlVxTuBozwfi5X0wCZrpRZQ0jmBlYBVZeYtCHD9Iw5lJWW1UOXeXJjEzHHmXBGyBUoQnfHvswaCBdIYw9-l_rbiGZqDzVDqu3clCXxVCtLRj2nLjDhdFz7J56H48JA0c_axGY9uMKZsYFKnwSJil6Qp859wNGXR8It09689P1tBJpd8GpP2aVjwENMY5cDVvREmeNeQ2iV3lBZJKjF-CVM-Vv9_EUFneijzyz7NVby9WFTxosZu6uGYWm1UpQtmaQ3mucJcQerImrkdo1cztGc8HLLX6ejMPiiQaPLm7VCB-A6GtnqQ01NhYwLFytKEe0lbjO1zneytJLI0A87wBQO_uJSPbfCGLFEGHF2lNzbbHc7HjmWXmsE0I1V1tmMoRH5jeKXNGWlYBbZb5pGK-ULaL-J-ErPqhC8iUS73hEAP_JNUj7gnD0Df3fIA4xGVbNHiNBUZq7evpQty2RxJtc1OkI-zYsfADvmG9HFt3VBULklLgyYSc50U258gj13nKbQtZnC5qAN7iwUBtbHrd2E60UhfF3Dff0EC78LjXT916Pa8-nrGWIXOPbdR5S99Fcrwz7M4SXnsMQbntWoo74EtoQ4YyfhgQ1pI3atbqXg2MnRbgTfG55guoaH7PkB-Ks9KxqRUbMZQLx2HIX1008GLQzmiGZO2D5uGfbPDVKCU208pPV36w9mT_tekaTIW04z7sLZVrCb52jiEG82GNfnf4C6EuHkbAyW7c8MjwIQi5jWklXMNWgO6JSKAd71f0l_QTOHIsz9Fl3U5oOXczuBvrLkcRFg5VXBfwxzDar2PcRBOP2xPe35n0XSDgSYrYW99CM6QGvhdujqYny0-9xTkF1AUyHcYjtv8RvU4qVZy4COX4ZuOh85L3V5rip1rwLbtg3-fjbCkUP99g-05qn7P1RcNjIyrfFrENStQtgQJFQByGgL3Bv7FZC65DQd5rv1vsnkLMB3bmY-3DaJZQHNW5lSE-O4SaTGaTzpEt4by-6Bhyo_m1Aa91fNukote9hCytooghrEjCrp94c5P0l8ADDaMVxFj14fiAIj6VhiejqI_weyzj3JHr76uZKnn7tuDJscCiysArqr5JIL4W52TfBgKyl8k3fC8-_LTdkYwtM5qwywqQm_vcClRJlBEgQjestliefcFay6xZngY5AIjJ4SFOUFGj8JlhhGjcDA5BWUiMsbXnOr7GnSTFfbuSo5WUKrAkhaZ1JS_eEtwuzrBjY4oYR1IUYqMx1X05DOwSON1eZWFwqpNRR8hks7z0p5dltfeF6H-Mt2STCBozNh_u5jugOMDxtRcqF1oqhl2guf4YfS-VarUfDvcpbGpfEK1z8DBXJjjO8URxxRbPief59cJgsMQslprDrYNvX6LMDgXSdfnRcM0rsuHjPHaUH_SmQ71rQyQYg3skIw7-XX26hjIIXw3geCi0U7dWq5yv-6HniZNkXFfWupEB7UnR1ptduZe0EYDI8lV6FTGunrcCGtpxIl3Xt3Ts2oBS4mdkoutpsyd7WWtln8ReKJTS0vhd1HJN93wk9lpQuCocGqVslEwRe7CODeKAfAlQJOcXmCZ3OIC45wf7ttrdUtIpzOxhI9ijLGY0hBOV0vwRNwJkmqJq_iToFhxKyC8yoPGi5KqrHKy8d0AUc5CQoGvlWCIuAOXb9p0gKs=\",\"status\":null},{\"id\":\"msg_0ef87ece41b5103d006aa7bebbae1887d08c1d5421e1a2fe55\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"26028337\\\",\\\"invoice_date\\\":\\\"2026-08-24\\\",\\\"due_date\\\":\\\"2026-08-24\\\",\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"Bring Cargo B.V.\\\",\\\"address\\\":\\\"Griendwerkersstraat 10, 3334 KB Zwijndrecht, NEDERLAND\\\",\\\"vat_number\\\":\\\"NL008225497B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"World Depot B.V.\\\",\\\"address\\\":\\\"Shannonweg 39, 3197 LG Botlek Rotterdam, NEDERLAND\\\"},\\\"lines\\\":[{\\\"reference\\\":\\\"12/35253117\\\",\\\"our_reference\\\":\\\"WDELECNOVA20260166\\\",\\\"loading_date\\\":\\\"2026-08-05\\\",\\\"unloading_date\\\":\\\"2026-08-11\\\",\\\"loading_address\\\":\\\"AWL ENGERY, NL 3199MA, Maasvlakte Rotterdam\\\",\\\"unloading_address\\\":\\\"Nordic Energy Supply AB, SE 44145, Alingsas\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pllts UN3480\\\",\\\"gross_weight\\\":5700,\\\"volume_weight\\\":4625,\\\"volume\\\":2.5,\\\"charge_components\\\":[{\\\"description\\\":\\\"ETS toeslag\\\",\\\"amount\\\":19.49},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":166.57},{\\\"description\\\":\\\"IMO toeslag\\\",\\\"amount\\\":135.0},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":640.64}],\\\"amount\\\":961.7}],\\\"subtotal\\\":961.7,\\\"total_tax\\\":201.96,\\\"total_amount\\\":1163.66}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378237.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":6061,\"input_tokens_details\":{\"cache_write_tokens\":6058,\"cached_tokens\":0},\"output_tokens\":430,\"output_tokens_details\":{\"reasoning_tokens\":111},\"total_tokens\":6491},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    },
+    {
+      "statement_id": 1221,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 16109,
+      "source_checksum": "ee795ce69ba620732b682b894212e67683a3df6a77d1ee33224dcff5d57b0a5a",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "26027997",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2026-08-19",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "Bring Cargo B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "1301.83",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "225.94",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "1075.89",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-13\nUnloading Date: 2026-08-18\nOur Reference: WDELECNOVA20260171\nLoading Address: World Depot B.V., NL 3197LG, Botlek Rotterdam\nUnloading Address: Lars Nielsen, DK 7700, Thisted\nCargo: Pallet UN3480\nWeight: 1553\nVolume Weight: 1062\nVolume: 0.57\nReference: 5/50137461",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "536.15",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 359.84\nIMO toeslag: 75.0\nDieselolietoeslag: 89.96\nNL Vrachtwagenheffing export: 4.75\nDeense tol: 6.6",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "5/50137461"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDELECNOVA20260171"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-18\nUnloading Date: 2026-08-19\nOur Reference: WDDSG20260007\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Energy Matrix B.V., NL 6691EV, Gendt\nCargo: Pllts ADR\nWeight: 5870\nVolume Weight: 9250\nVolume: 5.0\nReference: 6/90107418",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "539.74",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Foutvracht: 539.74",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107418"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDDSG20260007"
+              }
+            ]
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_0ed6330bdadad698006aa7bebf11e487d0a1da8dd047078d33\",\"created_at\":1789378240.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_0ed6330bdadad698006aa7bec0d41487d09b2c7652b4f0c218\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp77IJO30K9_J41mOWTSy6-VYyzaZeasIJ1RfU0DXksHGVvHZu7UyNQwzFyOGlzuSO4Q5lyIlbj_rtx-EAz5NIphUFFEvvvde3o-CQ8roY5EtkMwCM_qyFgmxFB4XrKFmKzJjN_FCYsJFD39o7fxxMLvW9jTvJ0J8AAiuomy3lgvGfDUJGd9ZKu5iQoodz_G6m5JNMHzj7mvMseJ4dt3myelKI6LIri2xO1Tgnljzw2WYXuw1lucg0JxEAMWIsjt3AiigBMJB-DG-sryyFxuPHhZGOLWEk9XoNXwhXZneiy31dApnfzftQnV-nuJpa6hQAwurhOxCLpc3YNRNr4Z_8BbYfYkEDnY4jLmzjzzEqpDY1vNRXBhDdXptdan3Av9yc0LOVWX4XfLCkFgK8TNcTNTKRPGeafadJ9-YDzTc9Apz6lgKLvpmtcTEw60Rs95p8eI3lmKuB7hY05cb0r_K341l0Y3JxPu06ID_vH0q9Ns5YxGdlVhpIaofcf-GdYkzvfo3EIO-QGCsrIx4KoCWMct9S8lPsxkSJIoC5_CNCwKNumUSo__AlC9DPw8IF7w461SGAFEPeiNDNSWHWR-MOa6Od5_4Z23K8mWyPYcnHHIChJM-VS7BwqQylwwrZHz54ulK7B_-JHR9lOMtkDIXgWdsAs026Dw8uxiL_og1y-6Trjtl7sPB2z44EEyxQ6Dge8yWhJWds-Tqcda9pnTmd9NnHVOGb6mn3ocVPVyrfpnlFq2e-rdw6yP7spFZ9OGQ7sv_q9ka22KdKgp_P4MuFf6q43a5oBsTz5L9-x4zCt1d6SxIHqUeRxiERFCP060WcOb5FW8WhsQt3S_K7IwVUcg7nEBcOFvHZdg-cepM1WEAbwqXqp-Q9p47i5Y-SdB33ZirBmbItUe64fFvWib0LGaLW135twh4uz6lrOS28k61NOXs18-SyS68zGtCWjwJyv8kN3PiTE2Wskt1F0m_pbfBPLFmkNxQO2PsnybaM8uIk0OYEKvZF3W_xF6X7Z3aTU-bea6ucjBgUbmglHczm87MFnj8DmgF4VsJ5DDmsG0Z1IUETHNpsSavcvXu9qlHgeneSKJJbqwfHNxvsJpGYy17pyB7VmbDaJzL4331dGcoAjXiW6PlgEkb4iR7fwLquwqpn_unZXxWs4EnlflsVn5D5y8vltMMZ5vTRoYq_JQfdUSS6y-a2e7a-0ynnNUQD6FPnS5SA5mQMjNtAeItkZpbotHTtQLFxNBBuKX-IdRWmhMGDyitZnRL2rZBiUI8M30ahPSTquAfVygJtFJBm_Gyy-1P34BJS51KjeLi2D_fD33337h2OU7i7gseW8WOhIaUrbCFOpOgqWSB7P8SHdERjxx6kAtj2FKDvaEpH_1dBVHT7ZlQEIn7BwQCf8EMTC7mGleMzoZ6BEjIhbibl2VadfAcin8VH1gJtoZKwJUdD8Axawu-VmTveIPU_zpUwHH2RKInkwWiqWt_ZL_ShFlePaRi6LEssMgNV8meP0uSLcttOrVbvDPevUTRfPzpbvZ2mUKdMnjeJ89i6u5J16SzK1Q_YA4fim8i6iYmzZ4V7CW04nNHXNUmo9U6yRmdJ8s5zjt7wM9XREoHteFglHeh6SD35P8QoRU5GPOB8y1CapAJLB5hlqF-70-7oAh4hXba1UveHVTnJJvy79r4JXX0UzO1958G0kN8e6y759rARIYo8qHUeXMIewdvVRM90lf1gl0zdaB8Uue7NPZclX6RwzzbmGdZnQbS3mnltI7_HVCym3xI4777igTcqwkJ8yDZLHlcSu7VPhws8Ud7z1uIt-a4QEizWvospcrb1Xt4pddAGtv5PBqTg2z9FMPKLsA8Bur1ocVAww9PhgYJA6pmCROwMgDVfOCk-WqjeCEjxWm4BphgYezuS9kLJoyfO7ZHPk3y6m2S0XUtiW7PJQoJCuLepOoAsdrakEsDTk2N6lTKAiR7yBG93qTIt1zthyUGLnrpVTnsxfRb6hVYMkckNxJy6JK13NR-2jysV1t47HsoFnnIUKTsQT6WpDA3BHPrh1xTpYlkPJ-s3vkMe-H_YGCm7BILrOPVVqlRCXIp9yNLkJ2KY4owXvMp4xgBDcyzXWXxD6sBg65uJjqh0lvbJLuImsWxu6tCCiiEa3RenemtZqg2otBvWEfFLs_WrjZ15rXYKbzJzS28SbcRP9DOVFYN2gjyZZjs3jSwgRglp0dooes3WYyxau53YkPKnoUUITyRTqhGYzsDj8a28yBCdvocTO8ZcBiSBMzNThjyGGCLLUJRF_g536qqw01SPi-Xn-9rLUqbDAMU_xZsTZJV01JYf99hknxRTVtIP9yXdjyMW6bOQPO94SaeqUemnBsfPueuZ4A32EE5iKK4JfcnhJ1CIG_d2Y5y5xjCFm6nE6mJkoS-VsnbysdPCbYu0HcEBVHuRiQbhKexeLR7kwtQe3cIGceyjOcTHOnOoCZkqrlmPGLTrggBxX9e0ZcrCzYxV1vFidJfrn-YzsDCzA0dED-RY24utgQNDDaTLJmueVqbtYDPeTZHZYKrdOfHfHdL7cEnR65kvmq_q9_GsKzijSFH9yaijbOweYnIoLx_IgB0stO4hsrnYtMLMLTFq7USMqW1uf400EjxGlgrYNdPYwbp0nyBSvM11-E3ojZkMgUvJzDd6ENep-AVgzzwc3JPSAbmIdFwyYBNIHBDSGqN4b4jUCNMT_VfypZ5iDp6G_a8KlCssmTSPyelJec0Pl_xt1ADHOR-IgOzKI6DO_FpPt2bV5B7PNT9NHbPl-vNg3smm5rjGYD6M8qzrWbkvA4izzodnFVJy5yWJwhZ_fPlF4ZuqueY-sfrMdOYDGkiiYyHB5Nz6-XtSX28oSyf3L052l5cltL8yfSpAqfJWeSZ_ULWBEjZGk8CiG7J8SIefNhhAdVwLRDUWOJYO-QToH1IZjhVILj2XxWyJ6C2x0bjplN6pbDZHZHHSc_IIVkdddzDloz6H3gyLv6lhbE21rUWm8I37vK_feEh0rnwAHN0tw==\",\"status\":null},{\"id\":\"msg_0ed6330bdadad698006aa7bec3e36087d09af745a4b7d51197\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"26027997\\\",\\\"invoice_date\\\":\\\"2026-08-19\\\",\\\"due_date\\\":\\\"2026-08-19\\\",\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"Bring Cargo B.V.\\\",\\\"address\\\":\\\"Griendwerkersstraat 10, 3334 KB Zwijndrecht, NEDERLAND\\\",\\\"vat_number\\\":\\\"NL008225497B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"World Depot B.V.\\\",\\\"address\\\":\\\"Shannonweg 39, 3197 LG Botlek Rotterdam, NEDERLAND\\\"},\\\"lines\\\":[{\\\"reference\\\":\\\"5/50137461\\\",\\\"our_reference\\\":\\\"WDELECNOVA20260171\\\",\\\"loading_date\\\":\\\"2026-08-13\\\",\\\"unloading_date\\\":\\\"2026-08-18\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3197LG, Botlek Rotterdam\\\",\\\"unloading_address\\\":\\\"Lars Nielsen, DK 7700, Thisted\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet UN3480\\\",\\\"gross_weight\\\":1553,\\\"volume_weight\\\":1062,\\\"volume\\\":0.57,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":359.84},{\\\"description\\\":\\\"IMO toeslag\\\",\\\"amount\\\":75.0},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":89.96},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"Deense tol\\\",\\\"amount\\\":6.6}],\\\"amount\\\":536.15},{\\\"reference\\\":\\\"6/90107418\\\",\\\"our_reference\\\":\\\"WDDSG20260007\\\",\\\"loading_date\\\":\\\"2026-08-18\\\",\\\"unloading_date\\\":\\\"2026-08-19\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Energy Matrix B.V., NL 6691EV, Gendt\\\",\\\"quantity\\\":10,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":5870,\\\"volume_weight\\\":9250,\\\"volume\\\":5.0,\\\"charge_components\\\":[{\\\"description\\\":\\\"Foutvracht\\\",\\\"amount\\\":539.74}],\\\"amount\\\":539.74}],\\\"subtotal\\\":1075.89,\\\"total_tax\\\":225.94,\\\"total_amount\\\":1301.83}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378248.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":6213,\"input_tokens_details\":{\"cache_write_tokens\":6210,\"cached_tokens\":0},\"output_tokens\":729,\"output_tokens_details\":{\"reasoning_tokens\":270},\"total_tokens\":6942},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    },
+    {
+      "statement_id": 1254,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 16424,
+      "source_checksum": "4538b6e12d654c128b02a16f40532368920e22a77ef772a4ba589f088afb0be3",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "26027851",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2026-08-18",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "Bring Cargo B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "9027.37",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "1566.73",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "7460.64",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-10\nUnloading Date: 2026-08-14\nOur Reference: WDSAJ20260046\nLoading Address: Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\nUnloading Address: TRANSPORT CSEH SRL, RO 525400, Targu Secuiesc\nCargo: Pallet ADR UN3480\nWeight: 1515\nVolume Weight: 1201\nVolume: 0.65\nReference: 6/90107184",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "843.63",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 594.88\nUIT Registration cost Romania: 20\nDieselolietoeslag: 148.72\nNL Vrachtwagenheffing export: 5.03\nADR toeslag: 75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107184"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260046"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-10\nUnloading Date: 2026-08-12\nOur Reference: WDOKT20260010\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Sukces Sp. z o.o., PL 22-100, Chelm\nCargo: Pallets ADR\nWeight: 9990\nVolume Weight: 11100\nVolume: 6\nReference: 6/90107204",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "1929.74",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 1463.28\nDieselolietoeslag: 365.82\nNL Vrachtwagenheffing export: 25.64\nADR toeslag: 75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107204"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDOKT20260010"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-10\nUnloading Date: 2026-08-12\nOur Reference: WDSAJ20260061\nLoading Address: Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\nUnloading Address: Svea Solar Deutschland GmbH, DE 50996, Koln\nCargo: Pallets ADR\nWeight: 6588\nVolume Weight: 12580\nVolume: 6.8\nReference: 6/90107226",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "850.07",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Extra kosten: 50\nTransportkosten ex Douane: 562.64\nDieselolietoeslag: 140.66\nNL Vrachtwagenheffing export: 41.77\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107226"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260061"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-10\nUnloading Date: 2026-08-12\nOur Reference: WDHOY20260233\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Veloris BE BV, BE 2390, Malle\nCargo: Pallets UN3480\nWeight: 4836\nVolume Weight: 4316\nVolume: 2.33\nReference: 6/90107275",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "363.62",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 237.12\nDieselolietoeslag: 59.28\nNL Vrachtwagenheffing export: 12.22\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107275"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260233"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-11\nUnloading Date: 2026-08-12\nOur Reference: WDDMEGC20260014\nLoading Address: TUEV Rheinland Solar GmbH, DE 51105, Koln\nUnloading Address: Fraunhofer Institute for Solar-, DE 79110, Freiburg\nCargo: Pallet Non ADR\nWeight: 135\nVolume Weight: 2697\nVolume: 1.46\nReference: 6/90107252",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "795",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "all-in (incl. dieseltoeslag): 795",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107252"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDDMEGC20260014"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-11\nUnloading Date: 2026-08-12\nOur Reference: WDHOY20260234\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Atlas Power B.V., NL 3882TC, Putten Gelderland\nCargo: Pallet Non ADR\nWeight: 45\nVolume Weight: 740\nVolume: 0.4\nReference: 6/90107289",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "71.05",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 53.04\nDieselolietoeslag: 13.26\nNL Vrachtwagenheffing export: 4.75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107289"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260234"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-13\nUnloading Date: 2026-08-14\nOur Reference: WDCotti20260181\nLoading Address: World Depot B.V., NL 3197LG, Botlek Rotterdam\nUnloading Address: Cotti, DE 47198, Duisburg\nCargo: Pallets Non ADR\nWeight: 12000\nVolume Weight: 12025\nVolume: 6.5\nReference: 6/90107293",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "728.48",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 560.56\nDieselolietoeslag: 140.14\nNL Vrachtwagenheffing export: 27.78",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107293"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDCotti20260181"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-13\nUnloading Date: 2026-08-18\nOur Reference: WDSAJ20260071\nLoading Address: Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\nUnloading Address: Schrack Technik GmbH, AT 2481, Achau\nCargo: Pallets Non ADR\nWeight: 348\nVolume Weight: 1480\nVolume: 0.8\nReference: 6/90107315",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "568.41",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Extra kosten: 50\nDieselolietoeslag: 102.7\nNL Vrachtwagenheffing export: 4.91\nTransportkosten ex Douane: 410.8",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107315"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260071"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-13\nUnloading Date: 2026-08-18\nOur Reference: WDFAI20260127\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Azialo, FR 67810, Holtzheim\nCargo: Pallets ADR\nWeight: 480\nVolume Weight: 1739\nVolume: 0.94\nReference: 6/90107350",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "428.5",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 295\nDieselolietoeslag: 73.75\nNL Vrachtwagenheffing export: 4.75\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107350"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDFAI20260127"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-13\nUnloading Date: 2026-08-18\nOur Reference: WDSAJ20260073\nLoading Address: Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\nUnloading Address: SolarX GmbH, DE 13509, Berlin\nCargo: Pallets Non ADR\nWeight: 895\nVolume Weight: 2960\nVolume: 1.6\nReference: 6/90107355",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "526.53",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Extra kosten - collection Ritthem: 50\nDieselolietoeslag: 93.34\nNL Vrachtwagenheffing export: 9.83\nTransportkosten ex Douane: 373.36",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107355"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260073"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-13\nUnloading Date: 2026-08-17\nOur Reference: WDSAJ20260082\nLoading Address: Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\nUnloading Address: Barklage Elektrosysteme GmbH, DE 49393, Lohne\nCargo: Pallets ADR\nWeight: 732\nVolume Weight: 1480\nVolume: 0.8\nReference: 6/90107356",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "355.61",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Extra kosten - collection Ritthem: 50\nTransportkosten ex Douane: 196.56\nDieselolietoeslag: 49.14\nNL Vrachtwagenheffing export: 4.91\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107356"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260082"
+              }
+            ]
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_0b0be4447df7d6ad006aa7beca70a487d0ad21b9fc91008894\",\"created_at\":1789378251.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_0b0be4447df7d6ad006aa7beccb5b887d0889afc998ace6807\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp77Y-eaFQdDt8yLoTTkr-gweS9yorGC8-nUovxYvdGeUWmknCSYJx4_dXTx_juNb2G2H-witTBeoAbQiMaF7Pigf-LgiP62oKUxQEB8nvy6AEOAhjPNE0YN5YSK1vRvos0OHBBPlo0mNIE5sEB7YwbOpoUqtuJaYVzTxmx_A0IR-2l4TF8ecC76Mv5BamQFznOd-copA4MaOOYEhknz1L6qIhkuxu1rw6jr8Xm2hkLIAW-qYFD6VhXJ9yCgw4tn8Ui3KhfMQSTxDs5dkGOMGdJZN9FTyxZCmSkVvU1Y7mXCreUuep4a5hR1_OFimbXrWdqicCBwR6qnnTmALRvZrR7LuyKetjV7U_v85nkdXzoSC8xC_KaWb0SbtYX_bOlJT8lk3SWo5iG9yiupMOCuQz_Oi8RHBIZ9K3lSqTAv5cs4-3CT8has0yg-GecriJZg0Y_LBR8Rj008J3UJb3b9lIjAvOGxKV1pOO9LTU1xseOqYlUDR9sjl4zyw2RtmiR9FCpCw4lOSaWG01FVGQk9igwrZuX69hSY6Nx1c7oLC7zfh7fGgNXNwvcqDfWWCtGJJ888KbMFWzxKXGmtrdA1SlLZuoa9-S9GDmOVx77lTRGHTJvLx29oP0qICcKegwDYQakMfCpYK0eVZUl5_aOLC2Y0_nw38t9xnUoRTyFa-0tdZ4K7StV_NiUpef8tSj2neJQm8SBoUE3Ghm9Tu8nubgUvyJiwp73Dj53hS1Lwcr--re4cXXGM5qi1f2r3oWqR986cSAQY-Tq-cATUvYeGaqZZ34K2XXBezM_0ezQ3FCkcyCPVN76egN91uI5w4kaM_nKo6n9X9bGNsfwDwrenH8RGR7hTk1S9QUQdSoL-qN72VnVuywSju-zBmHjgpmNuX-a2cDThu26vNmmf1XK2B_EzHCwyQy1uHmW_JxWo8DGPchlj8QWJU0h17m0R6T3EhqQm3yMWV8ZD9L4sDnAUlw2xcCgsf0pTSYkj1JPBkSp1yDMcw9mGrTHYM0jIVd1bcM8dHxFaNUEntUr7yG7-zmxV7Uj-0BrBmJfys1A36kB7ePJENNT_1OZxrSjoIxBoFWNmr266nbzxkXAUUyo34Sa6Y1p_TyqJeTbxyen5MNBF8p200TfflXAjcxtjM0TPKIE0CfvYwJ64hI8LqYAB99aoVzW8yb_tIFAIjtktWNfP3YWcMiG0xmRK3qrr7geNdlkOrdPnzof67j6QVDFlaUagI3I1ecFHESl1f5MIBokh-SIHzYKKgwOZbGj_tiWmSfDtOldQ2xnWUJI6Re8zg17GN11u9Uf73l3ugYXUwcHSbr7MQuuGwi-MJkP447hEefyuFgGBMQNHR0YiKiRsThxEYfQaemwykUkVhMFwEeXJlBt3Lq6pgLvzFVGIKk7CKjHPT7-4zbDvSi6474cslzdfHk1KDDN5SliBT--Tnzu2_TckfX9mmq3KDsyxdugmgiOufKKwTPXOiFtbPBXPtCDtj75RpNR9IBltSdsZzZa6uC6f__AgQlL1mFwrwPdi3Q_Ra8wVF9EDmP-4-AiotA5wkqKDne6BSQrOCDzdzJ7-91BSQfHscjjkYXEcl7qV0NjL_fDC8Tj5z6tfRbupjbt2RBUpNI2fZS4uFxaF_fBKnYd9kKe4AeDFBR_6WiXurAfCaQWg21Jx1cj2lk12Nfdsw7fosUDZebQG5ZLPLhMMx6WyxZ_HpE6sNbcLuwfpS2RYDYWdlbZXW2VCLSeFnVCLDNntxigKf_q6HZCvinMvMKYfWgn_DSdO-dFPCMFloYYcdctO6QEtYv8sDVPjtetgqQbdDpJuEpDNtDJbqHY_x9x4VWIbcpjYdWaarKFF44laQVdbv877gu57unRXuxC0bt_AMNP-9VzXbncazkq_fJLEcMSzHl4KCn3iGbwnWYdcKPzu7OSBiCWGB_UDY3mYvFa-xkZXsX69fOb8OpERCrqZXDtqPfFdnrZTwCmEEokln4tf4fy1bstU5xP12Ak4pxPtjQTinlgsvVmAe6fdyDAYgt6T0Yoz6OO9tmBx4tPvewq6Kc5sGQGG6BlfpJFV8lbYNagDPI2Pjc1z2iRtIwGVQ-HB3TLE1FZC_gRlYRBoOhowLZUCbdLviX3cWNqNeVZ6hiYf2oKbH4mpcw9AHwX_j-SsywM7vD5FzOeWwYdAZm5Pe1vOYsVrUbJN0VHJPF2fkEMSTZ6lnNs1VJCbCosJTbeHUXmql9DjvnUiq8r8DqtSM2X_Ko8qFHtPIgEgOT_ZnHaikPPCiSJ6VpwHh2-EWsBcOx1_nYMoonypm7-0i\",\"status\":null},{\"id\":\"msg_0b0be4447df7d6ad006aa7bece185c87d081f5dae1ab471909\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"26027851\\\",\\\"invoice_date\\\":\\\"2026-08-18\\\",\\\"due_date\\\":\\\"2026-08-18\\\",\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"Bring Cargo B.V.\\\",\\\"address\\\":\\\"Griendwerkersstraat 10, 3334 KB Zwijndrecht, Nederland\\\",\\\"vat_number\\\":\\\"NL008225497B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"World Depot B.V.\\\",\\\"address\\\":\\\"Shannonweg 39, 3197 LG Botlek Rotterdam, Nederland\\\"},\\\"lines\\\":[{\\\"reference\\\":\\\"6/90107184\\\",\\\"our_reference\\\":\\\"WDSAJ20260046\\\",\\\"loading_date\\\":\\\"2026-08-10\\\",\\\"unloading_date\\\":\\\"2026-08-14\\\",\\\"loading_address\\\":\\\"Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\\\",\\\"unloading_address\\\":\\\"TRANSPORT CSEH SRL, RO 525400, Targu Secuiesc\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR UN3480\\\",\\\"gross_weight\\\":1515,\\\"volume_weight\\\":1201,\\\"volume\\\":0.65,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":594.88},{\\\"description\\\":\\\"UIT Registration cost Romania\\\",\\\"amount\\\":20},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":148.72},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":5.03},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":75}],\\\"amount\\\":843.63},{\\\"reference\\\":\\\"6/90107204\\\",\\\"our_reference\\\":\\\"WDOKT20260010\\\",\\\"loading_date\\\":\\\"2026-08-10\\\",\\\"unloading_date\\\":\\\"2026-08-12\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Sukces Sp. z o.o., PL 22-100, Chelm\\\",\\\"quantity\\\":15,\\\"unit_description\\\":\\\"Pallets ADR\\\",\\\"gross_weight\\\":9990,\\\"volume_weight\\\":11100,\\\"volume\\\":6,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":1463.28},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":365.82},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":25.64},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":75}],\\\"amount\\\":1929.74},{\\\"reference\\\":\\\"6/90107226\\\",\\\"our_reference\\\":\\\"WDSAJ20260061\\\",\\\"loading_date\\\":\\\"2026-08-10\\\",\\\"unloading_date\\\":\\\"2026-08-12\\\",\\\"loading_address\\\":\\\"Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\\\",\\\"unloading_address\\\":\\\"Svea Solar Deutschland GmbH, DE 50996, Koln\\\",\\\"quantity\\\":17,\\\"unit_description\\\":\\\"Pallets ADR\\\",\\\"gross_weight\\\":6588,\\\"volume_weight\\\":12580,\\\"volume\\\":6.8,\\\"charge_components\\\":[{\\\"description\\\":\\\"Extra kosten\\\",\\\"amount\\\":50},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":562.64},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":140.66},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":41.77},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":850.07},{\\\"reference\\\":\\\"6/90107275\\\",\\\"our_reference\\\":\\\"WDHOY20260233\\\",\\\"loading_date\\\":\\\"2026-08-10\\\",\\\"unloading_date\\\":\\\"2026-08-12\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Veloris BE BV, BE 2390, Malle\\\",\\\"quantity\\\":5,\\\"unit_description\\\":\\\"Pallets UN3480\\\",\\\"gross_weight\\\":4836,\\\"volume_weight\\\":4316,\\\"volume\\\":2.33,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":237.12},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":59.28},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":12.22},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":363.62},{\\\"reference\\\":\\\"6/90107252\\\",\\\"our_reference\\\":\\\"WDDMEGC20260014\\\",\\\"loading_date\\\":\\\"2026-08-11\\\",\\\"unloading_date\\\":\\\"2026-08-12\\\",\\\"loading_address\\\":\\\"TUEV Rheinland Solar GmbH, DE 51105, Koln\\\",\\\"unloading_address\\\":\\\"Fraunhofer Institute for Solar-, DE 79110, Freiburg\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet Non ADR\\\",\\\"gross_weight\\\":135,\\\"volume_weight\\\":2697,\\\"volume\\\":1.46,\\\"charge_components\\\":[{\\\"description\\\":\\\"all-in (incl. dieseltoeslag)\\\",\\\"amount\\\":795}],\\\"amount\\\":795},{\\\"reference\\\":\\\"6/90107289\\\",\\\"our_reference\\\":\\\"WDHOY20260234\\\",\\\"loading_date\\\":\\\"2026-08-11\\\",\\\"unloading_date\\\":\\\"2026-08-12\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Atlas Power B.V., NL 3882TC, Putten Gelderland\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet Non ADR\\\",\\\"gross_weight\\\":45,\\\"volume_weight\\\":740,\\\"volume\\\":0.4,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":53.04},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":13.26},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75}],\\\"amount\\\":71.05},{\\\"reference\\\":\\\"6/90107293\\\",\\\"our_reference\\\":\\\"WDCotti20260181\\\",\\\"loading_date\\\":\\\"2026-08-13\\\",\\\"unloading_date\\\":\\\"2026-08-14\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3197LG, Botlek Rotterdam\\\",\\\"unloading_address\\\":\\\"Cotti, DE 47198, Duisburg\\\",\\\"quantity\\\":13,\\\"unit_description\\\":\\\"Pallets Non ADR\\\",\\\"gross_weight\\\":12000,\\\"volume_weight\\\":12025,\\\"volume\\\":6.5,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":560.56},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":140.14},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":27.78}],\\\"amount\\\":728.48},{\\\"reference\\\":\\\"6/90107315\\\",\\\"our_reference\\\":\\\"WDSAJ20260071\\\",\\\"loading_date\\\":\\\"2026-08-13\\\",\\\"unloading_date\\\":\\\"2026-08-18\\\",\\\"loading_address\\\":\\\"Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\\\",\\\"unloading_address\\\":\\\"Schrack Technik GmbH, AT 2481, Achau\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pallets Non ADR\\\",\\\"gross_weight\\\":348,\\\"volume_weight\\\":1480,\\\"volume\\\":0.8,\\\"charge_components\\\":[{\\\"description\\\":\\\"Extra kosten\\\",\\\"amount\\\":50},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":102.7},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.91},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":410.8}],\\\"amount\\\":568.41},{\\\"reference\\\":\\\"6/90107350\\\",\\\"our_reference\\\":\\\"WDFAI20260127\\\",\\\"loading_date\\\":\\\"2026-08-13\\\",\\\"unloading_date\\\":\\\"2026-08-18\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Azialo, FR 67810, Holtzheim\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pallets ADR\\\",\\\"gross_weight\\\":480,\\\"volume_weight\\\":1739,\\\"volume\\\":0.94,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":295},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":73.75},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":428.5},{\\\"reference\\\":\\\"6/90107355\\\",\\\"our_reference\\\":\\\"WDSAJ20260073\\\",\\\"loading_date\\\":\\\"2026-08-13\\\",\\\"unloading_date\\\":\\\"2026-08-18\\\",\\\"loading_address\\\":\\\"Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\\\",\\\"unloading_address\\\":\\\"SolarX GmbH, DE 13509, Berlin\\\",\\\"quantity\\\":4,\\\"unit_description\\\":\\\"Pallets Non ADR\\\",\\\"gross_weight\\\":895,\\\"volume_weight\\\":2960,\\\"volume\\\":1.6,\\\"charge_components\\\":[{\\\"description\\\":\\\"Extra kosten - collection Ritthem\\\",\\\"amount\\\":50},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":93.34},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":9.83},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":373.36}],\\\"amount\\\":526.53},{\\\"reference\\\":\\\"6/90107356\\\",\\\"our_reference\\\":\\\"WDSAJ20260082\\\",\\\"loading_date\\\":\\\"2026-08-13\\\",\\\"unloading_date\\\":\\\"2026-08-17\\\",\\\"loading_address\\\":\\\"Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\\\",\\\"unloading_address\\\":\\\"Barklage Elektrosysteme GmbH, DE 49393, Lohne\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pallets ADR\\\",\\\"gross_weight\\\":732,\\\"volume_weight\\\":1480,\\\"volume\\\":0.8,\\\"charge_components\\\":[{\\\"description\\\":\\\"Extra kosten - collection Ritthem\\\",\\\"amount\\\":50},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":196.56},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":49.14},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.91},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":355.61}],\\\"subtotal\\\":7460.64,\\\"total_tax\\\":1566.73,\\\"total_amount\\\":9027.37}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378263.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":14213,\"input_tokens_details\":{\"cache_write_tokens\":14210,\"cached_tokens\":0},\"output_tokens\":2191,\"output_tokens_details\":{\"reasoning_tokens\":163},\"total_tokens\":16404},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    },
+    {
+      "statement_id": 1315,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 16813,
+      "source_checksum": "646a6c75573372ba05889510efe3a5bd58fed23b6d22f996c3b0a6575a094c51",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "26027255",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2026-08-13",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "Bring Cargo B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "676.45",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "117.4",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "559.05",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 06/08/2026\nUnloading Date: 20/08/2026\nOur Reference: WDSG0900724\nLoading Address: WD Europ BV, NL 3208LA, Spijkenisse\nUnloading Address: Bet Solar S.L, ES 46394, Riba-roja de Turia, Valencia\nCargo: Pllts SigenStack Base MAIN\nWeight: 2601\nVolume Weight: 2775\nVolume: 1.5\nReference: 9/80135118",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "559.05",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 439.92\nDieselolietoeslag: 114.38\nNL Vrachtwagenheffing export: 4.75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "9/80135118"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSG0900724"
+              }
+            ]
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_024a726c54acf81b006aa7bed95a8087d0b20f497cfd5ada91\",\"created_at\":1789378266.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_024a726c54acf81b006aa7bedb7a5087d09aed65f76aa9ace0\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp77dFxP-gAceVahvOzWhVeNkGxWolJMehKZRCy_esHBJ4eEVvctvxA57ky3PO7Geii_HLPwMufPfiBs4bk0mOzLcmIU9Jkgqcwj_ewmO-M7PnIBIOTjJ03xy02Kly9DrnEwS8XxLzF7ORjZV5YruZUZzwROl2jGoIsYoTvPVIM32-hivB6lUpAvOJcCNxwfHPqTHUnSGkHhctNVtffo5n8lIwu-0qLfMxYS2z85KCVBjsLJZWtSqX35VkDYhJvPGBnwuhx43gejwMhpeCYeBmEYcfGJCugoeag2rFQmj25UXQLA_3FUf775xftTzqfTGN-Z7sTK3BJA-P18IoDhcv52FYjxFT3C0UCGO2EbH_GO-p_OWjSLPDXUPRM0upouhyQGGFaefi4K8dlnuW57gZeBHEm4qFJHPYSQkpfDuKDOHp3yOsERlWr0docaF932UHQE7_rEGux30deQ7I59_iaTjLkdWItOCgw3kca3S54EsBN9HUD51zeSNY9Ovvf8Zh4kPtAFVD29zgb3YEgEUT6TY8JFvGDPEaHOcN2ONOvW_F52U0_m3pr8I8WgNll5BqEruMSGKKq6i7-syMvfC9Vcwu5NbYqU_XBJOtYerZBDSsYZ7lXivyLQqe4jyD3NkJ21z-KW7ny64P0IeqqoRosGXGy3E8LS7nA8eWyEQrWAMjJUL0S_wZEjhKJLg0icgm_TPjOoglVdjVHY-YURo1lBgwZscQLixDfPOZatcJx0-jVJP9WFR-gCK-TPoWCfWMvaDn-hdWb3Lvea3x_QxZwvRzqbKyKig21jfgYWbEwcCbYfSll3AMtkIbQ9iORzbkvBWbWd4lA9XOPP-i2VMxh3KljEE64AZRdzaHxtoqKz0FH2bQP_pgicaSgo0t5-qZhWxMPD-6ZOTAgWQjpfVxw_pLBaru5tb64DjJVU4y3yZ871aE6EySYR1McR-bO5wWgdEvRDD30cKI4js88f9G34QWtSupXiuP70zPleT693LFLwul0PEaLBObaYFv3o59mUDbtmN_5rbFJP5JBjTtCzN9Y2O_ha8DHAVPf0cZOTmiGWslIEEqzqI8ZSnKRM2cl7Yo1exlTiCmgjzgxtCSpTBTPiE4jtWki21iVKOLN1QnVhe-m8msVxJvK7RStGDROrsQu9CjFV4Lglnk0JGdCRhJeigTWehcGOgVv-TLTB6TCk_fSplmiokvmWuXQ-PsUxhl1QA0dtHum0OcpYQZZ3QhfR5O6Tu9Uj9dw4lVLaSe89xojRrbxDCaNE6_LZKHhsqFdzrHlE2sFDrlmjrILJeB9DNdQV7QF99F1Dv_3ny6puCf5e_S6WxJX-hcEwXlUu1xX9Zdoi3dtA-_CrQgjZX0kqkQzk605a6N0tzf_rBXCR8ll1vvSTnXvwBtNvgTApGFFyRz3bi9L7wnvV5fJK-ZNs1xcvXToI2WK60stJQYQnrF9tNq2zm5Gwr-FATi8B5rlYgw3yOyoUwf8NsLCUrp0PHzaI0bHUfdcubNl81qdvK1Sz8g68uuSVTDo3s-GEk-dYR28INWKlt3POS9ZmipPE3Xvowp-O8uMYvHKahF8xrRzUR9AIOihZRezY-HdoRK20FkgD4tQGCqeeP0mXxw2gyO5Ni9z9KcVxVGtNXJOWZO1_KlBN3WYFLXH9acYKiZ9JxeE8MLoV7wOBPAaAUY0NH9zuSGQ73QYYjmUkDAEPgs220WUAc1RyJKlGIi8Cf3tVffLrvG-1RRHRqSzSxeLw3EvTcTVbGn6GHPOUQIt2a88mOkF3PCCwks1v-TZvHxu8t7wAO-GYQIGmWIp1mOg==\",\"status\":null},{\"id\":\"msg_024a726c54acf81b006aa7bedc36d087d081ffd3632b223385\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"26027255\\\",\\\"invoice_date\\\":\\\"13/08/2026\\\",\\\"due_date\\\":\\\"12/09/2026\\\",\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"Bring Cargo B.V.\\\",\\\"address\\\":\\\"Griendwerkersstraat 10, 3334 KB Zwijndrecht, Nederland\\\",\\\"vat_number\\\":\\\"NL008225497B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"WD Europe BV\\\",\\\"address\\\":\\\"Merwedeweg 4, 3198 LH Europoort Rotterdam, Nederland\\\"},\\\"lines\\\":[{\\\"reference\\\":\\\"9/80135118\\\",\\\"our_reference\\\":\\\"WDSG0900724\\\",\\\"loading_date\\\":\\\"06/08/2026\\\",\\\"unloading_date\\\":\\\"20/08/2026\\\",\\\"loading_address\\\":\\\"WD Europ BV, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Bet Solar S.L, ES 46394, Riba-roja de Turia, Valencia\\\",\\\"quantity\\\":6,\\\"unit_description\\\":\\\"Pllts SigenStack Base MAIN\\\",\\\"gross_weight\\\":2601,\\\"volume_weight\\\":2775,\\\"volume\\\":1.5,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":439.92},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":114.38},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75}],\\\"amount\\\":559.05}],\\\"subtotal\\\":559.05,\\\"total_tax\\\":117.4,\\\"total_amount\\\":676.45}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378269.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":6056,\"input_tokens_details\":{\"cache_write_tokens\":6053,\"cached_tokens\":0},\"output_tokens\":398,\"output_tokens_details\":{\"reasoning_tokens\":91},\"total_tokens\":6454},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    },
+    {
+      "statement_id": 1332,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 16972,
+      "source_checksum": "159d0e256319d87f22793a1a5560a2908fe783f0718d556a712d3a01ab92ddb7",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "26027170",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2026-08-12",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "Bring Cargo B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "9640.24",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "1673.1",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "7967.14",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-03\nUnloading Date: 2026-08-04\nOur Reference: WDHIZ20260002\nLoading Address: World Depot B.V., NL 3197LG, Botlek Rotterdam\nUnloading Address: Draccu BV, NL 7921RM, Zuidwolde\nCargo: Pallet ADR\nWeight: 2749\nVolume Weight: 1587\nVolume: 0.86\nReference: 6/90107106",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "295.19",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Extra kosten: 15\nTransportkosten ex Douane: 173.68\nDieselolietoeslag: 45.16\nNL Vrachtwagenheffing export: 6.35\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107106"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHIZ20260002"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-05\nUnloading Date: 2026-08-13\nOur Reference: WDSAJ20260049\nLoading Address: Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\nUnloading Address: Decarb Solar Ireland Ltd, IE V94XE37, Crossagalla Limerick\nCargo: Pallet ADR UN3480\nWeight: 400\nVolume Weight: 740\nVolume: 0.4\nReference: 16/16034502",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "364.22",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "ETS toeslag: 3.39\nTransportkosten ex Douane: 147.68\nDieselolietoeslag: 38.4\nNL Vrachtwagenheffing export: 4.75\nIMO toeslag: 170",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "16/16034502"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260049"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-05\nUnloading Date: 2026-08-07\nOur Reference: WDHOY20260228\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Smartgrid Power Systems, NL 2411NC, Bodegraven\nCargo: Pallet ADR\nWeight: 158\nVolume Weight: 424\nVolume: 0.23\nReference: 6/90107137",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "126.58",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 53.04\nDieselolietoeslag: 13.79\nNL Vrachtwagenheffing export: 4.75\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107137"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260228"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-05\nUnloading Date: 2026-08-07\nOur Reference: WDHOY20260229\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Cedel B.V., NL 9403DR, Assen\nCargo: Pallet ADR\nWeight: 1172\nVolume Weight: 925\nVolume: 0.5\nReference: 6/90107143",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "228.79",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 134.16\nDieselolietoeslag: 34.88\nNL Vrachtwagenheffing export: 4.75\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107143"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260229"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-05\nUnloading Date: 2026-08-06\nOur Reference: WDHOY20260230\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Hoymiles MyEnergy GmbH, DE 47229, Duisburg\nCargo: Pallet ADR\nWeight: 1172\nVolume Weight: 925\nVolume: 0.5\nReference: 6/90107146",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "291.69",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 184.08\nDieselolietoeslag: 47.86\nNL Vrachtwagenheffing export: 4.75\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107146"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260230"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-05\nUnloading Date: 2026-08-11\nOur Reference: WDELECNOVA20260167\nLoading Address: AWL ENGERY, NL 3199MA, Maasvlakte Rotterdam\nUnloading Address: S.C. ALM POWER GROUP SRL, RO 207280, judetul Dolj Localitatea Ghercesti\nCargo: Pallet UN3480\nWeight: 2850\nVolume Weight: 1299\nVolume: 0.7\nReference: 6/90107167",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "1200.98",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 877.76\nDieselolietoeslag: 228.22\nADR toeslag: 75\nUIT Registration cost Romania: 20",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107167"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDELECNOVA20260167"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-06\nUnloading Date: 2026-08-10\nOur Reference: WDHOY20260226\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: Technical Service Center, NL 5591PH, Heeze\nCargo: Pallet ADR\nWeight: 166\nVolume Weight: 925\nVolume: 0.5\nReference: 6/90107113",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "148.86",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 70.72\nDieselolietoeslag: 18.39\nNL Vrachtwagenheffing export: 4.75\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107113"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260226"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-06\nUnloading Date: 2026-08-11\nOur Reference: WDSAJ20260052\nLoading Address: Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\nUnloading Address: Johann Weiss GmbH, AT 2351, Wiener Neudorf\nCargo: Pallets ADR\nWeight: 4300\nVolume Weight: 6660\nVolume: 3.6\nReference: 6/90107156",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "1361.65",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 1003.6\nDieselolietoeslag: 260.94\nNL Vrachtwagenheffing export: 22.11\nADR toeslag: 75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107156"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260052"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-06\nUnloading Date: 2026-08-11\nOur Reference: WDSAJ20260053\nLoading Address: Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\nUnloading Address: Schrack Technik GmbH, AT 2481, Achau\nCargo: Pallets NON ADR\nWeight: 610\nVolume Weight: 2220\nVolume: 1.2\nReference: 6/90107163",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "687.47",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 539.76\nDieselolietoeslag: 140.34\nNL Vrachtwagenheffing export: 7.37",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107163"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260053"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-06\nUnloading Date: 2026-08-12\nOur Reference: WDIEE20260010\nLoading Address: AWL, NL 3199MA, Maasvlakte Rotterdam\nUnloading Address: TAKOPI, CZ 14000, Prague 4\nCargo: Pallets ADR\nWeight: 1170\nVolume Weight: 2035\nVolume: 1.1\nReference: 6/90107173",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "789.17",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 566.8\nDieselolietoeslag: 147.37\nADR toeslag: 75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107173"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDIEE20260010"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-07\nUnloading Date: 2026-08-11\nOur Reference: WDELECNOVA20260161\nLoading Address: AWL, NL 3199MA, Maasvlakte Rotterdam\nUnloading Address: MTS. Holkema, NL 8508RJ, Delfstrahuizen\nCargo: Pallet ADR\nWeight: 2850\nVolume Weight: 1493\nVolume: 0.81\nReference: 6/90107114",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "366.15",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Extra kosten: 15\nDieselolietoeslag: 61.11\nADR toeslag: 55\nTransportkosten ex Douane: 235.04",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107114"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDELECNOVA20260161"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-07\nUnloading Date: 2026-08-13\nOur Reference: WDSTG20260014\nLoading Address: World Depot B.V., NL 3197LG, Botlek Rotterdam\nUnloading Address: ETECH Schmid u. Pachler Elektrotech, AT 4040, Linz\nCargo: Pallets general cargo\nWeight: 776\nVolume Weight: 2057\nVolume: 1.11\nReference: 6/90107205",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "672.33",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Extra kosten: 15\nDieselolietoeslag: 134.66\nNL Vrachtwagenheffing export: 4.75\nTransportkosten ex Douane: 517.92",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107205"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSTG20260014"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-07\nUnloading Date: 2026-08-13\nOur Reference: WDSAJ20260048\nLoading Address: SAJ Electric Europe BV, BE 9600, Ronse\nUnloading Address: ENSET_doo, SI 3210, Slovenske Konjice\nCargo: Pallets ADR UN3480\nWeight: 3318\nVolume Weight: 4440\nVolume: 2.4\nReference: 6/90107215",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "1307.48",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "NL Vrachtwagenheffing export: 12.48\nall-in (incl. dieseltoeslag): 1295",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107215"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSAJ20260048"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-07\nUnloading Date: 2026-08-10\nOur Reference: WDHOY20260232\nLoading Address: World Depot B.V., NL 3208LA, Spijkenisse\nUnloading Address: HM, NL 1021KN, Amsterdam\nCargo: Pallet ADR\nWeight: 138\nVolume Weight: 740\nVolume: 0.4\nReference: 6/90107219",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "126.58",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 53.04\nDieselolietoeslag: 13.79\nNL Vrachtwagenheffing export: 4.75\nADR toeslag: 55",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107219"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDHOY20260232"
+              }
+            ]
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_0b0714230d2fed34006aa7bedefcec87d0a703990fe7b1907f\",\"created_at\":1789378272.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_0b0714230d2fed34006aa7bee1d95487d0b729a19f19bcab5d\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp77vl4ZgxbeRwtwz2tHrMf-gdNsVWW6iUaC76s3ZW1wh6t572Z2coE6yvg9Y0TEu9dnaODSJzdhj6P0JXssA10nDukTM5nzkNmJv35xugCVkesjUBsbdjZ6PI2yDQhyUjVJZmhn1BBGBRcUzlr_7Dy9n6Khp3bJu_WYb_0S9zfAFIt5_AtQjfl93g6_0sUfIlJycCCFu-AonmoatDxgg1seDme9AE9zvQsOG-Fkm--_T6De0pMdjvWLV0Ad80dd98hWLYe5BdakXN556EBdq5SEpbaFTgu5ij0Fl374VsgwpDjIGHSr71HTPN-8d42fKtlngVEK65Ff0VccXVmKm1QRd9ww_70Gr995f0kopjdG-75J9Bqou2SkMgvi3LMuRS9HdJfTDQMZR6sVkhK300Nnew4PdBrEcaTrqae5wi13AP794U0xrcCvF6e8AhlFM70jLeLDofVbnl0qSy8KEQ7wuW0NkP-yOgmSwAB_BiEUZ2UxPOBmMXCQsTPozV1FysCvhJ0KDJJaW9RpsaIFxwBUNVGSMNTwmww8HH-wV4tKT_EJIO0VS0XqLywyifGfE6pfidxbxEGFcqvkfUvHbL_YP10RoBi2_Ewm1JQSPcoLaofJgzSC2XAzZNpBJRoG_7eFzZOxsnuI01dP3JooJZRKMfrJy4oNdLRKUktqaqJpJaV3FQDnkc4S7LbZOHVkOHer1ssKkCZM8v5cmlPPrUJdK_lwiN0qWdHfwRbvfvudMqwtruKaRaIkjNCyb5d13TABwpkDlxxvO3uClODLjQkVmfPUSyUNiveUcYGok7TfwvXow5jsG5veF3sRRD6yvjH-7FFvJ8OYfqJAo19P1XDBZ1uYIfQ0U2nsF_6R02hAFLA4jxqA1WiSyy8YOdztPmjvEUNWkN1dDO2ymq3vma_qTRsVts9G2isd5dc4lQtmGxRpQX1mQEcTzNzH_Sg21xkDTU8PZQz1QuXHTfWQtLj4BUBsRrZrFbx2vsRGKiwGh8FQE_O6zTqKomXcMyc8xowoHPlnnWpgh7JzTGHZpyoWLTf9UYu5duOQE9ofXYAXyq1iRpIYcy97V4yfr6jpfSPxuA-cSBq9hHlRWDbDS7RdDkJJJjwhxTJ6R5RlNh8-XgeuvZ26jp4yUKTqJsFOucWKD5uyw_-yTBeWIy_LuqzPl50bFSDcn0R8BsvonnnIce6vn8uXRrhus9LhCDayfSCjfRoItz5xb1pwgqzZq0WO-VIRoWTaG06e4DRNjLXZgWXGZCfkIeHI2yw0P92q6inXSK2G_bkZydLeg3dYjCzPh9MXGcaBtT_ypBaG10TyaU9VSThyxjnY6W39YP4tuAhlaVNVBiRqSr6OaZTDFNqMkG00Mc3rIespoiGHmg9kV42kRqXQXoeTkK3PXlqP4j66R610VAWfPHe-TsQRVy0mUlZtRAdSxSDaNqwQPFe_WAw6Y6xeTs0hK-G37ZJMy6__ve9vgBtYyDUqWzJi-SBtueu5_j2tQEVUTbYkk2w0eGRi6Qg8ZRZNfP9vf9_OYZRwoOnnTbkUJgFO8ouk0oyy25QW_UpkU0nhCXJNLHSWz9m24nEraIOcb93bq-8LJnSAXPmpVBcRUFP7sL17LPp2yI_-HQiiTwzzsldI1oC1i5gRfhDg9TGCDzt7o86tOv_aeSOJwFW4u0Rhe0XHzAqoY8W0hqJ4hUUuug-kQtaE6_iXEoeWkllp97-Ir59vZp_5JJxrfexN7m53eKyY7rfUYw5kmFJ3yhuJwvMWJAs4KyAZGV3wiWl9y7xtLVg4aDtUpixp9dZLbcagRMIC4imDT8hU3bWH0c_CJvQ1skoHEUla07qwzW4_Do-tIol75VPimUU7e2XryDrudfjI1YJkG9O6eHLt4WnOlKKCFg5QlmrCUvdFc0gA26ttgYcQcrOLoPzNX5cFIUjfly66qBZbjlQ==\",\"status\":null},{\"id\":\"msg_0b0714230d2fed34006aa7bee2df6487d08a4338b712a5edd0\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"26027170\\\",\\\"invoice_date\\\":\\\"2026-08-12\\\",\\\"due_date\\\":\\\"2026-08-12\\\",\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"Bring Cargo B.V.\\\",\\\"address\\\":\\\"Griendwerkersstraat 10, 3334 KB Zwijndrecht, Nederland\\\",\\\"vat_number\\\":\\\"NL008225497B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"World Depot B.V.\\\",\\\"address\\\":\\\"Shannonweg 39, 3197 LG Botlek Rotterdam, Nederland\\\"},\\\"lines\\\":[{\\\"reference\\\":\\\"6/90107106\\\",\\\"our_reference\\\":\\\"WDHIZ20260002\\\",\\\"loading_date\\\":\\\"2026-08-03\\\",\\\"unloading_date\\\":\\\"2026-08-04\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3197LG, Botlek Rotterdam\\\",\\\"unloading_address\\\":\\\"Draccu BV, NL 7921RM, Zuidwolde\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR\\\",\\\"gross_weight\\\":2749,\\\"volume_weight\\\":1587,\\\"volume\\\":0.86,\\\"charge_components\\\":[{\\\"description\\\":\\\"Extra kosten\\\",\\\"amount\\\":15},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":173.68},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":45.16},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":6.35},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":295.19},{\\\"reference\\\":\\\"16/16034502\\\",\\\"our_reference\\\":\\\"WDSAJ20260049\\\",\\\"loading_date\\\":\\\"2026-08-05\\\",\\\"unloading_date\\\":\\\"2026-08-13\\\",\\\"loading_address\\\":\\\"Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\\\",\\\"unloading_address\\\":\\\"Decarb Solar Ireland Ltd, IE V94XE37, Crossagalla Limerick\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR UN3480\\\",\\\"gross_weight\\\":400,\\\"volume_weight\\\":740,\\\"volume\\\":0.4,\\\"charge_components\\\":[{\\\"description\\\":\\\"ETS toeslag\\\",\\\"amount\\\":3.39},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":147.68},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":38.4},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"IMO toeslag\\\",\\\"amount\\\":170}],\\\"amount\\\":364.22},{\\\"reference\\\":\\\"6/90107137\\\",\\\"our_reference\\\":\\\"WDHOY20260228\\\",\\\"loading_date\\\":\\\"2026-08-05\\\",\\\"unloading_date\\\":\\\"2026-08-07\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Smartgrid Power Systems, NL 2411NC, Bodegraven\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR\\\",\\\"gross_weight\\\":158,\\\"volume_weight\\\":424,\\\"volume\\\":0.23,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":53.04},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":13.79},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":126.58},{\\\"reference\\\":\\\"6/90107143\\\",\\\"our_reference\\\":\\\"WDHOY20260229\\\",\\\"loading_date\\\":\\\"2026-08-05\\\",\\\"unloading_date\\\":\\\"2026-08-07\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Cedel B.V., NL 9403DR, Assen\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR\\\",\\\"gross_weight\\\":1172,\\\"volume_weight\\\":925,\\\"volume\\\":0.5,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":134.16},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":34.88},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":228.79},{\\\"reference\\\":\\\"6/90107146\\\",\\\"our_reference\\\":\\\"WDHOY20260230\\\",\\\"loading_date\\\":\\\"2026-08-05\\\",\\\"unloading_date\\\":\\\"2026-08-06\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Hoymiles MyEnergy GmbH, DE 47229, Duisburg\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR\\\",\\\"gross_weight\\\":1172,\\\"volume_weight\\\":925,\\\"volume\\\":0.5,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":184.08},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":47.86},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":291.69},{\\\"reference\\\":\\\"6/90107167\\\",\\\"our_reference\\\":\\\"WDELECNOVA20260167\\\",\\\"loading_date\\\":\\\"2026-08-05\\\",\\\"unloading_date\\\":\\\"2026-08-11\\\",\\\"loading_address\\\":\\\"AWL ENGERY, NL 3199MA, Maasvlakte Rotterdam\\\",\\\"unloading_address\\\":\\\"S.C. ALM POWER GROUP SRL, RO 207280, judetul Dolj Localitatea Ghercesti\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet UN3480\\\",\\\"gross_weight\\\":2850,\\\"volume_weight\\\":1299,\\\"volume\\\":0.7,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":877.76},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":228.22},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":75},{\\\"description\\\":\\\"UIT Registration cost Romania\\\",\\\"amount\\\":20}],\\\"amount\\\":1200.98},{\\\"reference\\\":\\\"6/90107113\\\",\\\"our_reference\\\":\\\"WDHOY20260226\\\",\\\"loading_date\\\":\\\"2026-08-06\\\",\\\"unloading_date\\\":\\\"2026-08-10\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Technical Service Center, NL 5591PH, Heeze\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR\\\",\\\"gross_weight\\\":166,\\\"volume_weight\\\":925,\\\"volume\\\":0.5,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":70.72},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":18.39},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":148.86},{\\\"reference\\\":\\\"6/90107156\\\",\\\"our_reference\\\":\\\"WDSAJ20260052\\\",\\\"loading_date\\\":\\\"2026-08-06\\\",\\\"unloading_date\\\":\\\"2026-08-11\\\",\\\"loading_address\\\":\\\"Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\\\",\\\"unloading_address\\\":\\\"Johann Weiss GmbH, AT 2351, Wiener Neudorf\\\",\\\"quantity\\\":9,\\\"unit_description\\\":\\\"Pallets ADR\\\",\\\"gross_weight\\\":4300,\\\"volume_weight\\\":6660,\\\"volume\\\":3.6,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":1003.6},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":260.94},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":22.11},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":75}],\\\"amount\\\":1361.65},{\\\"reference\\\":\\\"6/90107163\\\",\\\"our_reference\\\":\\\"WDSAJ20260053\\\",\\\"loading_date\\\":\\\"2026-08-06\\\",\\\"unloading_date\\\":\\\"2026-08-11\\\",\\\"loading_address\\\":\\\"Feniks Warehousing Solutions BV, NL 4389PJ, Ritthem Vlissingen\\\",\\\"unloading_address\\\":\\\"Schrack Technik GmbH, AT 2481, Achau\\\",\\\"quantity\\\":3,\\\"unit_description\\\":\\\"Pallets NON ADR\\\",\\\"gross_weight\\\":610,\\\"volume_weight\\\":2220,\\\"volume\\\":1.2,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":539.76},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":140.34},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":7.37}],\\\"amount\\\":687.47},{\\\"reference\\\":\\\"6/90107173\\\",\\\"our_reference\\\":\\\"WDIEE20260010\\\",\\\"loading_date\\\":\\\"2026-08-06\\\",\\\"unloading_date\\\":\\\"2026-08-12\\\",\\\"loading_address\\\":\\\"AWL, NL 3199MA, Maasvlakte Rotterdam\\\",\\\"unloading_address\\\":\\\"TAKOPI, CZ 14000, Prague 4\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pallets ADR\\\",\\\"gross_weight\\\":1170,\\\"volume_weight\\\":2035,\\\"volume\\\":1.1,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":566.8},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":147.37},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":75}],\\\"amount\\\":789.17},{\\\"reference\\\":\\\"6/90107114\\\",\\\"our_reference\\\":\\\"WDELECNOVA20260161\\\",\\\"loading_date\\\":\\\"2026-08-07\\\",\\\"unloading_date\\\":\\\"2026-08-11\\\",\\\"loading_address\\\":\\\"AWL, NL 3199MA, Maasvlakte Rotterdam\\\",\\\"unloading_address\\\":\\\"MTS. Holkema, NL 8508RJ, Delfstrahuizen\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR\\\",\\\"gross_weight\\\":2850,\\\"volume_weight\\\":1493,\\\"volume\\\":0.81,\\\"charge_components\\\":[{\\\"description\\\":\\\"Extra kosten\\\",\\\"amount\\\":15},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":61.11},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":235.04}],\\\"amount\\\":366.15},{\\\"reference\\\":\\\"6/90107205\\\",\\\"our_reference\\\":\\\"WDSTG20260014\\\",\\\"loading_date\\\":\\\"2026-08-07\\\",\\\"unloading_date\\\":\\\"2026-08-13\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3197LG, Botlek Rotterdam\\\",\\\"unloading_address\\\":\\\"ETECH Schmid u. Pachler Elektrotech, AT 4040, Linz\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pallets general cargo\\\",\\\"gross_weight\\\":776,\\\"volume_weight\\\":2057,\\\"volume\\\":1.11,\\\"charge_components\\\":[{\\\"description\\\":\\\"Extra kosten\\\",\\\"amount\\\":15},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":134.66},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":517.92}],\\\"amount\\\":672.33},{\\\"reference\\\":\\\"6/90107215\\\",\\\"our_reference\\\":\\\"WDSAJ20260048\\\",\\\"loading_date\\\":\\\"2026-08-07\\\",\\\"unloading_date\\\":\\\"2026-08-13\\\",\\\"loading_address\\\":\\\"SAJ Electric Europe BV, BE 9600, Ronse\\\",\\\"unloading_address\\\":\\\"ENSET_doo, SI 3210, Slovenske Konjice\\\",\\\"quantity\\\":6,\\\"unit_description\\\":\\\"Pallets ADR UN3480\\\",\\\"gross_weight\\\":3318,\\\"volume_weight\\\":4440,\\\"volume\\\":2.4,\\\"charge_components\\\":[{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":12.48},{\\\"description\\\":\\\"all-in (incl. dieseltoeslag)\\\",\\\"amount\\\":1295}],\\\"amount\\\":1307.48},{\\\"reference\\\":\\\"6/90107219\\\",\\\"our_reference\\\":\\\"WDHOY20260232\\\",\\\"loading_date\\\":\\\"2026-08-07\\\",\\\"unloading_date\\\":\\\"2026-08-10\\\",\\\"loading_address\\\":\\\"World Depot B.V., NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"HM, NL 1021KN, Amsterdam\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet ADR\\\",\\\"gross_weight\\\":138,\\\"volume_weight\\\":740,\\\"volume\\\":0.4,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":53.04},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":13.79},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":55}],\\\"amount\\\":126.58}],\\\"subtotal\\\":7967.14,\\\"total_tax\\\":1673.1,\\\"total_amount\\\":9640.24}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378287.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":16889,\"input_tokens_details\":{\"cache_write_tokens\":16886,\"cached_tokens\":0},\"output_tokens\":2648,\"output_tokens_details\":{\"reasoning_tokens\":114},\"total_tokens\":19537},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    },
+    {
+      "statement_id": 1349,
+      "state": "cancelled",
+      "provider_config_id": 2112,
+      "provider": "OpenAI GPT-5.6 Luna",
+      "model": "gpt-5.6-luna",
+      "input_mode": "native_pdf",
+      "source_attachment_id": 17131,
+      "source_checksum": "1b74ce6fd029e1c844d9b25b589891ca071ce42c561770c707ee2015559ce570",
+      "status": "success",
+      "canonical": {
+        "header": {
+          "invoice_number": {
+            "value": "26027167",
+            "confidence": 0.0
+          },
+          "invoice_date": {
+            "value": "2026-08-12",
+            "confidence": 0.0
+          },
+          "supplier_raw_text": {
+            "value": "Bring Cargo B.V.",
+            "confidence": 0.0
+          },
+          "currency_raw_text": {
+            "value": "EUR",
+            "confidence": 0.0
+          },
+          "total_amount": {
+            "value": "3472.29",
+            "confidence": 0.0
+          },
+          "total_tax": {
+            "value": "602.63",
+            "confidence": 0.0
+          },
+          "subtotal": {
+            "value": "2869.66",
+            "confidence": 0.0
+          }
+        },
+        "lines": [
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-03\nUnloading Date: 2026-08-04\nOur Reference: WDWHES20260110\nLoading Address: SHA, NL 3197LG, Rotterdam\nUnloading Address: Stephan Sollie, BE 9140, Temse\nCargo: Pallet Non ADR\nWeight: 100\nVolume Weight: 1735\nVolume: 0.94\nReference: 6/90107071",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "169.86",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 131.04\nDieselolietoeslag: 34.07\nNL Vrachtwagenheffing export: 4.75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107071"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDWHES20260110"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-03\nUnloading Date: 2026-08-05\nOur Reference: WDSG0010729\nLoading Address: WD Europ BV, NL 3208LA, Spijkenisse\nUnloading Address: Gilbert De Clercq Warehouse, BE 2880, Bornem\nCargo: Krat Sigen Gateway C600-B\nWeight: 1300\nVolume Weight: 2312\nVolume: 1.25\nReference: 6/90107081",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "222.87",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 172.64\nDieselolietoeslag: 44.89\nNL Vrachtwagenheffing export: 5.34",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107081"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSG0010729"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-04\nUnloading Date: 2026-08-10\nOur Reference: WDSG0090728\nLoading Address: WD Europ BV, NL 3208LA, Spijkenisse\nUnloading Address: Saexinger GmbH, AT 4482, Ennsdorf\nCargo: Krat SigenStack Base SUB; Pallet SigenStack Base SUB\nWeight: 1538\nVolume Weight: 3238\nVolume: 1.75\nReference: 6/90107089",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "885.45",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 696.8\nDieselolietoeslag: 181.17\nNL Vrachtwagenheffing export: 7.48",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107089"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSG0090728"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-04\nUnloading Date: 2026-08-11\nOur Reference: WDSG0080729\nLoading Address: WD Europ BV, NL 3208LA, Spijkenisse\nUnloading Address: Krannich Aussenlager, DE 73776, Altbach\nCargo: Pllts SigenStack Base SUB\nWeight: 713\nVolume Weight: 1850\nVolume: 1\nReference: 6/90107090",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "521.56",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Extra kosten: 125\nDieselolietoeslag: 80.85\nNL Vrachtwagenheffing export: 4.75\nTransportkosten ex Douane: 310.96",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107090"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSG0080729"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-05\nUnloading Date: 2026-08-11\nOur Reference: WDSG0400803\nLoading Address: WD Europ BV, NL 3208LA, Spijkenisse\nUnloading Address: Hadolt Group, AT 8401, Kalsdorf\nCargo: Pllts ADR\nWeight: 1629\nVolume Weight: 1850\nVolume: 1\nReference: 6/90107142",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "699.57",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 491.92\nDieselolietoeslag: 127.9\nNL Vrachtwagenheffing export: 4.75\nADR toeslag: 75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107142"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSG0400803"
+              }
+            ]
+          },
+          {
+            "description": {
+              "value": "Loading Date: 2026-08-07\nUnloading Date: 2026-08-13\nOur Reference: WDSG0020806\nLoading Address: WD Europ BV, NL 3208LA, Spijkenisse\nUnloading Address: Incom Solarenergy GmbH, AT 5600, St. Johann im Pongau\nCargo: Pallet SigenStack Base MAIN\nWeight: 55\nVolume Weight: 740\nVolume: 0.4\nReference: 6/90107235",
+              "confidence": 0.0
+            },
+            "amount": {
+              "value": "370.35",
+              "confidence": 0.0
+            },
+            "tax_raw_text": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_rate": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "tax_amount": {
+              "value": null,
+              "confidence": 0.0
+            },
+            "reconciliation_clue": null,
+            "charge_details": "Transportkosten ex Douane: 290.16\nDieselolietoeslag: 75.44\nNL Vrachtwagenheffing export: 4.75",
+            "reconciliation_clues": [
+              {
+                "label": "Reference",
+                "value": "6/90107235"
+              },
+              {
+                "label": "Our reference",
+                "value": "WDSG0020806"
+              }
+            ]
+          }
+        ],
+        "is_multi_invoice": false
+      },
+      "raw_response": "{\"id\":\"resp_0486dc82d1495332006aa7bef062f887d0b168d008c4b3e2de\",\"created_at\":1789378289.0,\"error\":null,\"incomplete_details\":null,\"instructions\":null,\"metadata\":{},\"model\":\"gpt-5.6-luna\",\"object\":\"response\",\"output\":[{\"id\":\"rs_0486dc82d1495332006aa7bef1ea9c87d0a026163a745386e7\",\"summary\":[],\"type\":\"reasoning\",\"content\":[],\"encrypted_content\":\"gAAAAABqp775eCmqq-dJBBKR_mU7Zd2K8RgYnvffIxwbHoauTH9I5hCzYY05c2Xz1qQlErFtU06VcjMfc3wbz8xvVy4lQfrte7N8gAy_c8bH0lpUDejqbIRH5ZCKweS7EqzriviYvOe7imCuRG7VSZOesy0t2zbpfid4ridNnsG-dgLKBeyRcKDXPPR1eh_OVUowbkOj5DCNO9OBkQHU6H7-amGx-Fro4YPWjllWfLth7X2zQQCwwsy-fW2oz1ac-t5eUZu39XUAjH6s12GDoKhBPdEx8nQxnE1yXDVKzM0G_dpCTKZIMFNW1v8b-BCN6p79-WTrCYV6bwEGLqESNOqvegUjCl-oU1h8iA7vggp2QCqS48wjjxUpOBBSzXLdus7j5rAx2-vk-6ZocAbW2F5a1uIV39NkcqntwtwK7EyEAN5AhU4zXT3qf7Y4drUBKedWpHeIAAG9i2Yummuq4oAeYHowN-cNoqzGLk6tKfzq_aspHj3Sb-qFXwwBQ61111Ynt3xdtk3AArsSsVCxYAPpF7QJKoVaVtWjJXEz65QCFvKcRS6ixqdtcYKx9R9zc-j0G8TstjNBgM0wdyNhoxTp3NLYyaJjv4bAipt84yn2tgHLRoEKCYu2T5NrVYtmFJ8U_14GggO4rFEToqIrlxO9cAPpoZcD2Kv9sq6ZJ4IQcUUhE-4ejWSI3LJXgl0e6HOmqddhh_GpPTcDF9Ep0ZsldbbTQUcfjuhhx8f-LndZ87WYqtir4UPd3IvkLBV7dZJFl0qcWPuFOBomnGtk74uDNJflFzZC15SizZoPjcnC-6IDR4UH61V3wFXPikrzdrFshadBmmO7OkVe1oGNd7UaFAG0b391z4RYrCJohWeKfJia2pJRQFACLqfWI7f6OJ9WeoPEgygXAA-AwsFoCVT5aK8wyWoAyIlba5rWAuJ2TMeakS2VNObo9dMhIvrMcoOi8gOUbn3KxvLhid3YEIE09GkPSaZcP7vLN-JZ1ZmAglNOq_Hn8VRF1yJGYG027_uVCR8u0WL-ZA9JIqVOf9tBGA4z8HRCrMPx1QiDhzENLk9xaqvljvW1bMvPDpqbrkPQ1BgBQcDeGLegqRAcb8BWljm6mHZUPTc4XyrdY0oJsfEU4WwNzz58u8SYHT7rs3xc-nWvg8ZqT5okGBbqkbsAdFT2hxXm0pzqdrP3pOOzjXVl7eDF1M9hyyNQ_gEJKDqDZoMR9oB9GBXIYtQYJIYSErIDDc4zPPClHzFyQ1Hh1pxHiFzv0mPRkhWhOAItLttdSAoYNyq--9VE2RkuuJ6fAV3iuHVnp7hGZBZWRmcPyy9-G2VN_-y95O5TjMYf0PXJJkCA2n9YLxBMRxe33zj1_ydNtwq6Ey0km1IjZgG4sgal8jGly_Z38quw4vw8m3ThW2y2wPWyxyJyxoN9XuttSOpCxl_RA2cZ8l95515LrpVQUFmk-bUUQTGajYOHP7wWyI-js7p5_yD-c4bEivvDSqeU9ny6GWqUFRD6cL245miCTg7_tcTO48cz5ybNvyf3HeSW_OmpoFEOBm9413PRfFMDDHqg59GXegWC5dZwXGJC3VNA6V0mA5_SS7lAD1dpE-jN29Lpn8RvGdCpnP4SayYivXoPmKbNPNBUmJ492WuKzskvF6QQzHCN63vyfTs1071ytRClKcyanqndPtGGyhCN109hWGKpZT8PLNNan_W378fcY9SwWFNkRODZbcjJbtYNCKKpal99029gW5Eiy4truo3vLfydWudDP6TMNds6HSQ5y3OFDqiYGnPn4ZExpcgOHmvNYHzTVIGrZBVwMaURovsMQEZIjBeeWjgwl4bb937kWfZyRcYrSjnKK5Ho0Unu6c1ryHHlbfIylayb-8vm6b7ZMi-1X1TXXra9TpxLeJCdBtY=\",\"status\":null},{\"id\":\"msg_0486dc82d1495332006aa7bef2ef0087d09ddfa5a37a5e250c\",\"content\":[{\"annotations\":[],\"text\":\"{\\\"invoice_number\\\":\\\"26027167\\\",\\\"invoice_date\\\":\\\"2026-08-12\\\",\\\"due_date\\\":\\\"2026-09-11\\\",\\\"currency\\\":\\\"EUR\\\",\\\"supplier\\\":{\\\"name\\\":\\\"Bring Cargo B.V.\\\",\\\"address\\\":\\\"Griendwerkersstraat 10, 3334 KB Zwijndrecht, NEDERLAND\\\",\\\"vat_number\\\":\\\"NL008225497B01\\\"},\\\"buyer\\\":{\\\"name\\\":\\\"WD Europe BV\\\",\\\"address\\\":\\\"Merwedeweg 4, 3198 LH Europoort Rotterdam, NEDERLAND\\\"},\\\"lines\\\":[{\\\"reference\\\":\\\"6/90107071\\\",\\\"our_reference\\\":\\\"WDWHES20260110\\\",\\\"loading_date\\\":\\\"2026-08-03\\\",\\\"unloading_date\\\":\\\"2026-08-04\\\",\\\"loading_address\\\":\\\"SHA, NL 3197LG, Rotterdam\\\",\\\"unloading_address\\\":\\\"Stephan Sollie, BE 9140, Temse\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet Non ADR\\\",\\\"gross_weight\\\":100,\\\"volume_weight\\\":1735,\\\"volume\\\":0.94,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":131.04},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":34.07},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75}],\\\"amount\\\":169.86},{\\\"reference\\\":\\\"6/90107081\\\",\\\"our_reference\\\":\\\"WDSG0010729\\\",\\\"loading_date\\\":\\\"2026-08-03\\\",\\\"unloading_date\\\":\\\"2026-08-05\\\",\\\"loading_address\\\":\\\"WD Europ BV, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Gilbert De Clercq Warehouse, BE 2880, Bornem\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Krat Sigen Gateway C600-B\\\",\\\"gross_weight\\\":1300,\\\"volume_weight\\\":2312,\\\"volume\\\":1.25,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":172.64},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":44.89},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":5.34}],\\\"amount\\\":222.87},{\\\"reference\\\":\\\"6/90107089\\\",\\\"our_reference\\\":\\\"WDSG0090728\\\",\\\"loading_date\\\":\\\"2026-08-04\\\",\\\"unloading_date\\\":\\\"2026-08-10\\\",\\\"loading_address\\\":\\\"WD Europ BV, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Saexinger GmbH, AT 4482, Ennsdorf\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Krat SigenStack Base SUB; Pallet SigenStack Base SUB\\\",\\\"gross_weight\\\":1538,\\\"volume_weight\\\":3238,\\\"volume\\\":1.75,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":696.8},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":181.17},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":7.48}],\\\"amount\\\":885.45},{\\\"reference\\\":\\\"6/90107090\\\",\\\"our_reference\\\":\\\"WDSG0080729\\\",\\\"loading_date\\\":\\\"2026-08-04\\\",\\\"unloading_date\\\":\\\"2026-08-11\\\",\\\"loading_address\\\":\\\"WD Europ BV, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Krannich Aussenlager, DE 73776, Altbach\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pllts SigenStack Base SUB\\\",\\\"gross_weight\\\":713,\\\"volume_weight\\\":1850,\\\"volume\\\":1,\\\"charge_components\\\":[{\\\"description\\\":\\\"Extra kosten\\\",\\\"amount\\\":125},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":80.85},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":310.96}],\\\"amount\\\":521.56},{\\\"reference\\\":\\\"6/90107142\\\",\\\"our_reference\\\":\\\"WDSG0400803\\\",\\\"loading_date\\\":\\\"2026-08-05\\\",\\\"unloading_date\\\":\\\"2026-08-11\\\",\\\"loading_address\\\":\\\"WD Europ BV, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Hadolt Group, AT 8401, Kalsdorf\\\",\\\"quantity\\\":2,\\\"unit_description\\\":\\\"Pllts ADR\\\",\\\"gross_weight\\\":1629,\\\"volume_weight\\\":1850,\\\"volume\\\":1,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":491.92},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":127.9},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75},{\\\"description\\\":\\\"ADR toeslag\\\",\\\"amount\\\":75}],\\\"amount\\\":699.57},{\\\"reference\\\":\\\"6/90107235\\\",\\\"our_reference\\\":\\\"WDSG0020806\\\",\\\"loading_date\\\":\\\"2026-08-07\\\",\\\"unloading_date\\\":\\\"2026-08-13\\\",\\\"loading_address\\\":\\\"WD Europ BV, NL 3208LA, Spijkenisse\\\",\\\"unloading_address\\\":\\\"Incom Solarenergy GmbH, AT 5600, St. Johann im Pongau\\\",\\\"quantity\\\":1,\\\"unit_description\\\":\\\"Pallet SigenStack Base MAIN\\\",\\\"gross_weight\\\":55,\\\"volume_weight\\\":740,\\\"volume\\\":0.4,\\\"charge_components\\\":[{\\\"description\\\":\\\"Transportkosten ex Douane\\\",\\\"amount\\\":290.16},{\\\"description\\\":\\\"Dieselolietoeslag\\\",\\\"amount\\\":75.44},{\\\"description\\\":\\\"NL Vrachtwagenheffing export\\\",\\\"amount\\\":4.75}],\\\"amount\\\":370.35}],\\\"subtotal\\\":2869.66,\\\"total_tax\\\":602.63,\\\"total_amount\\\":3472.29}\",\"type\":\"output_text\",\"logprobs\":[]}],\"role\":\"assistant\",\"status\":\"completed\",\"type\":\"message\",\"phase\":\"final_answer\"}],\"parallel_tool_calls\":true,\"temperature\":1.0,\"tool_choice\":\"auto\",\"tools\":[],\"top_p\":0.98,\"background\":false,\"completed_at\":1789378297.0,\"conversation\":null,\"max_output_tokens\":null,\"max_tool_calls\":null,\"moderation\":null,\"previous_response_id\":null,\"prompt\":null,\"prompt_cache_key\":null,\"prompt_cache_options\":null,\"prompt_cache_retention\":\"24h\",\"reasoning\":{\"context\":\"all_turns\",\"effort\":\"low\",\"generate_summary\":null,\"mode\":\"standard\",\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"status\":\"completed\",\"text\":{\"format\":{\"name\":\"InvoiceExtractionResult\",\"schema_\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"invoice_number\",\"invoice_date\",\"due_date\",\"currency\",\"supplier\",\"buyer\",\"lines\",\"subtotal\",\"total_tax\",\"total_amount\"],\"properties\":{\"invoice_number\":{\"type\":[\"string\",\"null\"]},\"invoice_date\":{\"type\":[\"string\",\"null\"]},\"due_date\":{\"type\":[\"string\",\"null\"]},\"currency\":{\"type\":[\"string\",\"null\"]},\"supplier\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\",\"vat_number\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]},\"vat_number\":{\"type\":[\"string\",\"null\"]}}},\"buyer\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"name\",\"address\"],\"properties\":{\"name\":{\"type\":[\"string\",\"null\"]},\"address\":{\"type\":[\"string\",\"null\"]}}},\"lines\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"reference\",\"our_reference\",\"loading_date\",\"unloading_date\",\"loading_address\",\"unloading_address\",\"quantity\",\"unit_description\",\"gross_weight\",\"volume_weight\",\"volume\",\"charge_components\",\"amount\"],\"properties\":{\"reference\":{\"type\":[\"string\",\"null\"]},\"our_reference\":{\"type\":[\"string\",\"null\"]},\"loading_date\":{\"type\":[\"string\",\"null\"]},\"unloading_date\":{\"type\":[\"string\",\"null\"]},\"loading_address\":{\"type\":[\"string\",\"null\"]},\"unloading_address\":{\"type\":[\"string\",\"null\"]},\"quantity\":{\"type\":[\"number\",\"null\"]},\"unit_description\":{\"type\":[\"string\",\"null\"]},\"gross_weight\":{\"type\":[\"number\",\"null\"]},\"volume_weight\":{\"type\":[\"number\",\"null\"]},\"volume\":{\"type\":[\"number\",\"null\"]},\"charge_components\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"description\",\"amount\"],\"properties\":{\"description\":{\"type\":\"string\"},\"amount\":{\"type\":\"number\"}}}},\"amount\":{\"type\":[\"number\",\"null\"]}}}},\"subtotal\":{\"type\":[\"number\",\"null\"]},\"total_tax\":{\"type\":[\"number\",\"null\"]},\"total_amount\":{\"type\":[\"number\",\"null\"]}}},\"type\":\"json_schema\",\"description\":null,\"strict\":true},\"verbosity\":\"medium\"},\"top_logprobs\":0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":9036,\"input_tokens_details\":{\"cache_write_tokens\":9033,\"cached_tokens\":0},\"output_tokens\":1258,\"output_tokens_details\":{\"reasoning_tokens\":118},\"total_tokens\":10294},\"user\":null,\"billing\":{\"payer\":\"developer\"},\"frequency_penalty\":0.0,\"presence_penalty\":0.0,\"store\":true,\"tool_usage\":{\"image_gen\":{\"input_tokens\":0,\"input_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"output_tokens\":0,\"output_tokens_details\":{\"image_tokens\":0,\"text_tokens\":0},\"total_tokens\":0},\"web_search\":{\"num_requests\":0}}}"
+    }
+  ]
+}
