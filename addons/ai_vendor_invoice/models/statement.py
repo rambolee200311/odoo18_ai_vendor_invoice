@@ -1,6 +1,7 @@
 # © 2024 Wukong Digital. License LGPL-3.
 import base64
 import re
+from decimal import InvalidOperation
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
@@ -788,13 +789,17 @@ class VendorInvoiceStatementLine(models.Model):
             else self.env.company.currency_id
         )
         round_amount = currency.round
-        amount = float(vals.get("amount", line.amount if line else 0.0) or 0.0)
-        tax_rate = float(vals.get("tax_rate", line.tax_rate if line else 0.0) or 0.0)
-        tax_amount = float(
-            vals.get("tax_amount", line.tax_amount if line else 0.0) or 0.0
+        amount = self._parse_amount(
+            vals.get("amount", line.amount if line else 0.0)
         )
-        total_amount = float(
-            vals.get("total_amount", line.total_amount if line else 0.0) or 0.0
+        tax_rate = self._parse_amount(
+            vals.get("tax_rate", line.tax_rate if line else 0.0)
+        )
+        tax_amount = self._parse_amount(
+            vals.get("tax_amount", line.tax_amount if line else 0.0)
+        )
+        total_amount = self._parse_amount(
+            vals.get("total_amount", line.total_amount if line else 0.0)
         )
         keys = {key for key in monetary_fields if vals.get(key) is not None}
         if driver:
@@ -828,6 +833,21 @@ class VendorInvoiceStatementLine(models.Model):
             "tax_amount": tax_amount,
             "total_amount": total_amount,
         }
+
+    @staticmethod
+    def _parse_amount(value):
+        """Parse numeric values from providers using either decimal separator."""
+        if value in (False, None, ""):
+            return 0.0
+        if isinstance(value, str):
+            text = value.strip().replace(" ", "")
+            if "," in text:
+                text = text.replace(".", "").replace(",", ".")
+            value = text
+        try:
+            return float(value)
+        except (InvalidOperation, TypeError, ValueError) as error:
+            raise ValidationError(_("Invalid monetary value: %s") % value) from error
 
     def _apply_amount_onchange(self, driver):
         for line in self:
