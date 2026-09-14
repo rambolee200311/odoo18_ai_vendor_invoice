@@ -241,11 +241,16 @@ class VendorInvoiceImportTask(models.Model):
             "DROP CONSTRAINT IF EXISTS company_source_pdf_checksum_unique"
         )
         self.env.cr.execute(
+            "DROP INDEX IF EXISTS company_source_pdf_checksum_active_unique"
+        )
+        self.env.cr.execute(
             """
             CREATE UNIQUE INDEX IF NOT EXISTS
                 company_source_pdf_checksum_active_unique
             ON vendor_invoice_import_task (company_id, source_pdf_checksum)
-            WHERE source_pdf_checksum IS NOT NULL AND state != 'cancelled'
+            WHERE source_pdf_checksum IS NOT NULL
+              AND state != 'cancelled'
+              AND statement_id IS NULL
             """
         )
         self.env.cr.execute(
@@ -326,15 +331,16 @@ class VendorInvoiceImportTask(models.Model):
             company = self.env["res.company"].browse(
                 vals.get("company_id")
             ) if vals.get("company_id") else self.env.company
-            duplicate = self.search([
-                ("company_id", "=", company.id),
-                ("source_pdf_checksum", "=", vals["source_pdf_checksum"]),
-                ("state", "!=", "cancelled"),
-            ], limit=1)
-            if duplicate:
-                raise ValidationError(
-                    _("This PDF was already imported as Task %s.") % duplicate.name
-                )
+            if not vals.get("statement_id"):
+                duplicate = self.search([
+                    ("company_id", "=", company.id),
+                    ("source_pdf_checksum", "=", vals["source_pdf_checksum"]),
+                    ("state", "!=", "cancelled"),
+                ], limit=1)
+                if duplicate:
+                    raise ValidationError(
+                        _("This PDF was already imported as Task %s.") % duplicate.name
+                    )
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code(
                     "vendor.invoice.import.task"
