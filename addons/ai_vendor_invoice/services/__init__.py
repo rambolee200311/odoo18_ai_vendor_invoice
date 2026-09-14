@@ -2,6 +2,7 @@
 from . import (
     bill_creator,
     mapping_service,
+    number_parser,
     observability_service,
     parse_service,
     pdf_preprocessor,
@@ -16,6 +17,7 @@ from . import (
 __all__ = [
     "bill_creator",
     "mapping_service",
+    "number_parser",
     "observability_service",
     "parse_service",
     "pdf_preprocessor",
