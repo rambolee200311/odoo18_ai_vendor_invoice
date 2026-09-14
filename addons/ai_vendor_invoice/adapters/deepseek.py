@@ -13,28 +13,11 @@ from .aibase import (
     USER_PROMPT,
 )
 from .base import AIProviderPermanentError, AIProviderTemporaryError
+from .prompts import MARKDOWN_PROMPT, MARKDOWN_PROMPT_VERSION
 from ..services import observability_service
 
 
-MARKDOWN_PROMPT_VERSION = "markdown-extraction-v4"
-MARKDOWN_SYSTEM_PROMPT = """You are a transport-supplier-invoice fact extractor.
-The user content is Markdown converted from the original PDF.
-Extract only facts visibly printed in that document. Return JSON only.
-Use exactly the production Canonical JSON shape:
-{"header":{"invoice_number":{"value":string|null,"confidence":number},"invoice_date":{"value":"YYYY-MM-DD"|null,"confidence":number},"supplier_raw_text":{"value":string|null,"confidence":number},"currency_raw_text":{"value":string|null,"confidence":number},"total_amount":{"value":string|null,"confidence":number},"total_tax":{"value":string|null,"confidence":number},"subtotal":{"value":string|null,"confidence":number}},"lines":[{"description":{"value":string|null,"confidence":number},"amount":{"value":string|null,"confidence":number},"tax_raw_text":{"value":string|null,"confidence":number},"tax_rate":{"value":number|string|null,"confidence":number},"tax_amount":{"value":string|null,"confidence":number},"reconciliation_clues":[{"label":string,"value":string}],"charge_details":string|null}],"is_multi_invoice":boolean}.
-Use nested value/confidence header and
-line fields. One independent transport/business record is exactly one line.
-Keep nested fees in charge_details and preserve shipment, loading, unloading,
-cargo, weight, volume, and references in reconciliation_clues. Do not treat
-shipment or order references as invoice_number unless explicitly labelled.
-Header totals must come from explicitly labelled summary values; never calculate
-or infer them. Reconstruct Markdown layout conservatively and preserve order.
-Set is_multi_invoice when applicable. Confidence is 0..1; use null rather than
-guessing.
-
-supplier_raw_text must contain only the supplier name.
-Do not include address, phone, email, VAT number, or contact information.
-If the name and address appear on the same line or block, keep only the name."""
+MARKDOWN_SYSTEM_PROMPT = MARKDOWN_PROMPT
 
 
 class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):

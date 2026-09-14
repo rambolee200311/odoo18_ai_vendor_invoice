@@ -20,6 +20,12 @@ from .base import (
     AIProviderTemporaryError,
     BaseAIProviderAdapter,
 )
+from .prompts import (
+    EXTRACTION_CONTRACT_VERSION,
+    VISION_PROMPT_VERSION as PROMPT_VERSION,
+    VISION_SYSTEM_PROMPT as SYSTEM_PROMPT,
+    VISION_USER_PROMPT as USER_PROMPT,
+)
 from ..schemas.page_extraction import PAGE_EXTRACTION_RESULT_SCHEMA
 from .document_normalizer import (
     DocumentNormalizationError,
@@ -27,63 +33,6 @@ from .document_normalizer import (
 )
 
 _logger = logging.getLogger(__name__)
-
-EXTRACTION_CONTRACT_VERSION = "transport-invoice-page-v1"
-PROMPT_VERSION = "vision-extraction-v1.3"
-
-SYSTEM_PROMPT = """You are a transport-supplier-invoice fact extractor, not a business decision maker.
-Extract only facts visibly printed on the supplied PDF pages. Return JSON only.
-Return exactly one JSON object with a pages array. The pages array must contain exactly one
-PageExtractionResult for every supplied image, in image order, with page_number 1..N.
-The top-level object may contain ONLY the key pages; these are the only keys
-allowed at the top level. The object contains only these keys at the top level.
-Example envelope: {"pages": [{"page_number": 1, "header": {}, "lines": [], "raw_facts": []}]}
-Do not add any other top-level keys. Use this exact structure:
-{
-  "page_number": 1,
-  "header": {"field_name": "string, number, or null"},
-  "lines": [
-    {"field_name": "string, number, or null",
-     "raw_fields": [{"source_label": "printed label", "source_value": "value"}]}
-  ],
-  "raw_facts": [{"source_label": "printed label", "source_value": "value"}]
-}
-Header field values and line field values must be scalar string, number, or null.
-raw_fields and raw_facts are arrays of objects with exactly source_label and source_value.
-Each page must include its page_number; do not add sender, receiver, invoice_header,
-invoice_lines, totals, or any other top-level property.
-Extract explicit invoice header fields, fee and charge lines, dates, addresses,
-and explicitly labelled identifiers or references. Preserve every uncertain or
-unclassified printed field in raw_facts using its original source_label and
-source_value. Do not determine business meaning unless the printed label
-explicitly states it.
-
-Do not guess, autocomplete, calculate, reconcile, or fill missing values.
-Omit missing fields or use null. Do not use information from another page.
-Do not treat repeated headers, footers, or column headings as invoice lines.
-Do not interpret Shipment Number, Dossier, O.No., Opdracht, Uw ref., Your reference,
-customer reference, order reference, transport reference, booking
-reference, or consignment reference as invoice_number unless the page explicitly
-labels the value as an invoice number.
-Use plain scalar values and return no explanation outside the JSON object."""
-
-USER_PROMPT = """Extract visible facts from all supplied PDF pages and return one document envelope.
-Each item in pages is a PageExtractionResult with page_number, header, lines,
-and raw_facts.
-Return exactly one JSON object with only this top-level key: pages.
-Return exactly one PageExtractionResult per supplied image, in order, numbered 1 through N.
-Use header for header facts, lines for fee/charge line objects, and raw_facts for
-uncertain printed facts. Header and line values must be scalar string, number, or null.
-Each raw_facts item must contain exactly source_label and source_value.
-Include explicit invoice header fields, fee or charge lines, dates, addresses,
-and explicitly labelled identifiers or references. Keep standard fields as plain
-scalar values. For every visible field whose business meaning is uncertain, add
-a raw_facts item containing the original source_label and source_value.
-Do not classify or rename an uncertain reference. Do not convert shipment,
-dossier, order, opdracht, customer, transport, or other reference numbers into
-invoice_number unless the printed label explicitly says invoice number.
-Do not guess, calculate, reconcile, autocomplete, or fill missing values.
-Return JSON only."""
 
 __all__ = [
     "BaseVisionAIProviderAdapter",

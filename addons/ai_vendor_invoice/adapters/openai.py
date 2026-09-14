@@ -7,8 +7,9 @@ import logging
 from jsonschema import ValidationError, validate
 from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 
-from .aibase import BaseVisionAIProviderAdapter, PROMPT_VERSION
+from .aibase import BaseVisionAIProviderAdapter
 from .base import AIProviderPermanentError, AIProviderTemporaryError
+from .prompts import NATIVE_PDF_PROMPT, NATIVE_PDF_PROMPT_VERSION
 from ..services.native_document_projection import document_to_canonical
 from ..services import observability_service
 from ..schemas.document_extraction import INVOICE_EXTRACTION_RESULT_SCHEMA
@@ -38,7 +39,7 @@ class OpenAIAIProviderAdapter(BaseVisionAIProviderAdapter):
             document, raw_response, _content = self.parse_native_pdf(
                 provider_input,
                 provider_config,
-                self._native_document_instructions(),
+                NATIVE_PDF_PROMPT,
                 attempt_obj,
             )
             try:
@@ -54,17 +55,6 @@ class OpenAIAIProviderAdapter(BaseVisionAIProviderAdapter):
             attempt_obj,
         )
 
-    @staticmethod
-    def _native_document_instructions():
-        return """Extract the supplied invoice as a document-level JSON object.
-Return valid JSON only with document_type and invoice.lines. Keep one
-independent invoice business record as one line; keep nested charge components
-inside that record and do not create extra lines. When a line contains a
-reconciliation clue, preserve it as reconciliation_clues with the original
-label and value. Do not infer a clue type or match transport orders. Include
-the invoice number, date, currency, totals, supplier, and tax values when
-present."""
-
     def parse_native_pdf(
         self, provider_input, provider_config, instructions, attempt_obj=None
     ):
@@ -74,7 +64,7 @@ present."""
         client = self._build_client(provider_config)
         attempt = attempt_obj
         prompt_snapshot = {
-            "prompt_version": PROMPT_VERSION,
+            "prompt_version": NATIVE_PDF_PROMPT_VERSION,
             "instructions_checksum": hashlib.sha256(
                 instructions.encode("utf-8")
             ).hexdigest(),
