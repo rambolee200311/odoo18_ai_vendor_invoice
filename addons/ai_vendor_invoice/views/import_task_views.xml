@@ -178,7 +178,8 @@
                             <group>
                                 <field name="source_pdf_upload"
                                        filename="source_pdf_filename"
-                                       readonly="task_id"/>
+                                       readonly="task_id"
+                                       options="{'accepted_file_extensions': '.pdf'}"/>
                                 <field name="source_pdf_attachment_id" readonly="1"/>
                                 <field name="source_pdf_filename"
                                        readonly="task_id"/>
