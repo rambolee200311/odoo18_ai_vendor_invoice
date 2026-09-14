@@ -801,6 +801,9 @@ class VendorInvoiceStatementLine(models.Model):
         total_amount = self._parse_amount(
             vals.get("total_amount", line.total_amount if line else 0.0)
         )
+        price_unit = self._parse_amount(
+            vals.get("price_unit", line.price_unit if line else 0.0)
+        )
         keys = {key for key in monetary_fields if vals.get(key) is not None}
         if driver:
             keys = {driver}
@@ -829,6 +832,7 @@ class VendorInvoiceStatementLine(models.Model):
         total_amount = round_amount(amount + tax_amount)
         return {
             "amount": amount,
+            "price_unit": price_unit,
             "tax_rate": tax_rate,
             "tax_amount": tax_amount,
             "total_amount": total_amount,
