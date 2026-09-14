@@ -176,6 +176,9 @@
                         </page>
                         <page string="AI / Task">
                             <group>
+                                <field name="source_pdf_upload"
+                                       filename="source_pdf_filename"
+                                       readonly="task_id or state != 'draft'"/>
                                 <field name="source_pdf_attachment_id" readonly="1"/>
                                 <field name="source_pdf_filename"
                                        readonly="task_id or state != 'draft'"/>
