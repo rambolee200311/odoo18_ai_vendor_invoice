@@ -125,3 +125,4 @@ typing_extensions~=4.14.0
 maxminddb~=2.7.0
 setuptools~=65.5.0
 openai
+pymupdf4llm~=1.28.2

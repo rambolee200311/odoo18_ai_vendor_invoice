@@ -4,6 +4,7 @@
 import hashlib
 
 import fitz
+import pymupdf4llm
 
 from .provider_input import ProviderInput
 
@@ -26,6 +27,10 @@ class PDFEncryptedError(PDFPreprocessorError):
 
 class PDFRenderError(PDFPreprocessorError):
     """A PDF page could not be rendered as PNG."""
+
+
+class PDFMarkdownError(PDFPreprocessorError):
+    """A PDF could not be converted to Markdown."""
 
 
 def prepare_provider_input(pdf_attachment, mode="rendered_images"):
@@ -53,6 +58,20 @@ def prepare_provider_input(pdf_attachment, mode="rendered_images"):
                 mode=mode,
                 source=source,
                 document_bytes=pdf_bytes,
+            )
+        if mode == "markdown":
+            try:
+                markdown = pymupdf4llm.to_markdown(document)
+            except (RuntimeError, ValueError) as error:
+                raise PDFMarkdownError("PDF Markdown conversion failed.") from error
+            source["markdown_checksum"] = hashlib.sha256(
+                markdown.encode("utf-8")
+            ).hexdigest()
+            source["markdown_char_count"] = len(markdown)
+            return ProviderInput(
+                mode=mode,
+                source=source,
+                markdown_text=markdown,
             )
         images = []
         for page_number in range(document.page_count):

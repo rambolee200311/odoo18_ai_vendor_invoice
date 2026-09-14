@@ -161,6 +161,10 @@ def _publish_attempt_running(env, attempt):
 def start_parse(env, task_id, provider_config_id, synchronous=False):
     task = env["wd.lock.service"].lock_task(task_id)
     task.ensure_one()
+    # Legacy compatibility read (CC-10 2.1.5): `awaiting_review` is accepted
+    # here only so a historical Task can still be re-run; Run AI/Parse
+    # execution controls remain Task-owned and this is not a Statement
+    # Confirm, Unconfirm, or Create Bill precondition.
     if task.state not in ("to_parse", "error", "awaiting_review"):
         raise ValueError("Task cannot start an AI parse in its current state.")
     active_attempt = env["vendor.invoice.import.parse.attempt"].search(
@@ -222,7 +226,7 @@ def run_parse_attempt(env, task_id, attempt_id):
     _publish_attempt_running(env, attempt)
     try:
         adapter = adapter_for(env, attempt.provider_config_id)
-        input_mode = attempt.provider_config_id.document_input_mode or "rendered_images"
+        input_mode = attempt.provider_config_id.document_input_mode or "native_pdf"
         adapter.validate_input_mode(input_mode)
         provider_input = prepare_provider_input(
             task.source_pdf_attachment_id,
@@ -324,7 +328,7 @@ def run_parse_attempt(env, task_id, attempt_id):
         "completed_at": completed_at,
         "last_activity_at": completed_at,
     })
-    if input_mode == "native_pdf":
+    if input_mode in ("native_pdf", "markdown"):
         task._create_prefilled_statement_from_canonical(attempt, canonical)
     task.write({"state": "error" if canonical.get("is_multi_invoice")
                 else "parsed"})

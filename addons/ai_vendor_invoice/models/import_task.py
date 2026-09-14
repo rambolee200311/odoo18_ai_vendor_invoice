@@ -50,13 +50,19 @@ class VendorInvoiceImportTask(models.Model):
     )
 
     # ── state machine ─────────────────────────────────────────────────────────
+    # CC-10: `parsed` remains the current technical success state of an AI
+    # execution (it does NOT mean the Statement was reviewed, confirmed, or
+    # billed). `awaiting_review` and `bill_generated` are legacy/deprecated
+    # compatibility values kept only so historical records remain readable
+    # and loadable; they are no longer read anywhere as a Statement Confirm,
+    # Unconfirm, or Create Bill precondition.
     state = fields.Selection(
         selection=[
             ("to_parse", "To Parse"),
             ("parsing", "Parsing"),
             ("parsed", "Parsed"),
-            ("awaiting_review", "Awaiting Review"),
-            ("bill_generated", "Bill Generated"),
+            ("awaiting_review", "Awaiting Review (legacy/deprecated)"),
+            ("bill_generated", "Bill Generated (legacy/deprecated)"),
             ("error", "Error"),
             ("cancelled", "Cancelled"),
         ],
@@ -65,9 +71,16 @@ class VendorInvoiceImportTask(models.Model):
         index=True,
         default="to_parse",
         help=(
-            "AI execution lifecycle. The legacy awaiting_review and "
-            "bill_generated values are retained for compatibility only; "
-            "business review and billing decisions belong to Statement."
+            "AI execution state of this Task. 'parsed' is the current "
+            "technical success value: the AI execution completed and "
+            "produced parse results, but this alone does not mean a human "
+            "reviewed the Statement, that the Statement is confirmed, or "
+            "that a Vendor Bill exists. 'awaiting_review' and "
+            "'bill_generated' are legacy/deprecated compatibility values "
+            "retained for historical records only (CC-10); they are not "
+            "current Statement business preconditions. The authoritative "
+            "Statement business lifecycle lives on "
+            "vendor.invoice.statement.state."
         ),
     )
 
@@ -165,18 +178,28 @@ class VendorInvoiceImportTask(models.Model):
     )
 
     # ── review & result ───────────────────────────────────────────────────────
-    # T-006 / T-007: bill_creator reads ONLY human_review_result.
+    # T-006 / T-007 (superseded by CC-10): this field was previously the sole
+    # Bill Creator input. CC-10 makes the Statement the sole Vendor Bill
+    # business input; this field is now a legacy compatibility mirror kept in
+    # sync by the Statement-facing Confirm command for historical/diagnostic
+    # reading only.
     human_review_result = fields.Json(
         string="Human Review Result",
         default=dict,
     )
 
+    # CC-10 2.1.6: legacy compatibility field. Historical values remain
+    # readable, but new Confirm, Unconfirm, and Create Bill logic MUST NOT
+    # read or write it; those commands use Statement.state and
+    # Statement.line_ids.checked as the authoritative review facts instead.
     human_reviewed = fields.Boolean(
         string="Human Reviewed",
         default=False,
         help=(
-            "Deprecated compatibility field. New Statement review and billing "
-            "commands must not read or write this field."
+            "Deprecated compatibility field retained for historical data "
+            "only (CC-10). It is not read or written by current Confirm, "
+            "Unconfirm, or Create Bill logic; the authoritative review "
+            "facts are Statement.state and Statement.line_ids.checked."
         ),
     )
 
@@ -186,6 +209,9 @@ class VendorInvoiceImportTask(models.Model):
     )
 
     # ── bill link compatibility surface ──────────────────────────────────────
+    # CC-10 2.1.7 / 4.7: Statement.vendor_bill_id is the sole writable Bill
+    # authority. This field is a related, read-only compatibility surface
+    # only; it MUST NOT become an independent writable authority.
     vendor_bill_id = fields.Many2one(
         "account.move",
         string="Vendor Bill",
@@ -194,8 +220,9 @@ class VendorInvoiceImportTask(models.Model):
         readonly=True,
         store=False,
         help=(
-            "Deprecated compatibility surface. Statement.vendor_bill_id is "
-            "the sole writable Vendor Bill authority."
+            "Read-only compatibility mirror of Statement.vendor_bill_id "
+            "(CC-10). The Statement field is the sole writable Bill "
+            "authority."
         ),
     )
 
@@ -246,6 +273,10 @@ class VendorInvoiceImportTask(models.Model):
 
     @api.depends("state", "current_parse_attempt_id.status")
     def _compute_parse_display_status(self):
+        # Legacy compatibility read (CC-10 2.1.5): `awaiting_review` and
+        # `bill_generated` are read here only to keep this technical display
+        # badge stable for historical records; this is a diagnostic label,
+        # not a Statement business precondition.
         for task in self:
             if task.state == "parsing":
                 task.parse_display_status = (
@@ -275,8 +306,7 @@ class VendorInvoiceImportTask(models.Model):
         uploads = []
         for vals in vals_list:
             upload = vals.pop("source_pdf_upload", None)
-            requested_filename = vals.pop("source_pdf_filename", None)
-            filename = requested_filename or "vendor_invoice.pdf"
+            filename = vals.pop("source_pdf_filename", None) or "vendor_invoice.pdf"
             uploads.append((upload, filename))
             if upload and vals.get("source_pdf_attachment_id"):
                 raise ValidationError(
@@ -290,8 +320,7 @@ class VendorInvoiceImportTask(models.Model):
                 else self.env["ir.attachment"]
             )
             vals["source_pdf_filename"] = (
-                filename if upload
-                else requested_filename or attachment.name or "vendor_invoice.pdf"
+                filename if upload else attachment.name or filename
             )
             vals["source_pdf_checksum"] = self._checksum_for_source(upload, attachment)
             company = self.env["res.company"].browse(
@@ -325,10 +354,7 @@ class VendorInvoiceImportTask(models.Model):
                 task.source_pdf_attachment_id = attachment.id
             else:
                 attachment = task.source_pdf_attachment_id
-            if (
-                attachment.res_model != "vendor.invoice.statement"
-                and (attachment.res_model != task._name or attachment.res_id != task.id)
-            ):
+            if attachment.res_model != task._name or attachment.res_id != task.id:
                 attachment.write({
                     "res_model": task._name,
                     "res_id": task.id,
@@ -350,14 +376,6 @@ class VendorInvoiceImportTask(models.Model):
         if "company_id" in vals:
             raise ValidationError(
                 _("The company of an import task cannot be changed after creation.")
-            )
-        if "selected_provider_config_id" in vals:
-            raise ValidationError(
-                _("The AI provider of an import task cannot be changed after creation.")
-            )
-        if "synchronous_parse" in vals:
-            raise ValidationError(
-                _("The execution mode of an import task cannot be changed after creation.")
             )
         if "statement_required" in vals:
             raise ValidationError(_("Statement requirement cannot be changed."))
@@ -469,6 +487,10 @@ class VendorInvoiceImportTask(models.Model):
         self.ensure_one()
         if not self.env.user.has_group("ai_vendor_invoice.group_reviewer"):
             raise AccessError(_("Only an invoice reviewer can save review data."))
+        # Legacy compatibility read (CC-10 2.1.5): `awaiting_review` is
+        # accepted here only for historical Task-owned review saves that
+        # predate the Statement aggregate; it is not a Confirm, Unconfirm, or
+        # Create Bill precondition.
         if self.state not in ("parsed", "awaiting_review"):
             raise ValidationError(_("Only a parsed invoice can be reviewed."))
         if not isinstance(review_result, dict) or not review_result:
@@ -631,18 +653,25 @@ class VendorInvoiceImportTask(models.Model):
         self.ensure_one()
         if not self.statement_id:
             raise ValidationError(_("This task has no human Statement."))
-        attempt = self.current_parse_attempt_id
-        if not attempt:
-            raise ValidationError(_("This task has no current ParseAttempt."))
+        attempt = self.statement_id.source_parse_attempt_id
         canonical = attempt.canonical_result or {}
         payload = self._statement_payload_from_canonical(canonical)
         return self.action_apply_ai_candidate(attempt.id, payload)
 
     def action_confirm_statement(self, statement_payload=None):
-        """Legacy wrapper for the Statement-facing confirmation command."""
+        """Legacy Task-facing compatibility entry point for Confirm (CC-10).
+
+        Confirm business authority now lives on the Statement
+        (`vendor.invoice.statement.action_confirm`). This method remains only
+        for existing Task-facing callers (the legacy review dialog and the
+        atomic Confirm+Create-Bill combo) and does not itself decide
+        confirmability: it may apply an explicit review payload through the
+        existing Task-owned edit commands, then delegates the actual Confirm
+        decision to the Statement.
+        """
         self.ensure_one()
+        self._check_statement_command_access()
         if statement_payload is not None:
-            self._check_statement_command_access()
             payload = self._statement_payload_from_review(statement_payload)
             if self.statement_id:
                 self.action_apply_statement_changes(payload)
@@ -652,14 +681,21 @@ class VendorInvoiceImportTask(models.Model):
                 )
         if not self.statement_id:
             raise ValidationError(_("A human Statement is required."))
-        return self.statement_id.action_confirm_from_statement()
+        return self.statement_id.action_confirm()
 
     def action_unconfirm_statement(self):
-        """Legacy wrapper for the Statement-facing unconfirm command."""
+        """Legacy Task-facing compatibility entry point for Unconfirm (CC-10).
+
+        Unconfirm business authority now lives on the Statement
+        (`vendor.invoice.statement.action_unconfirm`). This method remains
+        only for existing Task-facing callers and no longer reads
+        `Task.state` as a business precondition.
+        """
         self.ensure_one()
+        self._check_statement_command_access()
         if not self.statement_id:
-            raise ValidationError(_("A human Statement is required."))
-        return self.statement_id.action_unconfirm_from_statement()
+            raise ValidationError(_("This task has no human Statement."))
+        return self.statement_id.action_unconfirm()
 
     def action_cancel_statement(self):
         """Statement cancellation is not part of the new review lifecycle."""
@@ -674,14 +710,7 @@ class VendorInvoiceImportTask(models.Model):
     def _statement_values(self, payload, attempt):
         return {
             "task_id": self.id,
-            "company_id": self.company_id.id,
             "source_parse_attempt_id": attempt.id,
-            "source_pdf_attachment_id": self.source_pdf_attachment_id.id,
-            "source_pdf_filename": (
-                self.statement_id.source_pdf_filename
-                if self.statement_id
-                else self.source_pdf_filename
-            ),
             "invoice_number": payload["invoice_number"],
             "invoice_date": payload.get("invoice_date"),
             "supplier_id": payload.get("supplier_id"),
