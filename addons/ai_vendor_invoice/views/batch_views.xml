@@ -99,17 +99,6 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <record id="view_vendor_invoice_batch_import_wizard_line_tree" model="ir.ui.view">
-        <field name="name">vendor.invoice.batch.import.wizard.line.tree</field>
-        <field name="model">vendor.invoice.batch.import.wizard.line</field>
-        <field name="arch" type="xml">
-            <list editable="bottom">
-                <field name="pdf_upload" filename="pdf_filename"/>
-                <field name="pdf_filename"/>
-            </list>
-        </field>
-    </record>
-
     <record id="view_vendor_invoice_batch_import_wizard_form" model="ir.ui.view">
         <field name="name">vendor.invoice.batch.import.wizard.form</field>
         <field name="model">vendor.invoice.batch.import.wizard</field>
@@ -119,7 +108,9 @@
                     <field name="company_id" invisible="1"/>
                     <field name="provider_config_id"/>
                 </group>
-                <field name="line_ids"/>
+                <field name="attachment_ids" widget="many2many_binary"
+                       string="Supplier Invoice PDFs"
+                       options="{'accepted_file_extensions': '.pdf'}"/>
                 <footer>
                     <button name="action_start_batch" type="object"
                             string="Start Batch" class="oe_highlight"/>

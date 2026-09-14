@@ -26,6 +26,14 @@ class VendorInvoiceBatchImportWizard(models.TransientModel):
         required=True,
         domain="[('active', '=', True)]",
     )
+    attachment_ids = fields.Many2many(
+        "ir.attachment",
+        "vendor_invoice_batch_wizard_attachment_rel",
+        "wizard_id",
+        "attachment_id",
+        string="PDF Files",
+        help="Select one or more supplier invoice PDFs in a single upload.",
+    )
     line_ids = fields.One2many(
         "vendor.invoice.batch.import.wizard.line",
         "wizard_id",
@@ -34,7 +42,16 @@ class VendorInvoiceBatchImportWizard(models.TransientModel):
 
     def action_start_batch(self):
         self.ensure_one()
-        if not self.line_ids:
+        files = [
+            (attachment.datas, attachment.name)
+            for attachment in self.attachment_ids
+            if attachment.datas
+        ]
+        if not files:
+            files = [
+                (line.pdf_upload, line.pdf_filename) for line in self.line_ids
+            ]
+        if not files:
             raise ValidationError(_("Upload at least one supplier invoice PDF."))
         from ..services.batch_service import start_batch
 
@@ -42,9 +59,7 @@ class VendorInvoiceBatchImportWizard(models.TransientModel):
             self.env,
             company_id=self.company_id.id,
             provider_config_id=self.provider_config_id.id,
-            files=[
-                (line.pdf_upload, line.pdf_filename) for line in self.line_ids
-            ],
+            files=files,
         )
         return {
             "type": "ir.actions.act_window",
