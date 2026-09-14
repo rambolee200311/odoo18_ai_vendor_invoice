@@ -653,7 +653,9 @@ class VendorInvoiceImportTask(models.Model):
         self.ensure_one()
         if not self.statement_id:
             raise ValidationError(_("This task has no human Statement."))
-        attempt = self.statement_id.source_parse_attempt_id
+        attempt = self.current_parse_attempt_id
+        if not attempt or attempt.status != "success":
+            raise ValidationError(_("Only a successful current attempt can be applied."))
         canonical = attempt.canonical_result or {}
         payload = self._statement_payload_from_canonical(canonical)
         return self.action_apply_ai_candidate(attempt.id, payload)
