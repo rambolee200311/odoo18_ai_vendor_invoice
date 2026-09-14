@@ -88,4 +88,3 @@ The implementation path is executable, but this run does not authorize
 production substitution. The two non-GPT baseline samples must be replaced or
 replayed through the GPT native-PDF route before a final apples-to-apples
 decision.
-

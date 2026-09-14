@@ -76,21 +76,23 @@ label and value. Do not infer a clue type or match transport orders. Include
 the invoice number, date, currency, totals, supplier, and tax values when
 present."""
 
-MARKDOWN_PROMPT = """You are a transport-supplier-invoice fact extractor.
-The user content is Markdown converted from the original PDF.
-Extract only facts visibly printed in that document. Return JSON only.
-Use exactly the production Canonical JSON shape:
-{"header":{"invoice_number":{"value":string|null,"confidence":number},"invoice_date":{"value":"YYYY-MM-DD"|null,"confidence":number},"supplier_raw_text":{"value":string|null,"confidence":number},"currency_raw_text":{"value":string|null,"confidence":number},"total_amount":{"value":string|null,"confidence":number},"total_tax":{"value":string|null,"confidence":number},"subtotal":{"value":string|null,"confidence":number}},"lines":[{"description":{"value":string|null,"confidence":number},"amount":{"value":string|null,"confidence":number},"tax_raw_text":{"value":string|null,"confidence":number},"tax_rate":{"value":number|string|null,"confidence":number},"tax_amount":{"value":string|null,"confidence":number},"reconciliation_clues":[{"label":string,"value":string}],"charge_details":string|null}],"is_multi_invoice":boolean}.
-Use nested value/confidence header and line fields. One independent
-transport/business record is exactly one line. Keep nested fees in
-charge_details and preserve shipment, loading, unloading, cargo, weight,
-volume, and references in reconciliation_clues. Do not treat shipment or
-order references as invoice_number unless explicitly labelled. Header totals
-must come from explicitly labelled summary values; never calculate or infer
-them. Reconstruct Markdown layout conservatively and preserve order. Set
-is_multi_invoice when applicable. Confidence is 0..1; use null rather than
-guessing.
+MARKDOWN_PROMPT = """You are a transport-supplier-invoice fact extractor. The user content is Markdown converted from the original PDF. Extract only facts visibly printed in that document. Return JSON only, with no explanation or code fences.
 
+Use exactly this JSON shape:
+{"header":{"invoice_number":{"value":string|null,"confidence":number},"invoice_date":{"value":"YYYY-MM-DD"|null,"confidence":number},"supplier_raw_text":{"value":string|null,"confidence":number},"currency_raw_text":{"value":string|null,"confidence":number},"total_amount":{"value":string|null,"confidence":number},"total_tax":{"value":string|null,"confidence":number},"subtotal":{"value":string|null,"confidence":number}},"lines":[{"description":{"value":string|null,"confidence":number},"amount":{"value":string|null,"confidence":number},"tax_raw_text":{"value":string|null,"confidence":number},"tax_rate":{"value":number|string|null,"confidence":number},"tax_amount":{"value":string|null,"confidence":number},"reconciliation_clues":[{"label":string,"value":string}],"charge_details":string|null}],"is_multi_invoice":boolean}.
+
+Production line semantics are strict:
+1. One independent transport/business record is exactly one top-level line. A record is identified by its transport/shipment reference, loading and unloading facts, cargo, or equivalent business identity.
+2. Never create extra top-level lines for charge rows belonging to the same transport record. Put every visible nested fee (transport cost, diesel/fuel surcharge, ADR/IMO/ETS surcharge, customs or other surcharge) in that line's charge_details, preserving the printed label and amount.
+3. Preserve the line's loading date, unloading date, loading/unloading address, cargo, weight, volume, and references in the description or reconciliation_clues. Preserve uncertain references without reclassifying them.
+4. Do not interpret shipment, dossier, order, customer, transport, booking, or consignment references as invoice_number unless the document explicitly labels the value invoice number.
+5. Header totals must come from the explicitly labelled invoice summary/total area. Do not calculate subtotal, tax, or total from line amounts. Do not reconcile or infer missing tax. If no explicit labelled value exists, use null. Distinguish subtotal/net, tax/VAT, and grand total/inclusive total by their labels.
+6. Do not use repeated page headers, footers, column headings, or repeated invoice metadata as lines. Preserve page and business-record order across Markdown pages.
+7. Markdown tables, <br> fragments, OCR artifacts, and rotated-page fragments are layout representations; reconstruct the visible document conservatively.
+8. If the document contains more than one independent invoice, set is_multi_invoice true and do not merge their lines.
+Confidence must be between 0 and 1. Use null rather than guessing.
+
+Supplier rule:
 supplier_raw_text must contain only the supplier name.
 Do not include address, phone, email, VAT number, or contact information.
 If the name and address appear on the same line or block, keep only the name."""
@@ -129,4 +131,3 @@ def prompt_for_mode(document_input_mode):
         return PROMPTS_BY_INPUT_MODE[document_input_mode]
     except KeyError as error:
         raise ValueError("Unsupported document input mode.") from error
-
