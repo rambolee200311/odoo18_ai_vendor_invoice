@@ -358,9 +358,11 @@
     <menuitem id="menu_vendor_invoice_import_task"
               name="Imports"
               parent="menu_ai_vendor_invoice_root"
-              action="action_vendor_invoice_import_task"/>
+              action="action_vendor_invoice_import_task"
+              sequence="30"/>
     <menuitem id="menu_vendor_invoice_statement"
               name="Statements"
               parent="menu_ai_vendor_invoice_root"
-              action="action_vendor_invoice_statement"/>
+              action="action_vendor_invoice_statement"
+              sequence="1"/>
 </odoo>

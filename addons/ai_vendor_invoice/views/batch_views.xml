@@ -151,10 +151,10 @@
               name="Batches"
               parent="menu_ai_vendor_invoice_root"
               action="action_vendor_invoice_batch"
-              sequence="5"/>
+              sequence="20"/>
     <menuitem id="menu_vendor_invoice_batch_import_wizard"
               name="Start Batch Import"
               parent="menu_ai_vendor_invoice_root"
               action="action_vendor_invoice_batch_import_wizard"
-              sequence="1"/>
+              sequence="10"/>
 </odoo>
