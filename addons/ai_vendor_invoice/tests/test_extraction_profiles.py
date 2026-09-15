@@ -67,6 +67,11 @@ class TestExtractionProfiles(TestCase):
         self.assertIn("UPS rule", prompt.instructions)
         self.assertTrue(prompt.version.endswith("+ups-v1"))
 
+    def test_profile_extension_is_composed_on_vision_prompt(self):
+        prompt = prompt_for_mode("rendered_images", "UPS rule", "ups-v1")
+        self.assertIn("UPS rule", prompt.system)
+        self.assertTrue(prompt.version.endswith("+ups-v1"))
+
     def test_ups_profile_interprets_btw_as_vat_rate(self):
         profile = resolve_profile(
             _task("United Parcel Service Nederland B.V."),

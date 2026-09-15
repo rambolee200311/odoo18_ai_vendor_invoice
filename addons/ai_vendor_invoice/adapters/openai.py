@@ -32,8 +32,13 @@ class OpenAIAIProviderAdapter(BaseVisionAIProviderAdapter):
             max_retries=0,
         )
 
-    def _build_payload(self, provider_config, images):
-        return self._vision_payload(provider_config, images)
+    def _build_payload(self, provider_config, images, prompt=None):
+        return self._vision_payload(
+            provider_config,
+            images,
+            system_prompt=prompt.system if prompt else None,
+            user_prompt=prompt.user if prompt else None,
+        )
 
     def parse_pdf(self, provider_input, provider_config, max_attempt_retry=0, attempt_obj=None):
         if provider_input.get("mode", "rendered_images") == "native_pdf":

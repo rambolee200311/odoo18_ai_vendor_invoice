@@ -34,8 +34,13 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
             max_retries=0,
         )
 
-    def _build_payload(self, provider_config, images):
-        payload = self._vision_payload(provider_config, images)
+    def _build_payload(self, provider_config, images, prompt=None):
+        payload = self._vision_payload(
+            provider_config,
+            images,
+            system_prompt=prompt.system if prompt else None,
+            user_prompt=prompt.user if prompt else None,
+        )
         payload.update({
             "reasoning_effort": "high",
             "extra_body": {"thinking": {"type": "enabled"}},

@@ -25,7 +25,9 @@ from .prompts import (
     VISION_PROMPT_VERSION as PROMPT_VERSION,
     VISION_SYSTEM_PROMPT as SYSTEM_PROMPT,
     VISION_USER_PROMPT as USER_PROMPT,
+    prompt_for_mode,
 )
+from ..services.extraction_profiles import get_profile
 from ..schemas.page_extraction import PAGE_EXTRACTION_RESULT_SCHEMA
 from .document_normalizer import (
     DocumentNormalizationError,
@@ -57,24 +59,31 @@ class BaseVisionAIProviderAdapter(BaseAIProviderAdapter):
     def _build_client(self, provider_config):
         raise NotImplementedError
 
-    def _build_payload(self, provider_config, images):
+    def _build_payload(self, provider_config, images, prompt=None):
         raise NotImplementedError
 
     @staticmethod
-    def _vision_payload(provider_config, images):
+    def _vision_payload(
+        provider_config,
+        images,
+        system_prompt=SYSTEM_PROMPT,
+        user_prompt=USER_PROMPT,
+    ):
+        system_prompt = system_prompt or SYSTEM_PROMPT
+        user_prompt = user_prompt or USER_PROMPT
         return {
             "model": provider_config.model_name,
             "messages": [
                 {
                     "role": "system",
-                    "content": SYSTEM_PROMPT,
+                    "content": system_prompt,
                 },
                 {
                     "role": "user",
                     "content": [
                         {
                             "type": "text",
-                            "text": USER_PROMPT,
+                            "text": user_prompt,
                         },
                         *[
                             {
@@ -139,11 +148,20 @@ class BaseVisionAIProviderAdapter(BaseAIProviderAdapter):
         input_mode="rendered_images",
         input_document_type="image/png",
     ):
-        payload = self._build_payload(provider_config, images)
+        profile = (
+            get_profile(attempt_obj.profile_key)
+            if attempt_obj else get_profile("generic")
+        )
+        prompt = prompt_for_mode(
+            "rendered_images",
+            profile.extension,
+            profile.extension_version,
+        )
+        payload = self._build_payload(provider_config, images, prompt)
         prompt_components = {
-            "system": SYSTEM_PROMPT,
-            "user": USER_PROMPT,
-            "prompt_version": PROMPT_VERSION,
+            "system": prompt.system,
+            "user": prompt.user,
+            "prompt_version": prompt.version,
         }
         effective_prompt_snapshot = {
             **prompt_components,
