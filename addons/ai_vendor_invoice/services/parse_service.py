@@ -18,7 +18,7 @@ from ..adapters.aibase import (
 )
 from ..adapters.document_normalizer import DocumentNormalizationError
 from . import observability_service
-from .extraction_profiles import resolve_profile
+from .extraction_profiles import get_profile, resolve_profile
 from .mapping_service import do_mapping
 from .pdf_preprocessor import PDFPreprocessorError, prepare_provider_input
 
@@ -179,7 +179,12 @@ def start_parse(env, task_id, provider_config_id, synchronous=False):
     if active_attempt:
         raise ValueError("This task already has an AI parse attempt in progress.")
     provider_config = env["wd.ai.provider.config"].browse(provider_config_id)
-    profile = resolve_profile(task, provider_config)
+    previous_attempt = task.current_parse_attempt_id
+    profile = (
+        get_profile(previous_attempt.profile_key)
+        if previous_attempt and previous_attempt.profile_key
+        else resolve_profile(task, provider_config)
+    )
     submitted_at = fields.Datetime.now()
     attempt = env["vendor.invoice.import.parse.attempt"].create({
         "task_id": task.id,
