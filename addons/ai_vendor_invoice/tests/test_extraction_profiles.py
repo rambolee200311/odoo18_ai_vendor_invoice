@@ -50,12 +50,12 @@ class TestExtractionProfiles(TestCase):
                 _provider(),
             )
 
-    def test_mapped_profile_requires_compatible_input_mode(self):
-        with self.assertRaises(ValidationError):
-            resolve_profile(
-                _task("United Parcel Service Nederland B.V."),
-                _provider("markdown"),
-            )
+    def test_mapped_profile_is_independent_of_input_mode(self):
+        profile = resolve_profile(
+            _task("United Parcel Service Nederland B.V."),
+            _provider("markdown"),
+        )
+        self.assertEqual(profile.key, "ups_transport")
 
     def test_generic_prompt_is_unchanged_without_extension(self):
         base = prompt_for_mode("native_pdf")

@@ -126,7 +126,7 @@ configuration model.
 | Profile key | Stable machine identity, independent of display name |
 | Display name | Human-readable name |
 | Version | Immutable semantic version of the Profile rules |
-| Supported Input Modes | Explicit list; no implicit mode switching |
+| Input Mode relationship | No ownership; the Profile Extension composes with the selected Input-Mode Prompt |
 | Document family | Semantic classification, not a runtime discovery mechanism |
 | Extension reference | Reference to the registered Prompt/semantic extension |
 | Evidence | UAT, Spike, sample set, and known limitations |

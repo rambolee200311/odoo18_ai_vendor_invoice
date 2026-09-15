@@ -16,7 +16,6 @@ class ExtractionProfile:
     version: str
     extension_version: str
     extension: str
-    supported_input_modes: frozenset
     supplier_names: frozenset = frozenset()
 
 
@@ -25,7 +24,6 @@ GENERIC_PROFILE = ExtractionProfile(
     version="generic-v1",
     extension_version="generic-v1",
     extension="",
-    supported_input_modes=frozenset({"native_pdf", "markdown", "rendered_images"}),
 )
 
 UPS_PROFILE = ExtractionProfile(
@@ -40,7 +38,6 @@ UPS_PROFILE = ExtractionProfile(
         "contract can represent them; do not silently replace the breakdown "
         "with only the net amount."
     ),
-    supported_input_modes=frozenset({"native_pdf"}),
     supplier_names=frozenset({
         "UNITED PARCEL SERVICE NEDERLAND B.V.",
         "UNITED PARCEL SERVICE",
@@ -62,7 +59,7 @@ def get_profile(profile_key):
         ) from error
 
 
-def resolve_profile(task, provider_config):
+def resolve_profile(task, provider_config=None):
     """Resolve only from trusted pre-extraction inputs.
 
     A supplier extracted by the current Attempt is intentionally never read
@@ -83,9 +80,4 @@ def resolve_profile(task, provider_config):
             if normalized_supplier in candidate.supplier_names:
                 profile = candidate
                 break
-    if provider_config.document_input_mode not in profile.supported_input_modes:
-        raise ValidationError(
-            "The selected extraction Profile is incompatible with the "
-            "configured document input mode."
-        )
     return profile

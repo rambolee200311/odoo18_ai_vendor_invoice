@@ -13,8 +13,9 @@ from .aibase import (
     USER_PROMPT,
 )
 from .base import AIProviderPermanentError, AIProviderTemporaryError
-from .prompts import MARKDOWN_PROMPT, MARKDOWN_PROMPT_VERSION
+from .prompts import MARKDOWN_PROMPT, MARKDOWN_PROMPT_VERSION, prompt_for_mode
 from ..services import observability_service
+from ..services.extraction_profiles import get_profile
 
 
 MARKDOWN_SYSTEM_PROMPT = MARKDOWN_PROMPT
@@ -52,11 +53,21 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
 
     def parse_markdown(self, provider_input, provider_config, max_attempt_retry=0, attempt_obj=None):
         self.validate_input_mode("markdown")
+        profile = (
+            get_profile(attempt_obj.profile_key)
+            if attempt_obj else get_profile("generic")
+        )
+        prompt = prompt_for_mode(
+            "markdown",
+            profile.extension,
+            profile.extension_version,
+        )
+        system_prompt = prompt.system
         client = self._build_client(provider_config)
         prompt_snapshot = {
-            "prompt_version": MARKDOWN_PROMPT_VERSION,
+            "prompt_version": prompt.version,
             "instructions_checksum": hashlib.sha256(
-                MARKDOWN_SYSTEM_PROMPT.encode()
+                system_prompt.encode()
             ).hexdigest(),
             "input_mode": "markdown",
         }
@@ -72,7 +83,7 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
                 response = client.chat.completions.create(
                     model=provider_config.model_name,
                     messages=[
-                        {"role": "system", "content": MARKDOWN_SYSTEM_PROMPT},
+                        {"role": "system", "content": system_prompt},
                         {"role": "user", "content": provider_input["markdown_text"]},
                     ],
                     response_format={"type": "json_object"},

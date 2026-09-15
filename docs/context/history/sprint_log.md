@@ -904,3 +904,11 @@ UPS-specific storage.
 - Full `ai_vendor_invoice` Odoo suite: BLOCKED by 2 existing failures and 9
   existing errors in the shared `odoo18e_tms` validation database; no CC-16
   failure was attributed from that contaminated run.
+
+### CC-16 post-implementation correction
+
+The Profile Resolver was corrected to keep Profile selection orthogonal to
+Input Mode. A supplier-mapped Profile now composes with the selected Native
+PDF or Markdown Prompt instead of restricting the Profile to one transport
+mode. The targeted resolver regression test covers UPS selection with Markdown
+as well as Native PDF.
