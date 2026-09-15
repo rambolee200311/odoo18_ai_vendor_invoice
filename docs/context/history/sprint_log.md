@@ -925,3 +925,20 @@ The final focused regression command was attempted against the shared
 session held a DDL lock (`LockNotAvailable`). Earlier targeted Profile,
 Native Projection, Task, and Batch tests had passed; no test failure was
 attributed to the Release 1.1 changes.
+## 2026-09-15 - CC-17_FREEZE_AND_IMPLEMENTATION_AUTHORIZATION
+
+CC-17 was frozen and implementation was authorized for Release 1.2:
+
+- Confirmed Statement is the sole Vendor Bill business authority;
+- Vendor Bill creation is explicit, Draft-only, auditable, and idempotent;
+- tax resolution is performed independently for every Statement Line;
+- ordinary percentage Purchase Taxes may be reused or controlled-created;
+- special tax treatment is represented by the confirmed `tax_treatment` fact;
+- transport Charge/Discount/Net Charge details are not reinterpreted by the
+  Bill Creator;
+- accounting lines use `quantity=1.0` and the confirmed Statement Line amount;
+- cancelling the active Bill releases the Statement link while preserving the
+  confirmed Statement and allowing controlled recreation.
+
+The implementation is restricted to the frozen contract in
+`docs/intents/CC-17-STATEMENT-TO-DRAFT-VENDOR-BILL.md`.

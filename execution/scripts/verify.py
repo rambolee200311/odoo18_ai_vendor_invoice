@@ -114,10 +114,10 @@ def bill_creator_guards():
     path = os.path.join(module_path("ai_vendor_invoice"), "services", "bill_creator.py")
     text = open(path, encoding="utf-8").read()
     required = (
-        'task.state != "awaiting_review"',
-        "not task.human_reviewed",
-        "not review_result",
-        "task.vendor_bill_id",
+        'statement.state != "confirmed"',
+        "statement.vendor_bill_id",
+        "statement._aggregate_write",
+        "vendor_invoice_statement_id",
     )
     return all(item in text for item in required)
 

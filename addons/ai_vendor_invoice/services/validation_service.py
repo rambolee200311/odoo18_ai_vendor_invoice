@@ -65,11 +65,26 @@ def pre_check_integrity(review_result):
         if not isinstance(line, dict):
             raise ValidationError(_("Invoice line %s is invalid.") % index)
         taxes = line.get("tax_ids")
-        if not isinstance(taxes, list) or not taxes or any(
+        if not isinstance(taxes, list) or any(
             not isinstance(tax_id, int) or tax_id <= 0 for tax_id in taxes
         ):
             raise ValidationError(
-                _("Invoice line %s must have a valid tax configuration.") % index
+                _("Invoice line %s has an invalid tax configuration.") % index
+            )
+        treatment = line.get("tax_treatment")
+        if treatment not in {
+            None,
+            "percentage",
+            "zero_rated",
+            "exempt",
+            "non_taxable",
+            "outside_scope",
+            "other",
+        }:
+            raise ValidationError(_("Invoice line %s has an invalid tax treatment.") % index)
+        if not taxes and treatment == "percentage" and _amount(line.get("tax_rate")) is None:
+            raise ValidationError(
+                _("Invoice line %s requires a percentage tax rate.") % index
             )
 
 

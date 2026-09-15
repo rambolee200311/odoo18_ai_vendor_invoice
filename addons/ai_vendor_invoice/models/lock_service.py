@@ -1,6 +1,8 @@
 # © 2024 Wukong Digital. License LGPL-3.
 # Dedicated lock utilities wrapping SELECT FOR UPDATE.
-# Design constraint: only named, parameterised row-lock functions to
+# Design constraint: only named, parameterised model-specific row-lock
+# functions to eliminate dynamic SQL identifier injection risk (see TDD §13
+# risk table).
 # eliminate dynamic SQL identifier injection risk (see TDD §13 risk table).
 from odoo import models
 

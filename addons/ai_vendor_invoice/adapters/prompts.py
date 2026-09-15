@@ -76,12 +76,15 @@ reconciliation clue, preserve it as reconciliation_clues with the original
 label and value. Do not infer a clue type or match transport orders. Include
 the invoice number, date, currency, totals, supplier, and tax values when
 present. For every business line, populate tax_rate and tax_amount when the
-document explicitly provides line-applicable tax facts; otherwise use null."""
+document explicitly provides line-applicable tax facts; otherwise use null.
+Preserve an explicitly printed tax treatment as one of percentage, zero_rated,
+exempt, non_taxable, outside_scope, or other; do not infer a special treatment
+from a numeric zero rate alone."""
 
 MARKDOWN_PROMPT = """You are a transport-supplier-invoice fact extractor. The user content is Markdown converted from the original PDF. Extract only facts visibly printed in that document. Return JSON only, with no explanation or code fences.
 
 Use exactly this JSON shape:
-{"header":{"invoice_number":{"value":string|null,"confidence":number},"invoice_date":{"value":"YYYY-MM-DD"|null,"confidence":number},"supplier_raw_text":{"value":string|null,"confidence":number},"currency_raw_text":{"value":string|null,"confidence":number},"total_amount":{"value":string|null,"confidence":number},"total_tax":{"value":string|null,"confidence":number},"subtotal":{"value":string|null,"confidence":number}},"lines":[{"description":{"value":string|null,"confidence":number},"amount":{"value":string|null,"confidence":number},"tax_raw_text":{"value":string|null,"confidence":number},"tax_rate":{"value":number|string|null,"confidence":number},"tax_amount":{"value":string|null,"confidence":number},"reconciliation_clues":[{"label":string,"value":string}],"charge_details":string|null}],"is_multi_invoice":boolean}.
+{"header":{"invoice_number":{"value":string|null,"confidence":number},"invoice_date":{"value":"YYYY-MM-DD"|null,"confidence":number},"supplier_raw_text":{"value":string|null,"confidence":number},"currency_raw_text":{"value":string|null,"confidence":number},"total_amount":{"value":string|null,"confidence":number},"total_tax":{"value":string|null,"confidence":number},"subtotal":{"value":string|null,"confidence":number}},"lines":[{"description":{"value":string|null,"confidence":number},"amount":{"value":string|null,"confidence":number},"tax_raw_text":{"value":string|null,"confidence":number},"tax_rate":{"value":number|string|null,"confidence":number},"tax_amount":{"value":string|null,"confidence":number},"tax_treatment":{"value":"percentage"|"zero_rated"|"exempt"|"non_taxable"|"outside_scope"|"other"|null,"confidence":number},"reconciliation_clues":[{"label":string,"value":string}],"charge_details":string|null}],"is_multi_invoice":boolean}.
 
 Production line semantics are strict:
 1. One independent transport/business record is exactly one top-level line. A record is identified by its transport/shipment reference, loading and unloading facts, cargo, or equivalent business identity.
