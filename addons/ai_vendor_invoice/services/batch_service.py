@@ -121,7 +121,10 @@ def start_batch(env, company_id, provider_config_id, files, supplier_id=None):
                     "ai_launch_synchronous_parse": False,
                 })
                 launch_statement_ai(
-                    env.with_context(extraction_profile_key=profile_key),
+                    env(context=dict(
+                        env.context,
+                        extraction_profile_key=profile_key,
+                    )),
                     statement.id,
                 )
             outcome.update(
