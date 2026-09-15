@@ -16,6 +16,7 @@ from odoo import _, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from psycopg2 import IntegrityError
 
+from .extraction_profiles import profile_key_for_supplier
 from .statement_launch_service import launch_statement_ai
 
 
@@ -34,7 +35,7 @@ def _decode_and_validate_pdf(upload):
     return raw, None
 
 
-def start_batch(env, company_id, provider_config_id, files):
+def start_batch(env, company_id, provider_config_id, files, supplier_id=None):
     """Run the CC-14 multi-PDF preflight and initial async launch.
 
     ``files`` is an iterable of ``(pdf_upload_base64, filename)`` tuples, one
@@ -57,10 +58,15 @@ def start_batch(env, company_id, provider_config_id, files):
     provider = env["wd.ai.provider.config"].browse(provider_config_id)
     if not provider.exists() or not provider.active:
         raise ValidationError(_("Select an active AI provider before starting a Batch."))
+    supplier = env["res.partner"].browse(supplier_id) if supplier_id else env["res.partner"]
+    if supplier_id and not supplier.exists():
+        raise ValidationError(_("The selected supplier does not exist."))
+    profile_key = profile_key_for_supplier(supplier.name) if supplier else "generic"
 
     batch = env["vendor.invoice.batch"].create({
         "company_id": company_id,
         "provider_config_id": provider_config_id,
+        "supplier_id": supplier.id if supplier else False,
         "started_at": fields.Datetime.now(),
     })
 
@@ -110,10 +116,14 @@ def start_batch(env, company_id, provider_config_id, files):
                     "source_pdf_upload": upload,
                     "source_pdf_filename": filename,
                     "batch_id": batch.id,
+                    "supplier_id": supplier.id if supplier else False,
                     "ai_launch_provider_config_id": provider_config_id,
                     "ai_launch_synchronous_parse": False,
                 })
-                launch_statement_ai(env, statement.id)
+                launch_statement_ai(
+                    env.with_context(extraction_profile_key=profile_key),
+                    statement.id,
+                )
             outcome.update(
                 status="accepted",
                 statement_id=statement.id,

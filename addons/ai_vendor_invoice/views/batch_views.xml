@@ -40,6 +40,7 @@
                         <group>
                             <field name="company_id" readonly="1"/>
                             <field name="provider_config_id" readonly="1"/>
+                            <field name="supplier_id" readonly="1"/>
                             <field name="started_at" readonly="1"/>
                         </group>
                         <group string="Current Progress">
@@ -106,6 +107,7 @@
             <form string="Start Batch Import">
                 <group>
                     <field name="company_id" invisible="1"/>
+                    <field name="supplier_id"/>
                     <field name="provider_config_id"/>
                 </group>
                 <field name="attachment_ids" widget="many2many_binary"

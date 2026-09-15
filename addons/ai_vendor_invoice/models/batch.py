@@ -48,6 +48,12 @@ class VendorInvoiceBatch(models.Model):
         domain="[('active', '=', True)]",
         help="Provider copied onto every Statement this Batch creates.",
     )
+    supplier_id = fields.Many2one(
+        "res.partner",
+        string="Supplier",
+        readonly=True,
+        help="Trusted supplier selected when this Batch was started.",
+    )
     started_at = fields.Datetime(
         string="Started At",
         readonly=True,

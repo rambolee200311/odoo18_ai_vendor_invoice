@@ -26,6 +26,14 @@ class VendorInvoiceBatchImportWizard(models.TransientModel):
         required=True,
         domain="[('active', '=', True)]",
     )
+    supplier_id = fields.Many2one(
+        "res.partner",
+        string="Supplier",
+        help=(
+            "Optional trusted supplier for every PDF in this Batch. "
+            "Selecting UPS explicitly enables its Extraction Profile."
+        ),
+    )
     attachment_ids = fields.Many2many(
         "ir.attachment",
         "vendor_invoice_batch_wizard_attachment_rel",
@@ -59,6 +67,7 @@ class VendorInvoiceBatchImportWizard(models.TransientModel):
             self.env,
             company_id=self.company_id.id,
             provider_config_id=self.provider_config_id.id,
+            supplier_id=self.supplier_id.id,
             files=files,
         )
         return {

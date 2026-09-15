@@ -68,6 +68,14 @@ def get_profile(profile_key):
         ) from error
 
 
+def profile_key_for_supplier(supplier_name):
+    normalized_supplier = _normalize_supplier(supplier_name)
+    for profile in PROFILE_REGISTRY.values():
+        if normalized_supplier in profile.supplier_names:
+            return profile.key
+    return GENERIC_PROFILE.key
+
+
 def resolve_profile(task, provider_config=None):
     """Resolve only from trusted pre-extraction inputs.
 
