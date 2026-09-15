@@ -137,7 +137,7 @@ def _create_bill_for_statement(env, statement, task=None):
             _("A Statement must be confirmed before creating a bill.")
         )
     if statement.vendor_bill_id:
-        raise ValidationError(_("A bill is already linked to this Statement."))
+        return statement.vendor_bill_id
     if not statement.line_ids or not all(statement.line_ids.mapped("checked")):
         raise ValidationError(
             _("Every current Statement Line must be checked before creating a bill.")
