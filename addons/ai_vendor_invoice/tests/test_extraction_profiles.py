@@ -83,3 +83,7 @@ class TestExtractionProfiles(TestCase):
             profile.extension,
         )
         self.assertIn("'21% BTW' as the VAT rate", profile.extension)
+        self.assertIn(
+            "populate that line's numeric tax_rate",
+            profile.extension,
+        )

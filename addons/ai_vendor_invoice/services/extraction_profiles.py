@@ -28,8 +28,8 @@ GENERIC_PROFILE = ExtractionProfile(
 
 UPS_PROFILE = ExtractionProfile(
     key="ups_transport",
-    version="ups-transport-v3",
-    extension_version="ups-transport-extension-v3",
+    version="ups-transport-v4",
+    extension_version="ups-transport-extension-v4",
     extension=(
         "Preserve the explicit Returned Date as Returned Date. Do not infer "
         "Loading Date or Unloading Date when the document does not print that "
@@ -39,7 +39,10 @@ UPS_PROFILE = ExtractionProfile(
         "with only the net amount. In a UPS invoice, 'BTW' means Dutch "
         "value-added tax (Belasting over de toegevoegde waarde, VAT); "
         "preserve an explicitly printed percentage such as '21% BTW' as "
-        "the VAT rate, not as a charge or a discount."
+        "the VAT rate, not as a charge or a discount. When that tax clearly "
+        "applies to one extracted business line, populate that line's "
+        "numeric tax_rate (and printed tax_amount when available); do not "
+        "leave the line tax rate at zero when the document prints the rate."
     ),
     supplier_names=frozenset({
         "UNITED PARCEL SERVICE NEDERLAND B.V.",
