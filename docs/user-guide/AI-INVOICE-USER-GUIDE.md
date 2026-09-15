@@ -1,12 +1,13 @@
 # AI Invoice 用户操作手册
 
 **版本**：User Guide v1.1
-**更新日期**：2026-09-11
+**更新日期**：2026-09-15
 
 ## 修订记录
 
 - v1.1：改为 Statement-first 流程，新增 Statement 内 AI / Task 页面；
-  Run AI 成功后自动将结果填充到 Statement。
+  Run AI 成功后自动将结果填充到 Statement；新增批量导入的批次级 Supplier
+  选择和 Profile 说明。
 - v1.0：原始 AI Invoice 操作说明。
 
 ## 1. 进入 AI Invoice
@@ -97,7 +98,30 @@ AI 只是辅助录入。原始 PDF 是最终核对依据，用户必须人工检
 Confirmed Statement 不能取消。只有 Draft Statement 可以点击 **Cancel**；
 取消后不再进入确认和建单流程。
 
-## 6. 常见状态
+## 6. 批量导入供应商发票
+
+需要一次处理多张同一供应商发票时：
+
+1. 打开 **Start Batch Import**；
+2. 选择 **Supplier**；
+3. 选择 **AI Provider**；
+4. 上传一张或多张 PDF；
+5. 点击 **Start Batch**。
+
+例如批量处理 UPS 发票时选择：
+
+```text
+Supplier: United Parcel Service Nederland B.V.
+```
+
+系统会把该供应商作为批次级可信输入，并为批次内每个 Statement/Task
+使用对应的 Extraction Profile。UPS 使用 `ups_transport`；不选择 Supplier
+时使用 Generic Profile。
+
+一个 Batch 应只包含同一供应商的发票。UPS、DHL 等不同供应商请拆分为不同
+Batch，不能依赖当前 AI Attempt 自己识别的供应商来切换同一次解析的 Profile。
+
+## 7. 常见状态
 
 ### Statement 状态
 
@@ -114,7 +138,11 @@ Confirmed Statement 不能取消。只有 Draft Statement 可以点击 **Cancel*
 - **Error**：解析失败，需要查看错误摘要；
 - **Cancelled**：AI Task 已取消。
 
-## 7. 文件和技术信息
+Draft Statement 的 Task 如果处于 `Error` 或已经 `Parsed`，仍可从
+**AI / Task** 页面重新点击 **Run AI**。重跑会保留同一个 Task 并创建新的
+ParseAttempt；已确认、已建单或已取消的 Statement 不应重新运行 AI。
+
+## 8. 文件和技术信息
 
 Statement 的 AI / Task 页面显示：
 
@@ -129,7 +157,7 @@ Statement 的 AI / Task 页面显示：
 **Technical Details** 是可选的高级诊断入口。普通用户不需要进入独立
 Import Task 页面完成正常发票流程。
 
-## 8. 问题处理
+## 9. 问题处理
 
 - 如果 Run AI 按钮不可用，请先保存 Statement、上传 PDF 并选择 Provider；
 - 如果状态为 Error，先查看页面上的错误摘要；

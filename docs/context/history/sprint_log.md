@@ -912,3 +912,16 @@ Input Mode. A supplier-mapped Profile now composes with the selected Native
 PDF or Markdown Prompt instead of restricting the Profile to one transport
 mode. The targeted resolver regression test covers UPS selection with Markdown
 as well as Native PDF.
+
+### Release 1.1 closure
+
+Release 1.1 as-built documentation records the implemented Statement-first,
+Extraction Profile, UPS VAT, and Batch Supplier flows. DHL Statements 1809 and
+1810 passed Generic Compatibility UAT; UPS Statements 1807 and 1811 matched on
+business records, amounts, tax, and charge semantics.
+
+The final focused regression command was attempted against the shared
+`odoo18e_tms` database but could not initialize because an existing database
+session held a DDL lock (`LockNotAvailable`). Earlier targeted Profile,
+Native Projection, Task, and Batch tests had passed; no test failure was
+attributed to the Release 1.1 changes.
