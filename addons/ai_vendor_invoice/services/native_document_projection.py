@@ -267,6 +267,10 @@ def document_to_canonical(document):
                 "value": normalize_amount(source_line.get("tax_amount")),
                 "confidence": 0.0,
             },
+            "tax_treatment": {
+                "value": source_line.get("tax_treatment"),
+                "confidence": 0.0,
+            },
             "reconciliation_clue": None,
             "charge_details": _charge_details(source_line),
             "reconciliation_clues": clues,

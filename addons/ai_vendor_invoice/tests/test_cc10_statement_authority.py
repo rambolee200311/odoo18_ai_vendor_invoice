@@ -287,3 +287,18 @@ class TestVendorBillAuthorityConvergence(CC10StatementAuthorityCase):
         bill.button_cancel()
         self.assertFalse(statement.vendor_bill_id)
         self.assertFalse(task.vendor_bill_id)
+
+    def test_confirmed_statement_recreates_bill_after_cancellation(self):
+        task = self._make_task(state="parsed")
+        statement = self._make_confirmable_statement(task, "CC10-RECREATE-1")
+        statement.action_confirm_from_statement()
+        first_bill = statement.action_create_vendor_bill_from_statement()
+
+        first_bill.button_cancel()
+        self.assertEqual(statement.state, "confirmed")
+        self.assertFalse(statement.vendor_bill_id)
+
+        second_bill = statement.action_create_vendor_bill_from_statement()
+        self.assertNotEqual(first_bill, second_bill)
+        self.assertEqual(statement.vendor_bill_id, second_bill)
+        self.assertEqual(second_bill.state, "draft")

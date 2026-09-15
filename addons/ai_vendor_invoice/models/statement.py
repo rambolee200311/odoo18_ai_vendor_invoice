@@ -492,6 +492,17 @@ class VendorInvoiceStatementLine(models.Model):
     tax_raw_text = fields.Char(string="Tax")
     tax_rate = fields.Float(string="Tax Rate")
     tax_amount = fields.Monetary(string="Tax Amount", currency_field="currency_id")
+    tax_treatment = fields.Selection(
+        selection=[
+            ("percentage", "Percentage"),
+            ("zero_rated", "Zero-rated"),
+            ("exempt", "Exempt"),
+            ("non_taxable", "Non-taxable"),
+            ("outside_scope", "Outside Scope"),
+            ("other", "Other"),
+        ],
+        string="Tax Treatment",
+    )
     total_amount = fields.Monetary(
         string="Total Amount",
         currency_field="currency_id",
@@ -539,6 +550,7 @@ class VendorInvoiceStatementLine(models.Model):
             "tax_ids",
             "tax_rate",
             "tax_amount",
+            "tax_treatment",
             "total_amount",
             "tax_raw_text",
             "reconciliation_clue",

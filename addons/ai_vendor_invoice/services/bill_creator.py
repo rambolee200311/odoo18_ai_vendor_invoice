@@ -17,24 +17,60 @@ def _number(value, default="0"):
         return Decimal(default)
 
 
-def _line_vals(line, fallback_product=None):
-    quantity = _number(line.get("quantity"), "1")
-    if not quantity:
-        quantity = Decimal("1")
-    unit_price = line.get("unit_price")
-    if unit_price is None:
-        subtotal = line.get("subtotal")
-        if subtotal is None:
-            subtotal = line.get("line_total_amount")
-        unit_price = _number(subtotal) / quantity
+def _resolve_line_tax_ids(env, line, company):
+    explicit_tax_ids = line.get("tax_ids") or []
+    if explicit_tax_ids:
+        taxes = env["account.tax"].browse(explicit_tax_ids).exists()
+        if len(taxes) != len(explicit_tax_ids) or any(
+            tax.company_id and tax.company_id != company for tax in taxes
+        ):
+            raise ValidationError(_("Statement line tax configuration is invalid."))
+        return taxes.ids
+
+    treatment = line.get("tax_treatment")
+    if treatment != "percentage":
+        raise ValidationError(
+            _(
+                "A Statement Tax Contract Gap prevents resolving this line's "
+                "special tax treatment."
+            )
+        )
+    if line.get("tax_rate") in (None, False, ""):
+        raise ValidationError(_("A percentage tax rate is required."))
+    rate = _number(line.get("tax_rate"), "0")
+    taxes = env["account.tax"].search([
+        ("company_id", "=", company.id),
+        ("type_tax_use", "=", "purchase"),
+        ("amount_type", "=", "percent"),
+        ("amount", "=", float(rate)),
+        ("active", "=", True),
+    ], limit=1)
+    if not taxes:
+        taxes = env["account.tax"].create({
+            "name": "BTW %s%% Purchase" % rate.normalize(),
+            "amount": float(rate),
+            "amount_type": "percent",
+            "type_tax_use": "purchase",
+            "company_id": company.id,
+        })
+    return taxes.ids
+
+
+def _line_vals(env, line, company, fallback_product=None):
+    quantity = Decimal("1")
+    amount = line.get("subtotal")
+    if amount is None:
+        amount = line.get("line_total_amount")
+    if amount is None:
+        raise ValidationError(_("A confirmed Statement line amount is required."))
 
     vals = {
         "name": line.get("description") or (
             fallback_product.display_name if fallback_product else _("Vendor invoice line")
         ),
         "quantity": float(quantity),
-        "price_unit": float(_number(unit_price)),
-        "tax_ids": [Command.set(line.get("tax_ids") or [])],
+        "price_unit": float(_number(amount)),
+        "tax_ids": [Command.set(_resolve_line_tax_ids(env, line, company))],
         "reconciliation_clues": line.get("reconciliation_clues") or [],
     }
     if line.get("statement_line_id"):
@@ -46,22 +82,23 @@ def _line_vals(line, fallback_product=None):
     return vals
 
 
-def _convert_review_to_move_vals(review_result, default_product):
+def _convert_review_to_move_vals(env, review_result, company, default_product):
     header = review_result["header"]
     lines = review_result.get("lines") or []
     if lines:
-        invoice_lines = [_line_vals(line) for line in lines]
+        invoice_lines = [_line_vals(env, line, company) for line in lines]
     else:
         if not default_product:
             raise ValidationError(
                 _("A default fallback product is required for an invoice without lines.")
             )
-        invoice_lines = [_line_vals({
+        invoice_lines = [_line_vals(env, {
             "description": default_product.display_name,
-            "quantity": "1",
-            "unit_price": header["total_amount"],
+            "subtotal": header["total_amount"],
+            "tax_treatment": "percentage",
+            "tax_rate": "0",
             "tax_ids": [],
-        }, fallback_product=default_product)]
+        }, company, fallback_product=default_product)]
 
     return {
         "move_type": "in_invoice",
@@ -94,6 +131,7 @@ def _create_bill_for_statement(env, statement, task=None):
     sync; it is never a business gate for bill creation.
     """
     statement.ensure_one()
+    statement = env["wd.lock.service"].lock_statement(statement.id)
     if statement.state != "confirmed":
         raise ValidationError(
             _("A Statement must be confirmed before creating a bill.")
@@ -118,7 +156,7 @@ def _create_bill_for_statement(env, statement, task=None):
         task.write({"review_warnings": warnings})
 
     move_vals = _convert_review_to_move_vals(
-        review_result, config.default_product_id
+        env, review_result, company, config.default_product_id
     )
     # Keep this explicit even though the environment may have been switched to
     # the Statement's company: asynchronous jobs do not inherit the request
@@ -196,9 +234,8 @@ def create_vendor_bill_for_statement(env, statement_id):
         # to keep the current row-locking behavior; it is not a business
         # precondition (CC-10 2.1.2).
         if task:
-            env["wd.lock.service"].lock_task(task.id)
             task = task.with_company(task.company_id)
-            statement = task.statement_id
+            statement = env["wd.lock.service"].lock_statement(statement.id)
         return _create_bill_for_statement(statement.env, statement, task=task)
 
 

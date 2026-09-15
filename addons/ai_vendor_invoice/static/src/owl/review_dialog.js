@@ -19,6 +19,7 @@ const LINE_FIELDS = [
     ["unit_price", "Unit price"],
     ["subtotal", "Subtotal"],
     ["tax_ids", "Taxes"],
+    ["tax_treatment", "Tax treatment"],
     ["tax_amount", "Tax amount"],
     ["line_total_amount", "Line total"],
 ];

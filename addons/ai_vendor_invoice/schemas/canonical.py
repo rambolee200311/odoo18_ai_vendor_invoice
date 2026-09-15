@@ -189,6 +189,30 @@ CANONICAL_INVOICE_RESULT_SCHEMA = {
                     },
                 },
             },
+            "tax_treatment": {
+                "type": "object",
+                "required": ["value", "confidence"],
+                "additionalProperties": False,
+                "properties": {
+                    "value": {
+                        "type": ["string", "null"],
+                        "enum": [
+                            "percentage",
+                            "zero_rated",
+                            "exempt",
+                            "non_taxable",
+                            "outside_scope",
+                            "other",
+                            None,
+                        ],
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                    },
+                },
+            },
         },
         "is_multi_invoice": {"type": "boolean"},
     },

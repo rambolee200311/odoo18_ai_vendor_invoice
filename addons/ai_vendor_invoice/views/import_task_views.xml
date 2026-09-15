@@ -102,6 +102,7 @@
                                     <field name="quantity"/>
                                     <field name="price_unit"/>
                                     <field name="tax_ids" widget="many2many_tags"/>
+                                    <field name="tax_treatment"/>
                                     <field name="tax_rate"/>
                                     <field name="tax_amount" sum="Tax Amount"/>
                                     <field name="amount" sum="Untaxed Amount"/>
@@ -133,6 +134,8 @@
                                         <field name="total_amount"
                                                readonly="parent.state != 'draft'"/>
                                         <field name="tax_ids" widget="many2many_tags"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="tax_treatment"
                                                readonly="parent.state != 'draft'"/>
                                         <field name="tax_raw_text"
                                                readonly="parent.state != 'draft'"/>

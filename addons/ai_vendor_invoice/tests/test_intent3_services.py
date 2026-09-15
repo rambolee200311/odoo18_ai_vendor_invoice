@@ -31,11 +31,19 @@ class TestValidationService(TransactionCase):
         with self.assertRaises(ValidationError):
             validation_service.pre_check_integrity({"header": {}})
 
-    def test_pre_check_requires_tax_on_explicit_lines(self):
+    def test_pre_check_allows_unresolved_tax_for_bill_creator(self):
         review = _review([{
             "description": "Consulting",
             "quantity": "1",
             "unit_price": "10",
+        }])
+        validation_service.pre_check_integrity(review)
+
+    def test_pre_check_rejects_invalid_tax_treatment(self):
+        review = _review([{
+            "description": "Consulting",
+            "tax_ids": [],
+            "tax_treatment": "unknown",
         }])
         with self.assertRaises(ValidationError):
             validation_service.pre_check_integrity(review)
@@ -111,7 +119,7 @@ class TestTimeoutService(TransactionCase):
 
 class TestBillCreatorGuards(TransactionCase):
 
-    def _bill_task(self, source_name):
+    def _bill_task(self, source_name, confirm=True):
         product = self.env["product.product"].search([], limit=1)
         self.env["wd.system.config"].get_config().write({
             "default_product_id": product.id,
@@ -159,7 +167,8 @@ class TestBillCreatorGuards(TransactionCase):
             },
         )
         statement.line_ids.write({"checked": True})
-        task.action_confirm_statement()
+        if confirm:
+            task.action_confirm_statement()
         return task, source
 
     def test_creates_draft_and_copies_source_attachment(self):
@@ -177,12 +186,16 @@ class TestBillCreatorGuards(TransactionCase):
         self.assertEqual(task.statement_id.state, "confirmed")
         self.assertTrue(copied)
         self.assertEqual(source.res_id, task.id)
-        with self.assertRaises(ValidationError):
-            bill_creator.create_vendor_bill(self.env, task.id)
+        repeated = bill_creator.create_vendor_bill(self.env, task.id)
+        self.assertEqual(repeated, bill)
         self.assertEqual(
             self.env["account.move"].search_count([("ref", "=", "INV-001")]),
             1,
         )
+
+        line = bill.invoice_line_ids
+        self.assertEqual(line.quantity, 1.0)
+        self.assertEqual(line.price_unit, 10.0)
 
     def test_bill_and_task_roll_back_when_attachment_copy_fails(self):
         task, source = self._bill_task("rollback.pdf")
@@ -212,6 +225,20 @@ class TestBillCreatorGuards(TransactionCase):
         })
         with self.assertRaises(ValidationError):
             bill_creator.create_vendor_bill(self.env, task.id)
+
+    def test_percentage_tax_is_created_per_line_when_missing(self):
+        task, _source = self._bill_task("auto-tax.pdf", confirm=False)
+        line = task.statement_id.line_ids
+        line.write({
+            "tax_ids": [(6, 0, [])],
+            "tax_treatment": "percentage",
+            "tax_rate": 21.0,
+        })
+        task.statement_id.action_confirm_from_statement()
+        bill = bill_creator.create_vendor_bill(self.env, task.id)
+        self.assertEqual(bill.invoice_line_ids.quantity, 1.0)
+        self.assertEqual(bill.invoice_line_ids.price_unit, 10.0)
+        self.assertEqual(bill.invoice_line_ids.tax_ids.amount, 21.0)
 
     def test_unified_action_rejects_empty_review(self):
         attachment = self.env["ir.attachment"].create({

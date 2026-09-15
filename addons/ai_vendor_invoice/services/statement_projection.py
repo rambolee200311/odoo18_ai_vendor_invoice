@@ -39,6 +39,7 @@ def statement_to_human_review_result(statement):
                 "tax_ids": line.tax_ids.ids,
                 "tax_amount": _text(line.tax_amount),
                 "tax_rate": _text(line.tax_rate),
+                "tax_treatment": line.tax_treatment,
                 "tax_raw_text": line.tax_raw_text,
                 "reconciliation_clue": line.reconciliation_clue,
                 "charge_details": line.charge_details,

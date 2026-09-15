@@ -40,6 +40,21 @@ HUMAN_REVIEW_RESULT_SCHEMA = {
                         "items": {"type": "integer"},
                     },
                     "tax_amount": {"type": ["string", "null"]},
+                    "tax_treatment": {
+                        "type": [
+                            "string",
+                            "null",
+                        ],
+                        "enum": [
+                            "percentage",
+                            "zero_rated",
+                            "exempt",
+                            "non_taxable",
+                            "outside_scope",
+                            "other",
+                            None,
+                        ],
+                    },
                     "line_total_amount": {"type": ["string", "null"]},
                     "reconciliation_clues": {
                         "type": "array",
