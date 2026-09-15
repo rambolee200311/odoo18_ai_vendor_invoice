@@ -89,6 +89,7 @@ INVOICE_EXTRACTION_RESULT_SCHEMA = {
                     "unloading_date", "loading_address", "unloading_address",
                     "quantity", "unit_description", "gross_weight",
                     "volume_weight", "volume", "charge_components", "amount",
+                    "tax_rate", "tax_amount",
                 ],
                 "properties": {
                     "reference": {"type": ["string", "null"]},
@@ -115,6 +116,8 @@ INVOICE_EXTRACTION_RESULT_SCHEMA = {
                         },
                     },
                     "amount": {"type": ["number", "null"]},
+                    "tax_rate": {"type": ["number", "null"]},
+                    "tax_amount": {"type": ["number", "null"]},
                 },
             },
         },

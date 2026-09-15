@@ -186,6 +186,8 @@ def _normalize_native_document_aliases(document):
     for line in invoice["lines"]:
         if not isinstance(line, dict):
             continue
+        line.setdefault("tax_rate", None)
+        line.setdefault("tax_amount", None)
         if "amount" not in line and "amount_excl_tax" in line:
             line["amount"] = line["amount_excl_tax"]
         if "amount" not in line and "line_total" in line:

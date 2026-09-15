@@ -36,6 +36,8 @@ class TestNativeDocumentAliases(TestCase):
                 "volume": None,
                 "charge_components": [{"description": "Fuel", "amount": 10.5}],
                 "amount": 100.0,
+                "tax_rate": 21.0,
+                "tax_amount": 21.0,
             }],
             "subtotal": 100.0,
             "total_tax": 21.0,
@@ -43,6 +45,8 @@ class TestNativeDocumentAliases(TestCase):
         })
         self.assertEqual(len(canonical["lines"]), 1)
         self.assertEqual(canonical["header"]["supplier_raw_text"]["value"], "Bring Cargo B.V.")
+        self.assertEqual(canonical["lines"][0]["tax_rate"]["value"], 21.0)
+        self.assertEqual(canonical["lines"][0]["tax_amount"]["value"], "21.0")
         self.assertEqual(canonical["header"]["total_amount"]["value"], "121.0")
 
     def test_standard_amount_is_preserved(self):

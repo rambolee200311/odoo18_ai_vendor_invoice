@@ -75,7 +75,8 @@ inside that record and do not create extra lines. When a line contains a
 reconciliation clue, preserve it as reconciliation_clues with the original
 label and value. Do not infer a clue type or match transport orders. Include
 the invoice number, date, currency, totals, supplier, and tax values when
-present."""
+present. For every business line, populate tax_rate and tax_amount when the
+document explicitly provides line-applicable tax facts; otherwise use null."""
 
 MARKDOWN_PROMPT = """You are a transport-supplier-invoice fact extractor. The user content is Markdown converted from the original PDF. Extract only facts visibly printed in that document. Return JSON only, with no explanation or code fences.
 
