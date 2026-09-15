@@ -87,3 +87,7 @@ class TestExtractionProfiles(TestCase):
             "populate that line's numeric tax_rate",
             profile.extension,
         )
+        self.assertIn(
+            "apply it to the consolidated transport line total",
+            profile.extension,
+        )
