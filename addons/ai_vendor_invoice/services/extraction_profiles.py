@@ -28,15 +28,17 @@ GENERIC_PROFILE = ExtractionProfile(
 
 UPS_PROFILE = ExtractionProfile(
     key="ups_transport",
-    version="ups-transport-v1",
-    extension_version="ups-transport-extension-v1",
+    version="ups-transport-v2",
+    extension_version="ups-transport-extension-v2",
     extension=(
         "Preserve the explicit Returned Date as Returned Date. Do not infer "
         "Loading Date or Unloading Date when the document does not print that "
         "semantic. For every visible charge component, preserve Charge, "
         "Discount, and Net Charge as distinct facts when the selected output "
         "contract can represent them; do not silently replace the breakdown "
-        "with only the net amount."
+        "with only the net amount. In a UPS invoice, 'BTW' means value-added "
+        "tax (VAT); preserve an explicitly printed percentage such as '21% "
+        "BTW' as the VAT rate, not as a charge or a discount."
     ),
     supplier_names=frozenset({
         "UNITED PARCEL SERVICE NEDERLAND B.V.",

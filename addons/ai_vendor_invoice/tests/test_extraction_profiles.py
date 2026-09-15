@@ -66,3 +66,11 @@ class TestExtractionProfiles(TestCase):
         prompt = prompt_for_mode("native_pdf", "UPS rule", "ups-v1")
         self.assertIn("UPS rule", prompt.instructions)
         self.assertTrue(prompt.version.endswith("+ups-v1"))
+
+    def test_ups_profile_interprets_btw_as_vat_rate(self):
+        profile = resolve_profile(
+            _task("United Parcel Service Nederland B.V."),
+            _provider(),
+        )
+        self.assertIn("'BTW' means value-added tax (VAT)", profile.extension)
+        self.assertIn("'21% BTW' as the VAT rate", profile.extension)
