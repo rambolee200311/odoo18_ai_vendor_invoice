@@ -72,5 +72,9 @@ class TestExtractionProfiles(TestCase):
             _task("United Parcel Service Nederland B.V."),
             _provider(),
         )
-        self.assertIn("'BTW' means value-added tax (VAT)", profile.extension)
+        self.assertIn(
+            "'BTW' means Dutch value-added tax "
+            "(Belasting over de toegevoegde waarde, VAT)",
+            profile.extension,
+        )
         self.assertIn("'21% BTW' as the VAT rate", profile.extension)
