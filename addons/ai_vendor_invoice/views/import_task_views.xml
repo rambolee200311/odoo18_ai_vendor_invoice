@@ -193,7 +193,7 @@
                             <button name="action_start_ai" type="object"
                                     string="Run AI"
                                     class="oe_highlight"
-                                    invisible="not id or not source_pdf_attachment_id or state != 'draft' or (task_id and ai_task_state not in ['to_parse', 'error', 'awaiting_review'])"/>
+                                    invisible="not id or not source_pdf_attachment_id or state != 'draft' or (task_id and ai_task_state not in ['to_parse', 'error', 'awaiting_review', 'parsed'])"/>
                             <button name="action_open_import_task" type="object"
                                     string="Technical Details"
                                     invisible="not task_id"/>
@@ -285,7 +285,7 @@
                 <header>
                     <button name="action_rerun_ai" type="object" string="Run AI"
                             class="oe_highlight"
-                            invisible="state not in ('to_parse', 'error')"/>
+                            invisible="state not in ('to_parse', 'error', 'parsed')"/>
                     <button name="action_cancel_task" type="object" string="Cancel"
                             invisible="state not in ('to_parse', 'parsing', 'error')"/>
                     <button name="action_open_statement" type="object"

@@ -35,7 +35,9 @@ def launch_statement_ai(env, statement_id):
     statement = env["wd.lock.service"].lock_statement(statement_id)
     statement.ensure_one()
     if statement.task_id:
-        if statement.task_id.state not in ("to_parse", "error", "awaiting_review"):
+        if statement.task_id.state not in (
+            "to_parse", "error", "awaiting_review", "parsed"
+        ):
             raise ValidationError(
                 _("AI cannot be started again from the current Task state.")
             )

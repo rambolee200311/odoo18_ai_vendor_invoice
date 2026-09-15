@@ -167,7 +167,7 @@ def start_parse(env, task_id, provider_config_id, synchronous=False):
     # here only so a historical Task can still be re-run; Run AI/Parse
     # execution controls remain Task-owned and this is not a Statement
     # Confirm, Unconfirm, or Create Bill precondition.
-    if task.state not in ("to_parse", "error", "awaiting_review"):
+    if task.state not in ("to_parse", "error", "awaiting_review", "parsed"):
         raise ValueError("Task cannot start an AI parse in its current state.")
     active_attempt = env["vendor.invoice.import.parse.attempt"].search(
         [
