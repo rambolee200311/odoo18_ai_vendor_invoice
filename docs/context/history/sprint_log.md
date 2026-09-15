@@ -875,3 +875,32 @@ invoice number in that case.
   0 fail
 - Odoo runtime tests: NOT RUN; the environment does not have the `odoo`
   Python module installed.
+
+## 2026-09-15 - CC-16 EXTRACTION PROFILE IMPLEMENTATION
+
+Implemented the authorized CC-16 v1 minimum:
+
+- Added a code-managed Generic/UPS Extraction Profile Registry.
+- Resolved Profiles only from explicit trusted assignment or a trusted
+  pre-extraction supplier mapping; the current Attempt's extracted supplier
+  cannot select its own Profile.
+- Composed Profile Extensions on top of the existing Input-Mode Prompt
+  Registry without changing the Generic Prompt baseline.
+- Added controlled errors for invalid or incompatible explicit/supplier-mapped
+  Profiles; no silent Generic fallback in those cases.
+- Snapshotted the actual Profile key, version, extension version, and extension
+  checksum on every ParseAttempt.
+- Added resolver and prompt-composition regression coverage.
+
+The UPS Profile contains only the confirmed v1 semantic requirements. Potential
+Canonical representation gaps remain explicit and are not hidden in
+UPS-specific storage.
+
+### CC-16 Verification
+
+- Python compilation: PASS
+- `git diff --check`: PASS
+- CC-16 and native projection Odoo tests: PASS
+- Full `ai_vendor_invoice` Odoo suite: BLOCKED by 2 existing failures and 9
+  existing errors in the shared `odoo18e_tms` validation database; no CC-16
+  failure was attributed from that contaminated run.

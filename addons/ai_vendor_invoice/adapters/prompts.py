@@ -6,6 +6,7 @@ the prompt family selected by the document transport mode.
 """
 
 from dataclasses import dataclass
+from dataclasses import replace
 
 
 EXTRACTION_CONTRACT_VERSION = "transport-invoice-page-v1"
@@ -125,9 +126,23 @@ PROMPTS_BY_INPUT_MODE = {
 }
 
 
-def prompt_for_mode(document_input_mode):
-    """Return the prompt family for a validated document input mode."""
+def prompt_for_mode(
+    document_input_mode,
+    profile_extension="",
+    profile_extension_version="",
+):
+    """Return an Input-Mode prompt with an optional Profile extension."""
     try:
-        return PROMPTS_BY_INPUT_MODE[document_input_mode]
+        prompt = PROMPTS_BY_INPUT_MODE[document_input_mode]
     except KeyError as error:
         raise ValueError("Unsupported document input mode.") from error
+    if not profile_extension:
+        return prompt
+    suffix = (
+        "\n\nExtraction Profile Extension "
+        "(%s):\n%s" % (profile_extension_version, profile_extension)
+    )
+    field = "instructions" if prompt.instructions else (
+        "system" if prompt.system else "user"
+    )
+    return replace(prompt, **{field: getattr(prompt, field) + suffix})

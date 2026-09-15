@@ -9,7 +9,8 @@ from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 
 from .aibase import BaseVisionAIProviderAdapter
 from .base import AIProviderPermanentError, AIProviderTemporaryError
-from .prompts import NATIVE_PDF_PROMPT, NATIVE_PDF_PROMPT_VERSION
+from .prompts import prompt_for_mode
+from ..services.extraction_profiles import get_profile
 from ..services.native_document_projection import document_to_canonical
 from ..services import observability_service
 from ..schemas.document_extraction import INVOICE_EXTRACTION_RESULT_SCHEMA
@@ -36,11 +37,21 @@ class OpenAIAIProviderAdapter(BaseVisionAIProviderAdapter):
 
     def parse_pdf(self, provider_input, provider_config, max_attempt_retry=0, attempt_obj=None):
         if provider_input.get("mode", "rendered_images") == "native_pdf":
+            profile = (
+                get_profile(attempt_obj.profile_key)
+                if attempt_obj else get_profile("generic")
+            )
+            prompt = prompt_for_mode(
+                "native_pdf",
+                profile.extension,
+                profile.extension_version,
+            )
             document, raw_response, _content = self.parse_native_pdf(
                 provider_input,
                 provider_config,
-                NATIVE_PDF_PROMPT,
+                prompt.instructions,
                 attempt_obj,
+                prompt.version,
             )
             try:
                 canonical = document_to_canonical(document)
@@ -56,7 +67,8 @@ class OpenAIAIProviderAdapter(BaseVisionAIProviderAdapter):
         )
 
     def parse_native_pdf(
-        self, provider_input, provider_config, instructions, attempt_obj=None
+        self, provider_input, provider_config, instructions, attempt_obj=None,
+        prompt_version=None,
     ):
         """Call OpenAI native PDF transport without applying business normalization."""
         self.validate_input_mode(provider_input["mode"])
@@ -64,7 +76,7 @@ class OpenAIAIProviderAdapter(BaseVisionAIProviderAdapter):
         client = self._build_client(provider_config)
         attempt = attempt_obj
         prompt_snapshot = {
-            "prompt_version": NATIVE_PDF_PROMPT_VERSION,
+            "prompt_version": prompt_version or "native-pdf-extraction-v1",
             "instructions_checksum": hashlib.sha256(
                 instructions.encode("utf-8")
             ).hexdigest(),

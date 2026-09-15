@@ -1,5 +1,6 @@
 # © 2024 Wukong Digital. License LGPL-3.
 import logging
+import hashlib
 import traceback
 
 from odoo import api, fields
@@ -17,6 +18,7 @@ from ..adapters.aibase import (
 )
 from ..adapters.document_normalizer import DocumentNormalizationError
 from . import observability_service
+from .extraction_profiles import resolve_profile
 from .mapping_service import do_mapping
 from .pdf_preprocessor import PDFPreprocessorError, prepare_provider_input
 
@@ -177,6 +179,7 @@ def start_parse(env, task_id, provider_config_id, synchronous=False):
     if active_attempt:
         raise ValueError("This task already has an AI parse attempt in progress.")
     provider_config = env["wd.ai.provider.config"].browse(provider_config_id)
+    profile = resolve_profile(task, provider_config)
     submitted_at = fields.Datetime.now()
     attempt = env["vendor.invoice.import.parse.attempt"].create({
         "task_id": task.id,
@@ -186,6 +189,12 @@ def start_parse(env, task_id, provider_config_id, synchronous=False):
         "prompt_version": PROMPT_VERSION,
         "extraction_contract_version": EXTRACTION_CONTRACT_VERSION,
         "model_name_snapshot": provider_config.model_name,
+        "profile_key": profile.key,
+        "profile_version": profile.version,
+        "profile_extension_version": profile.extension_version,
+        "profile_extension_checksum": hashlib.sha256(
+            profile.extension.encode("utf-8")
+        ).hexdigest(),
         "submitted_at": submitted_at,
     })
     task.write({

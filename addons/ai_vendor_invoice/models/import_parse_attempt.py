@@ -55,6 +55,26 @@ class VendorInvoiceImportParseAttempt(models.Model):
         readonly=True,
     )
 
+    profile_key = fields.Char(
+        string="Extraction Profile",
+        readonly=True,
+    )
+
+    profile_version = fields.Char(
+        string="Extraction Profile Version",
+        readonly=True,
+    )
+
+    profile_extension_version = fields.Char(
+        string="Profile Extension Version",
+        readonly=True,
+    )
+
+    profile_extension_checksum = fields.Char(
+        string="Profile Extension Checksum",
+        readonly=True,
+    )
+
     started_at = fields.Datetime(
         string="Started At",
         readonly=True,
