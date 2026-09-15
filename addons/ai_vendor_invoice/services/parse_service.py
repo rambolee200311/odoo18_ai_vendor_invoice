@@ -179,12 +179,27 @@ def start_parse(env, task_id, provider_config_id, synchronous=False):
     if active_attempt:
         raise ValueError("This task already has an AI parse attempt in progress.")
     provider_config = env["wd.ai.provider.config"].browse(provider_config_id)
-    previous_attempt = task.current_parse_attempt_id
-    profile = (
-        get_profile(previous_attempt.profile_key)
-        if previous_attempt and previous_attempt.profile_key
-        else resolve_profile(task, provider_config)
+    previous_attempts = task.parse_attempt_ids.sorted(
+        key=lambda attempt: attempt.sequence,
+        reverse=True,
     )
+    profile_key = next(
+        (
+            attempt.profile_key
+            for attempt in previous_attempts
+            if attempt.profile_key and attempt.profile_key != "generic"
+        ),
+        None,
+    )
+    if profile_key:
+        profile = get_profile(profile_key)
+    else:
+        previous_attempt = task.current_parse_attempt_id
+        profile = (
+            get_profile(previous_attempt.profile_key)
+            if previous_attempt and previous_attempt.profile_key
+            else resolve_profile(task, provider_config)
+        )
     submitted_at = fields.Datetime.now()
     attempt = env["vendor.invoice.import.parse.attempt"].create({
         "task_id": task.id,
