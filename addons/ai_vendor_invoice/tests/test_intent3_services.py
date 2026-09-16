@@ -48,6 +48,16 @@ class TestValidationService(TransactionCase):
         with self.assertRaises(ValidationError):
             validation_service.pre_check_integrity(review)
 
+    def test_pre_check_accepts_legacy_unset_no_tax_treatment(self):
+        review = _review([{
+            "description": "Untaxed transport",
+            "tax_ids": [],
+            "tax_rate": 0,
+            "tax_amount": 0,
+            "tax_treatment": False,
+        }])
+        validation_service.pre_check_integrity(review)
+
     def test_amount_mismatch_is_a_warning(self):
         review = _review([{
             "description": "Consulting",

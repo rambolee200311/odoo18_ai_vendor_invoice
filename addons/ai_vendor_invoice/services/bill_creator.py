@@ -27,7 +27,17 @@ def _resolve_line_tax_ids(env, line, company):
             raise ValidationError(_("Statement line tax configuration is invalid."))
         return taxes.ids
 
-    treatment = line.get("tax_treatment")
+    treatment = line.get("tax_treatment") or None
+    if (
+        treatment is None
+        and _number(line.get("tax_rate")) == 0
+        and _number(line.get("tax_amount")) == 0
+        and not line.get("tax_raw_text")
+    ):
+        # Pre-CC-17 Statements represented an explicitly untaxed line with
+        # empty tax facts. Preserve that legacy meaning without inventing a
+        # 0% tax or a special tax treatment.
+        return []
     if treatment != "percentage":
         raise ValidationError(
             _(

@@ -71,7 +71,10 @@ def pre_check_integrity(review_result):
             raise ValidationError(
                 _("Invoice line %s has an invalid tax configuration.") % index
             )
-        treatment = line.get("tax_treatment")
+        # Odoo serializes an unset Selection field as False. Treat it as the
+        # absent optional value so legacy no-tax Statement lines can proceed
+        # to the Bill Creator's explicit compatibility rule.
+        treatment = line.get("tax_treatment") or None
         if treatment not in {
             None,
             "percentage",
