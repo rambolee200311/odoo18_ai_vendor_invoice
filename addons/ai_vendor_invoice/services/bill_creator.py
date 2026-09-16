@@ -28,6 +28,10 @@ def _resolve_line_tax_ids(env, line, company):
         return taxes.ids
 
     treatment = line.get("tax_treatment") or None
+    if treatment is None and _number(line.get("tax_rate")) != 0:
+        # Legacy Statements predate the explicit treatment field. A confirmed
+        # non-zero rate is sufficient to preserve their percentage-tax meaning.
+        treatment = "percentage"
     if (
         treatment is None
         and _number(line.get("tax_rate")) == 0

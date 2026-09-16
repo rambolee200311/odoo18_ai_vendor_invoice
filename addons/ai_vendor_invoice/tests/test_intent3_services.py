@@ -58,6 +58,16 @@ class TestValidationService(TransactionCase):
         }])
         validation_service.pre_check_integrity(review)
 
+    def test_pre_check_accepts_legacy_unset_percentage_treatment(self):
+        review = _review([{
+            "description": "Taxed transport",
+            "tax_ids": [],
+            "tax_rate": 21,
+            "tax_amount": "2.10",
+            "tax_treatment": False,
+        }])
+        validation_service.pre_check_integrity(review)
+
     def test_amount_mismatch_is_a_warning(self):
         review = _review([{
             "description": "Consulting",
