@@ -1,13 +1,13 @@
 # AI Vendor Invoice — Technical Detailed Design
 
-**文档版本**：TDD v1.1
-**文档状态**：FROZEN — RELEASE 1.1 AS-BUILT BASELINE
-**冻结日期**：2026-09-15
+**文档版本**：TDD v1.2
+**文档状态**：CLOSED — RELEASE 1.2 AS-BUILT BASELINE
+**冻结日期**：2026-09-16
 **方法**：REVERSE ENGINEERING + AS-BUILT VERIFICATION
 **模块**：`ai_vendor_invoice`
 **运行平台**：Odoo 18 / PostgreSQL / Owl / queue-job
 
-> 本文档按既有 TDD 模板记录 Release 1.1 的实际实现。本文不新增业务
+> 本文档按既有 TDD 模板记录 Release 1.2 的实际实现。本文不新增业务
 > 需求、不重构既有架构、不改变 Statement、Task、Canonical、Provider 或
 > Vendor Bill 的 authority 边界。
 
@@ -16,6 +16,7 @@
 |版本|日期|状态|说明|
 |---|---|---|---|
 |v1.1|2026-09-15|FROZEN|Release 1.1 As-Built Baseline；收口 Statement-first、Extraction Profile、UPS VAT 和 Batch Supplier 实现|
+|v1.2|2026-09-16|CLOSED|Release 1.2 As-Built；完成 Confirmed Statement 到 Draft Vendor Bill、税务事实解析、幂等、取消重建和 GPT Native PDF Schema 修复|
 
 ## 目录
 
@@ -662,4 +663,73 @@ Release 1.1 相关测试覆盖：
 - Vendor Bill 业务流程重构；
 - 新的 Retry/Queue 语义。
 
-**Release 1.1 TDD Freeze：本文档只描述已实现 As-Built 行为。**
+**Release 1.2 TDD Close：本文档只描述已实现 As-Built 行为。**
+
+## 16. Release 1.2 As-Built Closure
+
+### 16.1 Confirmed Statement to Draft Vendor Bill
+
+Release 1.2 已实现并冻结以下业务边界：
+
+- 只有人工 Confirmed 的 Statement 才能创建 Draft Vendor Bill；
+- Vendor Bill 只读取确认后的 Statement，不读取 Provider response、Canonical
+  或 Mapping 作为旁路业务来源；
+- Statement 与 `account.move` 双向关联并保留审计链；
+- 一个 Statement 存在 active Draft Bill 时，重复请求幂等返回现有 Bill；
+- 取消当前 Bill 后释放 active link，但保留历史 Bill，允许从同一 Confirmed
+  Statement 重建新的 Draft Bill；
+- Bill 保持 `draft`，不自动 Post、Payment 或 Reconciliation；
+- Bill 行使用 `quantity=1.0`，`price_unit=Statement Line.amount`。
+
+### 16.2 Tax Fact and Odoo Tax Boundary
+
+AI Parse 只提取发票税务事实：
+
+```text
+tax_rate
+tax_amount
+tax_raw_text
+tax_treatment
+```
+
+这些字段不是 Odoo `account.tax` ID，也不是 AI 直接生成的税码。人工确认后，
+Bill Creator 才根据 Statement 中确认的税务事实选择或受控创建 Purchase Tax。
+特殊税务性质在事实不足时必须失败，不能猜测。
+
+为兼容 OpenAI Strict Structured Outputs，Native PDF Schema 要求每个
+`properties` 字段都出现在 `required` 中；`tax_raw_text` 和
+`tax_treatment` 仍允许为 `null`，不改变无税发票的业务语义。
+
+### 16.3 Provider Verification
+
+- DeepSeek Markdown 独立测试通过；
+- GPT Native PDF 使用生产 PDF、生产模型和生产 Prompt 验证通过；
+- 修复前 GPT 失败原因为 OpenAI HTTP 400：Native PDF response schema
+  缺少 `tax_raw_text` 和 `tax_treatment`；
+- 修复后同一 PDF 成功返回 5 条明细；
+- Provider 错误提示已区分 HTTP 拒绝、网络连接、超时、Schema 校验和
+  Provider 响应错误；
+- AI Parse Error Code & Diagnostic Taxonomy 保持 Deferred，不属于本版本
+  实现范围。
+
+### 16.4 Release 1.2 Verification
+
+|验证项|结果|
+|---|---|
+|CC-17 ORM Bill creation/idempotency/cancel-rebuild|PASS|
+|历史无税 Statement 兼容|PASS|
+|历史百分比税兼容|PASS|
+|Statement/Bill 双向关联|PASS|
+|Bill 行 quantity/price_unit 契约|PASS|
+|GPT Native PDF production-schema regression|PASS|
+|Odoo service HTTP health check|PASS (`200`)|
+
+### 16.5 Release 1.2 Out of Scope
+
+- 自动 Post、付款、对账；
+- Provider fallback；
+- 新的 OCR Provider；
+- 用户可配置错误码字典；
+- 自动 Confirm Statement；
+- 自动选择业务 Partner、Currency 或会计科目；
+- 多张 Statement 合并为一张 Vendor Bill。

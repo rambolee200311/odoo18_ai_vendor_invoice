@@ -1,5 +1,26 @@
 # Sprint Implementation Log
 
+## 2026-09-16 - Release 1.2 Close and Release
+
+### Scope
+
+- Closed the Release 1.2 as-built baseline.
+- Delivered Confirmed Statement to Draft Vendor Bill creation under CC-17.
+- Verified idempotent active-Bill reuse, cancelled-Bill recreation, bidirectional
+  traceability, and per-line tax-fact handling.
+- Corrected the GPT Native PDF Structured Output Schema so OpenAI strict
+  validation accepts nullable `tax_raw_text` and `tax_treatment` fields.
+- Updated the Release 1.2 TDD, user guide, and closure report.
+
+### Verification
+
+```text
+CC-17 ORM transaction verification: PASS
+GPT Native PDF production-PDF verification: PASS (5 lines)
+DeepSeek Markdown regression: PASS
+Odoo service health check: PASS (HTTP 200)
+```
+
 ## 2026-09-08 - PDF Upload Form Correction
 
 ### Scope

@@ -1,13 +1,15 @@
 # AI Invoice 用户操作手册
 
-**版本**：User Guide v1.1
-**更新日期**：2026-09-15
+**版本**：User Guide v1.2
+**更新日期**：2026-09-16
 
 ## 修订记录
 
 - v1.1：改为 Statement-first 流程，新增 Statement 内 AI / Task 页面；
   Run AI 成功后自动将结果填充到 Statement；新增批量导入的批次级 Supplier
   选择和 Profile 说明。
+- v1.2：新增 Confirmed Statement 创建 Draft Vendor Bill、幂等重建和税务事实
+  边界说明；明确 AI 不直接生成 Odoo 税码。
 - v1.0：原始 AI Invoice 操作说明。
 
 ## 1. 进入 AI Invoice
@@ -76,7 +78,6 @@ Run AI 后仍停留在当前 Statement 页面，不会自动跳转到独立 Task
 - Description；
 - Quantity；
 - Price Unit；
-- Taxes；
 - Tax Rate；
 - Tax Amount；
 - Amount；
@@ -86,6 +87,10 @@ Run AI 后仍停留在当前 Statement 页面，不会自动跳转到独立 Task
 AI 只是辅助录入。原始 PDF 是最终核对依据，用户必须人工检查和修正
 供应商、金额、税额及每一条明细。
 
+Tax Rate 和 Tax Amount 是发票税务事实，不是 Odoo 税码。AI 不直接创建
+`account.tax` 或填写税码 ID；税码选择或受控创建发生在后续 Vendor Bill
+生成阶段。
+
 ## 5. 确认和创建 Vendor Bill
 
 完成核对后：
@@ -94,6 +99,15 @@ AI 只是辅助录入。原始 PDF 是最终核对依据，用户必须人工检
 2. 按页面要求完成 Check；
 3. 点击 **Confirm**；
 4. 点击 **Create Bill** 创建 Vendor Bill。
+
+创建的 Vendor Bill 必须保持 Draft。系统根据已 Confirmed Statement 的税务
+事实选择或受控创建 Purchase Tax；系统不会从 Provider response 或原始 AI
+结果绕过 Statement 直接生成会计行。
+
+重复点击 **Create Bill** 不会创建第二张 active Vendor Bill，而是复用当前
+Statement 已关联的 Draft Vendor Bill。若当前 Vendor Bill 已取消，Statement
+仍保持 Confirmed，并允许重新创建一张新的 Draft Vendor Bill；旧 Bill 作为
+历史记录保留。
 
 Confirmed Statement 不能取消。只有 Draft Statement 可以点击 **Cancel**；
 取消后不再进入确认和建单流程。

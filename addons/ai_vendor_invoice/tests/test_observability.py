@@ -251,6 +251,13 @@ class TestProviderCallEvidence(ObservabilityCase):
         )
         self.assertEqual(request["reasoning"], {"effort": "low"})
 
+    def test_native_pdf_schema_requires_every_line_property(self):
+        line_schema = INVOICE_EXTRACTION_RESULT_SCHEMA["properties"]["lines"]["items"]
+        self.assertEqual(
+            set(line_schema["required"]),
+            set(line_schema["properties"]),
+        )
+
     def test_native_pdf_failure_keeps_provider_call_evidence(self):
         adapter = OpenAIAIProviderAdapter.__new__(OpenAIAIProviderAdapter)
         client = Mock()
