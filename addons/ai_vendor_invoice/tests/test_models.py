@@ -1054,6 +1054,16 @@ class TestJsonSchemas(TransactionCase):
         ]
         jsonschema.validate(data, CANONICAL_INVOICE_RESULT_SCHEMA)
 
+    def test_canonical_valid_without_optional_tax_text(self):
+        data = _minimal_canonical()
+        data["lines"] = [
+            {
+                "description": {"value": "Untaxed service", "confidence": 0.95},
+                "amount": {"value": "100.00", "confidence": 0.9},
+            }
+        ]
+        jsonschema.validate(data, CANONICAL_INVOICE_RESULT_SCHEMA)
+
     def test_canonical_valid_with_line_tax_treatment(self):
         data = _minimal_canonical()
         data["lines"] = [

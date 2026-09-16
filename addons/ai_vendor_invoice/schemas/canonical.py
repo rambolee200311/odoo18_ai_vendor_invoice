@@ -121,7 +121,7 @@ CANONICAL_INVOICE_RESULT_SCHEMA = {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["description", "amount", "tax_raw_text"],
+                "required": ["description", "amount"],
                 "additionalProperties": False,
                 "properties": {
                     "description": {
