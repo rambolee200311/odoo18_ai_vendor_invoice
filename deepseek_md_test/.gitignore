@@ -1,0 +1,5 @@
+.env
+output/*
+!output/.gitkeep
+samples/*
+tools/__pycache__/
