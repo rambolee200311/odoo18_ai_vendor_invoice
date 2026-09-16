@@ -161,9 +161,16 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
                     " ".join(str(error).split())[:300],
                 )
                 if retries >= max_attempt_retry:
-                    raise AIProviderTemporaryError(
+                    wrapped_error = AIProviderTemporaryError(
                         "AI provider request temporarily unavailable."
-                    ) from error
+                    )
+                    wrapped_error.failure_stage = "PAGE_PROVIDER_REQUEST"
+                    wrapped_error.user_message = (
+                        "Could not connect to the DeepSeek service. Please try again."
+                        if isinstance(error, APIConnectionError)
+                        else "The DeepSeek request timed out. Please try again."
+                    )
+                    raise wrapped_error from error
                 retries += 1
                 self._wait_before_retry(retries - 1)
             except APIStatusError as error:
@@ -177,13 +184,25 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
                     type(error).__name__,
                 )
                 if not self._is_retryable_http_status(error.status_code):
-                    raise AIProviderPermanentError(
+                    wrapped_error = AIProviderPermanentError(
                         "AI provider rejected the request."
-                    ) from error
+                    )
+                    wrapped_error.failure_stage = "PAGE_PROVIDER_RESPONSE"
+                    wrapped_error.user_message = (
+                        "DeepSeek rejected the request (HTTP %s). "
+                        "Check the model and input configuration."
+                    ) % error.status_code
+                    raise wrapped_error from error
                 if retries >= max_attempt_retry:
-                    raise AIProviderTemporaryError(
+                    wrapped_error = AIProviderTemporaryError(
                         "AI provider temporarily unavailable."
-                    ) from error
+                    )
+                    wrapped_error.failure_stage = "PAGE_PROVIDER_RESPONSE"
+                    wrapped_error.user_message = (
+                        "DeepSeek is temporarily unavailable (HTTP %s). "
+                        "Please try again."
+                    ) % error.status_code
+                    raise wrapped_error from error
                 retries += 1
                 self._wait_before_retry(retries - 1)
 

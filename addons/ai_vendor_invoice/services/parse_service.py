@@ -31,9 +31,17 @@ def _safe_error_summary(error):
     if isinstance(error, PDFPreprocessorError):
         return "The source PDF could not be prepared for AI parsing."
     if isinstance(error, AIProviderTemporaryError):
-        return "The AI provider is temporarily unavailable. Please try again."
+        return getattr(
+            error,
+            "user_message",
+            "The AI provider is temporarily unavailable. Please try again.",
+        )
     if isinstance(error, AIProviderPermanentError):
-        return "The AI provider rejected the parse request."
+        return getattr(
+            error,
+            "user_message",
+            "The AI provider rejected the parse request.",
+        )
     return "AI parsing failed. Please try again or contact an administrator."
 
 

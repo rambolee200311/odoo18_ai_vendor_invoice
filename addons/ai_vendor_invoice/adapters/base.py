@@ -113,9 +113,14 @@ class BaseAIProviderAdapter(ABC):
         try:
             validate(normalized, CANONICAL_INVOICE_RESULT_SCHEMA)
         except JSONSchemaValidationError as error:
-            raise AIProviderPermanentError(
+            wrapped_error = AIProviderPermanentError(
                 "AI provider returned an invalid invoice schema."
-            ) from error
+            )
+            wrapped_error.failure_stage = "CANONICAL_VALIDATION"
+            wrapped_error.user_message = (
+                "The AI provider returned data that does not match the invoice schema."
+            )
+            raise wrapped_error from error
         return normalized
 
     @abstractmethod

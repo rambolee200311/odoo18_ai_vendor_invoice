@@ -165,9 +165,16 @@ class OpenAIAIProviderAdapter(BaseVisionAIProviderAdapter):
                     attempt, provider_call, error, retries
                 )
                 if retries >= provider_config.max_internal_retry:
-                    raise AIProviderTemporaryError(
+                    wrapped_error = AIProviderTemporaryError(
                         "AI provider request temporarily unavailable."
-                    ) from error
+                    )
+                    wrapped_error.failure_stage = "PAGE_PROVIDER_REQUEST"
+                    wrapped_error.user_message = (
+                        "Could not connect to the OpenAI service. Please try again."
+                        if isinstance(error, APIConnectionError)
+                        else "The OpenAI request timed out. Please try again."
+                    )
+                    raise wrapped_error from error
                 self._wait_before_retry(retries)
                 retries += 1
                 observability_service.record_internal_retry(attempt, retries)
@@ -181,13 +188,25 @@ class OpenAIAIProviderAdapter(BaseVisionAIProviderAdapter):
                     response_received=True,
                 )
                 if not self._is_retryable_http_status(error.status_code):
-                    raise AIProviderPermanentError(
+                    wrapped_error = AIProviderPermanentError(
                         "AI provider rejected the request."
-                    ) from error
+                    )
+                    wrapped_error.failure_stage = "PAGE_PROVIDER_RESPONSE"
+                    wrapped_error.user_message = (
+                        "OpenAI rejected the request (HTTP %s). "
+                        "Check the model and input configuration."
+                    ) % error.status_code
+                    raise wrapped_error from error
                 if retries >= provider_config.max_internal_retry:
-                    raise AIProviderTemporaryError(
+                    wrapped_error = AIProviderTemporaryError(
                         "AI provider temporarily unavailable."
-                    ) from error
+                    )
+                    wrapped_error.failure_stage = "PAGE_PROVIDER_RESPONSE"
+                    wrapped_error.user_message = (
+                        "OpenAI is temporarily unavailable (HTTP %s). "
+                        "Please try again."
+                    ) % error.status_code
+                    raise wrapped_error from error
                 self._wait_before_retry(retries)
                 retries += 1
                 observability_service.record_internal_retry(attempt, retries)
