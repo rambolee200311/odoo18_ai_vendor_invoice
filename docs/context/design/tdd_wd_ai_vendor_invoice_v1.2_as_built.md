@@ -584,16 +584,16 @@ Release 1.1 只冻结 Vendor Bill 的 authority boundary：Vendor Bill 必须
 来源于经人工审核的 Statement，不得绕过 Statement 直接读取 AI、Canonical、
 Mapping 或 Provider response 结果。
 
-Statement 到 Odoo `account.move` 的完整字段映射、税务映射、会计科目、
-金额校验、舍入、幂等和异常处理契约不属于 Release 1.1 As-Built Baseline，
-由后续 Release 1.2 定义。已 Confirm、Bill Created 或 Cancelled 的
-Statement 不得被 AI Projection 覆盖。
+Release 1.2 已完成并冻结 Confirmed Statement 到 Draft Vendor Bill 的实际
+实现契约，包括确认前置条件、完整字段映射、税务事实解析、金额校验、幂等、
+取消重建和异常处理；具体以 §16 为准。已 Confirm、Bill Created 或
+Cancelled 的 Statement 不得被 AI Projection 覆盖。
 
 ## 13. 测试与人工 UAT
 
 ### 13.1 自动测试证据
 
-Release 1.1 相关测试覆盖：
+Release 1.1 的回归测试覆盖仍作为 Release 1.2 基线：
 
 - Profile Resolver：Generic、UPS、explicit assignment、rerun inheritance；
 - Prompt Composition：Native PDF、Markdown；
@@ -614,11 +614,15 @@ Release 1.1 相关测试覆盖：
 |DHL Statement 1809/1810|Generic Compatibility PASS，不创建 DHL Profile|
 |Batch Supplier = UPS|人工验证 Supplier 显式传递到 Batch/Statement/Attempt|
 
+Release 1.2 的 Vendor Bill closure verification 见 §16.4。当前记录包含
+ORM 事务验证和生产数据验证；本文件不将未单独留存的浏览器人工 UAT 记录
+表述为已完成的人工 UAT。
+
 ### 13.3 Runtime Verification 与限制
 
 最终组合回归曾在共享 `odoo18e_tms` 数据库遇到已有 DDL session 导致
 `LockNotAvailable`。该退出不是测试断言失败；已完成的针对性测试和运行时
-健康检查仍作为本版本验证记录。共享数据库锁问题不改变 Release 1.1
+健康检查仍作为本版本验证记录。共享数据库锁问题不改变 Release 1.2
 运行时契约。
 
 ## 14. 部署与运行核对
@@ -650,7 +654,7 @@ Release 1.1 相关测试覆盖：
 |T-11|Invalid explicit Profile 不静默 fallback|
 |T-12|AI HTTP 期间不持有数据库业务锁|
 
-### 15.1 Release 1.1 Not Implemented
+### 15.1 Release 1.2 Not Implemented / Out of Scope
 
 - DHL/FedEx/其他 Supplier-specific Profile；
 - 用户可配置 Profile Model；
@@ -660,8 +664,10 @@ Release 1.1 相关测试覆盖：
 - BatchItem 独立模型；
 - Mixed-supplier auto routing；
 - 新的 Statement authority；
-- Vendor Bill 业务流程重构；
 - 新的 Retry/Queue 语义。
+
+Release 1.2 的完整 Out of Scope 清单以 §16.5 为准；本节保留的项目用于
+标识从 Release 1.1 延续、但在 Release 1.2 仍未实施的技术范围。
 
 **Release 1.2 TDD Close：本文档只描述已实现 As-Built 行为。**
 
