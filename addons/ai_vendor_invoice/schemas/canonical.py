@@ -181,35 +181,35 @@ CANONICAL_INVOICE_RESULT_SCHEMA = {
                             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
                         },
                     },
+                    "tax_treatment": {
+                        "type": "object",
+                        "required": ["value", "confidence"],
+                        "additionalProperties": False,
+                        "properties": {
+                            "value": {
+                                "type": ["string", "null"],
+                                "enum": [
+                                    "percentage",
+                                    "zero_rated",
+                                    "exempt",
+                                    "non_taxable",
+                                    "outside_scope",
+                                    "other",
+                                    None,
+                                ],
+                            },
+                            "confidence": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1,
+                            },
+                        },
+                    },
                     "reconciliation_clue": {"type": ["string", "null"]},
                     "charge_details": {"type": ["string", "null"]},
                     "reconciliation_clues": {
                         "type": "array",
                         "items": RECONCILIATION_CLUE_SCHEMA,
-                    },
-                },
-            },
-            "tax_treatment": {
-                "type": "object",
-                "required": ["value", "confidence"],
-                "additionalProperties": False,
-                "properties": {
-                    "value": {
-                        "type": ["string", "null"],
-                        "enum": [
-                            "percentage",
-                            "zero_rated",
-                            "exempt",
-                            "non_taxable",
-                            "outside_scope",
-                            "other",
-                            None,
-                        ],
-                    },
-                    "confidence": {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1,
                     },
                 },
             },
