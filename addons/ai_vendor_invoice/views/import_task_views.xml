@@ -125,8 +125,6 @@
                                     <field name="order_id"/>
                                     <field name="quantity"/>
                                     <field name="price_unit"/>
-                                    <field name="tax_ids" widget="many2many_tags"/>
-                                    <field name="tax_treatment"/>
                                     <field name="tax_rate"/>
                                     <field name="tax_amount" sum="Tax Amount"/>
                                     <field name="amount" sum="Untaxed Amount"/>
@@ -156,12 +154,6 @@
                                         <field name="tax_amount"
                                                readonly="parent.state != 'draft'"/>
                                         <field name="total_amount"
-                                               readonly="parent.state != 'draft'"/>
-                                        <field name="tax_ids" widget="many2many_tags"
-                                               readonly="parent.state != 'draft'"/>
-                                        <field name="tax_treatment"
-                                               readonly="parent.state != 'draft'"/>
-                                        <field name="tax_raw_text"
                                                readonly="parent.state != 'draft'"/>
                                         <field name="reconciliation_clue"
                                                readonly="parent.state != 'draft'"/>
@@ -254,10 +246,6 @@
                         <field name="price_unit"
                                readonly="statement_id.state != 'draft'"/>
                         <field name="amount"
-                               readonly="statement_id.state != 'draft'"/>
-                        <field name="tax_ids" widget="many2many_tags"
-                               readonly="statement_id.state != 'draft'"/>
-                        <field name="tax_raw_text"
                                readonly="statement_id.state != 'draft'"/>
                         <field name="tax_rate"
                                readonly="statement_id.state != 'draft'"/>

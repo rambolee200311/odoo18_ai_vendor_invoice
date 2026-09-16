@@ -18,8 +18,7 @@ const LINE_FIELDS = [
     ["quantity", "Quantity"],
     ["unit_price", "Unit price"],
     ["subtotal", "Subtotal"],
-    ["tax_ids", "Taxes"],
-    ["tax_treatment", "Tax treatment"],
+    ["tax_rate", "Tax rate"],
     ["tax_amount", "Tax amount"],
     ["line_total_amount", "Line total"],
 ];
@@ -86,9 +85,7 @@ export class VendorInvoiceReviewDialog extends Component {
     }
 
     setLine(index, field, value) {
-        this.state.result.lines[index][field] = field === "tax_ids"
-            ? value.split(",").map((tax) => Number(tax.trim())).filter(Boolean)
-            : value;
+        this.state.result.lines[index][field] = value;
         this.state.edited[`line.${index}.${field}`] = true;
     }
 
