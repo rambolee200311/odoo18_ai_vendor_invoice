@@ -2,6 +2,8 @@
 
 import hashlib
 import json
+import logging
+import time
 
 from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 
@@ -19,6 +21,7 @@ from ..services.extraction_profiles import get_profile
 
 
 MARKDOWN_SYSTEM_PROMPT = MARKDOWN_PROMPT
+_logger = logging.getLogger(__name__)
 
 
 class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
@@ -76,6 +79,19 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
             ).hexdigest(),
             "input_mode": "markdown",
         }
+        markdown_text = provider_input["markdown_text"]
+        _logger.info(
+            "DeepSeek Markdown request prepared: attempt=%s provider=%s model=%s "
+            "profile=%s prompt=%s pages=%s markdown_chars=%s prompt_chars=%s",
+            attempt_obj.id if attempt_obj else None,
+            provider_config.name,
+            provider_config.model_name,
+            profile.key,
+            prompt.version,
+            provider_input.get("source", {}).get("page_count"),
+            len(markdown_text),
+            len(system_prompt),
+        )
         retries = 0
         while True:
             provider_call = observability_service.begin_provider_call(
@@ -84,12 +100,13 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
                 input_mode="markdown", input_document_type="text/markdown",
                 rendered_image_count=0,
             ) if attempt_obj else None
+            request_started = time.monotonic()
             try:
                 response = client.chat.completions.create(
                     model=provider_config.model_name,
                     messages=[
                         {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": provider_input["markdown_text"]},
+                        {"role": "user", "content": markdown_text},
                     ],
                     response_format={"type": "json_object"},
                     temperature=0,
@@ -98,6 +115,15 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
                 )
                 raw_response = response.model_dump_json().encode()
                 content = response.choices[0].message.content
+                _logger.info(
+                    "DeepSeek Markdown response received: attempt=%s retry=%s "
+                    "elapsed=%.2fs response_bytes=%s content_chars=%s",
+                    attempt_obj.id if attempt_obj else None,
+                    retries,
+                    time.monotonic() - request_started,
+                    len(raw_response),
+                    len(content or ""),
+                )
                 if not isinstance(content, str) or not content.strip():
                     raise AIProviderPermanentError("AI provider returned empty JSON.")
                 canonical = self._canonical(json.loads(content))
@@ -108,6 +134,14 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
                 )
                 return canonical, raw_response
             except (json.JSONDecodeError, AIProviderPermanentError) as error:
+                _logger.warning(
+                    "DeepSeek Markdown response rejected: attempt=%s retry=%s "
+                    "elapsed=%.2fs error=%s",
+                    attempt_obj.id if attempt_obj else None,
+                    retries,
+                    time.monotonic() - request_started,
+                    type(error).__name__,
+                )
                 if attempt_obj and provider_call:
                     observability_service.finish_provider_call(
                         attempt_obj, provider_call, outcome="response_invalid",
@@ -117,6 +151,15 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
                     )
                 raise
             except (APITimeoutError, APIConnectionError) as error:
+                _logger.warning(
+                    "DeepSeek Markdown transport failure: attempt=%s retry=%s "
+                    "elapsed=%.2fs error=%s message=%s",
+                    attempt_obj.id if attempt_obj else None,
+                    retries,
+                    time.monotonic() - request_started,
+                    type(error).__name__,
+                    " ".join(str(error).split())[:300],
+                )
                 if retries >= max_attempt_retry:
                     raise AIProviderTemporaryError(
                         "AI provider request temporarily unavailable."
@@ -124,6 +167,15 @@ class DeepSeekAIProviderAdapter(BaseVisionAIProviderAdapter):
                 retries += 1
                 self._wait_before_retry(retries - 1)
             except APIStatusError as error:
+                _logger.warning(
+                    "DeepSeek Markdown HTTP failure: attempt=%s retry=%s "
+                    "elapsed=%.2fs status=%s error=%s",
+                    attempt_obj.id if attempt_obj else None,
+                    retries,
+                    time.monotonic() - request_started,
+                    error.status_code,
+                    type(error).__name__,
+                )
                 if not self._is_retryable_http_status(error.status_code):
                     raise AIProviderPermanentError(
                         "AI provider rejected the request."
